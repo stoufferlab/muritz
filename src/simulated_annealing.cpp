@@ -29,7 +29,7 @@ double role_distance(Role r1, Role r2){
 	for(int i=0;i<r1.f.size();++i){
 		distance += (r1.f[i].frequency - r2.f[i].frequency ) * (r1.f[i].frequency - r2.f[i].frequency);
 	}
-	//cout << "done\n";
+	//cout << distance << "...done\n";
   	return distance;
 }
 
@@ -39,7 +39,7 @@ double role_distance(Role r1){
 	for(int i=0;i<r1.f.size();++i){
 		distance += (r1.f[i].frequency) * (r1.f[i].frequency);
 	}
-	//cout << "done\n";
+	//cout << distance << "...done\n";
   	return distance;
 }
 
@@ -70,26 +70,27 @@ double alignment_energy(void *xp){
 		}
 	}
 
-	//cout << "done\n";
+	cout << "energy = " << E << ": ";
+	alignment_print(xp);
+	cout << endl;
 	return E;
 }
 
 /* make a move in the alignment space */
 void alignment_step(const gsl_rng * r, void *xp, double step_size){
-	//cout << "alignment step...";
-	int p1, p2;
-	pair<int,int> tmp;
+	Alignment *a = (Alignment *) xp;
+	int p1, p2, tmp;
 
 	step_size = 0 ; // prevent warnings about unused parameter
-	
-	Alignment *a = (Alignment *) xp;
 
-	p1 = gsl_rng_uniform_int(r,a->matches.size()); // pick the first pair to swap
-	p2 = gsl_rng_uniform_int(r,a->matches.size()); // pick the first pair to swap
+	// pick the pairs to swap
+	p1 = gsl_rng_uniform_int(r,a->matches.size());
+	p2 = gsl_rng_uniform_int(r,a->matches.size());
 
-	tmp = a->matches[p1];
+	// swap the indices for net2
+	tmp = a->matches[p1].second;
 	a->matches[p1].second = a->matches[p2].second;
-	a->matches[p2].second = tmp.second;
+	a->matches[p2].second = tmp;
 
 	if(a->matches[p1].first != -1)
 		a->match1[a->matches[p1].first] = a->matches[p1].second;
@@ -97,64 +98,6 @@ void alignment_step(const gsl_rng * r, void *xp, double step_size){
 	if(a->matches[p2].first != -1)
 		a->match1[a->matches[p2].first] = a->matches[p2].second;
 
-	/*cout << endl;
-	alignment_print(xp);*/
-	
-/*	// make sure the pair is actually matched to another node
-	if(a->matches[p1].first != -1 && a->matches[p1].second != -1){
-		// split up the pair and match them to nothing
-		if(gsl_rng_uniform(r) < 0.5){
-			//cout << "splitting up pair: " << p1 << "\n";
-			
-			tmp.first = -1;
-			tmp.second = a->matches[p1].second;
-			a->matches.push_back(tmp);
-			a->matches[p1].second = -1;
-
-			a->match1[a->matches[p1].first] = -1;
-		}
-		// swap this pair with another
-		else{
-			p2 = gsl_rng_uniform_int(r,a->matches.size()); // pick the second pair to swap
-			//cout << "swapping two pairs: " << p1 << " " << p2 << "\n";
-			
-			tmp = a->matches[p1];
-			a->matches[p1].second = a->matches[p2].second;
-			a->matches[p2].second = tmp.second;
-
-			a->match1[a->matches[p1].first] = a->matches[p1].second;
-			a->match1[a->matches[p2].first] = a->matches[p2].second;
-		}
-	}else{
-		p2 = gsl_rng_uniform_int(r,a->matches.size()); // pick the second pair
-		//cout << "swapping two pairs: " << p1 << " " << p2 << "\n";
-
-		tmp = a->matches[p1];
-		a->matches[p1].second = a->matches[p2].second;
-		a->matches[p2].second = tmp.second;
-		
-		if(a->matches[p1].first != -1)
-			a->match1[a->matches[p1].first] = a->matches[p1].second;
-		else
-			if(a->matches[p1].second == -1){
-				a->matches[p1] = a->matches.back();
-				a->matches.pop_back();
-			}
-
-		if(a->matches[p2].first != -1)
-			a->match1[a->matches[p2].first] = a->matches[p2].second;
-		else
-			if(a->matches[p2].second == -1){
-				a->matches[p2] = a->matches.back();
-				a->matches.pop_back();
-			}
-	}
-*/
-	//alignment_print(xp);
-	//cout << endl;
-
-	//exit(0);
-	////cout << "done\n";
 }
 
 double alignment_distance(void *xp, void *yp){
@@ -173,25 +116,46 @@ double alignment_distance(void *xp, void *yp){
 
 void alignment_print(void *xp){
 	Alignment *a = (Alignment *) xp;
-	unsigned int i;
+	unsigned int i,j,k;
 
 	cout << "  [";
-	for(i=0;i<a->matches.size();++i)
-		cout << " (" << a->matches[i].first << "," << a->matches[i].second << ")";
-	cout << " ]\n";
+	for(i=0;i<a->matches.size();++i){
+		j = a->matches[i].first;
+		k = a->matches[i].second;
+		
+		cout << " (";
+		if (j != -1)
+			cout << a->net1->roles[j].name;
+		else
+			cout << "NULL";
+		cout << ",";
+		if (k != -1)
+			cout << a->net2->roles[k].name;
+		else
+			cout << "NULL";
+		cout <<  ")";
+	}
+	cout << " ]  ";
 }
 
 void alignment_copy(void *source, void *dest){
 	//cout << "copy...";
+	
 	Alignment *a1 = (Alignment *) source;
 	Alignment *a2 = (Alignment *) dest;
 	
 	a2->net1 = a1->net1;
 	a2->net2 = a1->net2;
 
-	a2->matches = a1->matches;
-	a2->match1 = a1->match1;
-	cout << "done\n";
+	a2->matches.resize(a1->matches.size());
+	for(unsigned int i=0;i<a1->matches.size();++i)
+		a2->matches[i] = a1->matches[i];
+
+	a2->match1.resize(a1->match1.size());
+	for(unsigned int i=0;i<a1->match1.size();++i)
+		a2->match1[i] = a1->match1[i];
+	
+	//cout << "done\n";
 }
 
 void * alignment_copy_construct(void *xp){

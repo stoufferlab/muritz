@@ -25,7 +25,7 @@
 using namespace std;
 
 #define N_TRIES 200             /* how many points do we try before stepping */
-#define ITERS_FIXED_T 2000      /* how many iterations for each T? */
+#define ITERS_FIXED_T 20      /* how many iterations for each T? */
 #define STEP_SIZE 1.0           /* max step size in random walk */
 #define K 1.0                   /* Boltzmann constant */
 #define T_INITIAL 5000.0        /* initial temperature */
@@ -65,9 +65,6 @@ int main(int argc, char *argv[])
   		a_initial.matches.push_back(pair<int,int>(-1,i));
   	}
 
-	alignment_print(&a_initial);
-	cout << alignment_energy(&a_initial) << endl;
-
 	gsl_siman_solve(r, &a_initial,
 					alignment_energy,
 					alignment_step,
@@ -79,9 +76,9 @@ int main(int argc, char *argv[])
 					sizeof(a_initial),
 					params);
   	
-
 	cout << "best alignment:\n";
 	alignment_print(&a_initial);
+	cout << alignment_energy(&a_initial) << endl;
 
 	gsl_rng_free (r);
 	return 0;
