@@ -65,6 +65,7 @@ Network read_roles(char *filename, char separator)
 
     N.roles.push_back(R);
   }
+  inFile.close();
 
 /*  for(int i=0;i<N.roles.size();i++){
     cout << "Name: " << N.roles[i].name << endl;
