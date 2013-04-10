@@ -26,9 +26,11 @@ typedef struct {
 
 // Alignment information
 typedef struct {
-	Network net1;
-	Network net2;
-	vector<int> order2;
+	Network *net1;
+	Network *net2;
+
+        vector<pair<int,int> > matches;
+        vector<int> match1;
 } Alignment;
 
 #endif

@@ -30,9 +30,9 @@ AC_CONFIG_MACRO_DIR([m4])
 #AC_PROG_LIBTOOL
 
 # Check for GSL
-#AC_CHECK_LIB([m],[cos])
-#AC_CHECK_LIB([gslcblas],[cblas_dgemm])
-#AC_CHECK_LIB([gsl],[gsl_blas_dgemm])
+AC_CHECK_LIB([m],[cos])
+AC_CHECK_LIB([gslcblas],[cblas_dgemm])
+AC_CHECK_LIB([gsl],[gsl_blas_dgemm])
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT

@@ -66,12 +66,12 @@ Network read_roles(char *filename, char separator)
     N.roles.push_back(R);
   }
 
-  for(int i=0;i<N.roles.size();i++){
+/*  for(int i=0;i<N.roles.size();i++){
     cout << "Name: " << N.roles[i].name << endl;
     for(int j=0;j<N.roles[i].f.size();j++){
       cout << "Item #" << N.roles[i].f[j].name << ": " << N.roles[i].f[j].frequency << endl;
     }
   }
-
+*/
   return N;
 }
