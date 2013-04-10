@@ -91,8 +91,11 @@ void alignment_step(const gsl_rng * r, void *xp, double step_size){
 	a->matches[p1].second = a->matches[p2].second;
 	a->matches[p2].second = tmp.second;
 
-	a->match1[a->matches[p1].first] = a->matches[p1].second;
-	a->match1[a->matches[p2].first] = a->matches[p2].second;
+	if(a->matches[p1].first != -1)
+		a->match1[a->matches[p1].first] = a->matches[p1].second;
+
+	if(a->matches[p2].first != -1)
+		a->match1[a->matches[p2].first] = a->matches[p2].second;
 
 	/*cout << endl;
 	alignment_print(xp);*/
