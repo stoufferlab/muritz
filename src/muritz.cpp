@@ -35,51 +35,42 @@ using namespace std;
 gsl_siman_params_t params = {N_TRIES, ITERS_FIXED_T, STEP_SIZE,
                              K, T_INITIAL, MU_T, T_MIN};
 
+// the networks are stored as global variables
+Network n1;
+Network n2;
+
 int main(int argc, char *argv[])
 {
 	unsigned int i,j,k;
 
+	// set up the random number generator
 	gsl_rng_env_setup();
-	cout << "seed: " << gsl_rng_default_seed << endl;
 	gsl_rng * r = gsl_rng_alloc(gsl_rng_mt19937);
 
-  	Alignment a_initial;
+	// read in two files of node "roles"
+  	n1 = read_roles(argv[1],' ');
+  	n2 = read_roles(argv[2],' ');
 
-  	Network n1 = read_roles(argv[1],' ');
-  	Network n2 = read_roles(argv[2],' ');
+  	// set up the alignment between networks
+	Alignment * alignment = setup_alignment();
+	//alignment_print(alignment); cout << endl;
 
-  	if(n1.roles.size() > n2.roles.size()){
-  		a_initial.net1 = &n1;
-  		a_initial.net2 = &n2;	
-  	}else{
-  		a_initial.net1 = &n2;
-  		a_initial.net2 = &n1;
-  	}
-  	
-  	for(i=0;i<a_initial.net1->roles.size();++i){
-  		a_initial.matches.push_back(pair<int,int>(i,-1));
-  		a_initial.match1.push_back(i);
-  	}
-
-  	for(i=0;i<a_initial.net2->roles.size();++i){
-  		a_initial.matches.push_back(pair<int,int>(-1,i));
-  	}
-
-	gsl_siman_solve(r, &a_initial,
+	// use simulated annealing to find an optimal alignment
+	gsl_siman_solve(r,
+					alignment,
 					alignment_energy,
 					alignment_step,
 					alignment_distance,
 					alignment_print,
-					NULL,
-					NULL,
-					NULL,
-					sizeof(a_initial),
+					_copy,
+					_copy_construct,
+					_destroy,
+					sizeof(alignment),
 					params);
   	
-	cout << "best alignment:\n";
-	alignment_print(&a_initial);
-	cout << alignment_energy(&a_initial) << endl;
+	// free allocated memory
+	alignment_free(alignment);
+	gsl_rng_free(r);
 
-	gsl_rng_free (r);
 	return 0;
 }
