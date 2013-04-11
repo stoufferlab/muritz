@@ -18,7 +18,8 @@
 
 // my header files
 #include <common.hpp>
-#include <read_roles.hpp>
+#include <alignment.hpp>
+#include <roles.hpp>
 #include <simulated_annealing.hpp>
 
 // namespaces

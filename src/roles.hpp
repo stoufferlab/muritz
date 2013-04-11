@@ -1,5 +1,5 @@
-#ifndef __READ_ROLES_HPP
-#define __READ_ROLES_HPP
+#ifndef __ROLES_HPP
+#define __ROLES_HPP
 
 #include <common.hpp>
 
