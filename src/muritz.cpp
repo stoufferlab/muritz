@@ -19,6 +19,7 @@
 // my header files
 #include <common.hpp>
 #include <alignment.hpp>
+#include <network.hpp>
 #include <roles.hpp>
 #include <simulated_annealing.hpp>
 
@@ -48,9 +49,13 @@ int main(int argc, char *argv[])
 	gsl_rng_env_setup();
 	gsl_rng * r = gsl_rng_alloc(gsl_rng_mt19937);
 
+	// read in two files of networks
+	n1 = read_network(argv[1],' ');
+	n2 = read_network(argv[2],' ');
+
 	// read in two files of node "roles"
-  	n1 = read_roles(argv[1],' ');
-  	n2 = read_roles(argv[2],' ');
+  	n1.roles = read_roles(argv[3],' ',n1);
+  	n2.roles = read_roles(argv[4],' ',n2);
 
   	// set up the alignment between networks
 	Alignment * alignment = setup_alignment();

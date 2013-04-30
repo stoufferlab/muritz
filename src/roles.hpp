@@ -3,6 +3,7 @@
 
 #include <common.hpp>
 
-Network read_roles(char *filename, char separator);
+vector<Role> read_roles(char *filename, char separator, Network N);
+vector<Role> read_roles(char separator, Network N);
 
 #endif
