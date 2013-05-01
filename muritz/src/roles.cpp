@@ -122,3 +122,13 @@ vector<Role> read_roles(char separator, Network N)
 
   return roles;
 }
+
+void print_roles(Network N){
+  unsigned int i,j;
+  for(i=0;i<N.nodes.size();++i){
+    cout << N.nodes[i]->name << " ";
+    for(j=0;j<N.roles[i].f.size()-1;++j)
+      cout << N.roles[i].f[j].frequency << " ";
+    cout << N.roles[i].f[j].frequency << endl;
+  }
+}

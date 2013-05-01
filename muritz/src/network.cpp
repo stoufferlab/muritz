@@ -61,43 +61,47 @@ Network read_network(char *filename, char separator)
   return N;
 }
 
-Network read_network(char separator)
+void read_networks(char separator, Network& A, Network& B)
 {
   string line, pred, prey;
   int pred_i, prey_i;
   
-  Network N;
-  N.name = string("stdin");
+  Network *N = &A;
+
+  A.name = string("stdin");
+  B.name = string("stdin");
 
   while (getline(cin,line)){
+    if(line == string("///"))
+      N = &B;
+    else{
     istringstream linestream(line);
 
     getline(linestream, pred, separator);
     getline(linestream, prey, separator);
 
-    if(N.node_i.count(pred) == 0){
-      pred_i = N.nodes.size();
-      N.node_i[pred] = pred_i;
+    if(N->node_i.count(pred) == 0){
+      pred_i = N->nodes.size();
+      N->node_i[pred] = pred_i;
       Node * n = new Node;
       n->name = pred;
-      N.nodes.push_back(n);
+      N->nodes.push_back(n);
     }else
-      pred_i = N.node_i[pred];
+      pred_i = N->node_i[pred];
 
-    if(N.node_i.count(prey) == 0){
-      prey_i = N.nodes.size();
-      N.node_i[prey] = prey_i;
+    if(N->node_i.count(prey) == 0){
+      prey_i = N->nodes.size();
+      N->node_i[prey] = prey_i;
       Node * n = new Node;
       n->name = prey;
-      N.nodes.push_back(n);
+      N->nodes.push_back(n);
     }else
-      prey_i = N.node_i[prey];
+      prey_i = N->node_i[prey];
 
-    N.nodes[pred_i]->prey.push_back(N.nodes[prey_i]);
-    N.nodes[prey_i]->predators.push_back(N.nodes[pred_i]);
+    N->nodes[pred_i]->prey.push_back(N->nodes[prey_i]);
+    N->nodes[prey_i]->predators.push_back(N->nodes[pred_i]);
   }
-
-  return N;
+  }
 }
 
 void print_network(Network N)
