@@ -4,6 +4,7 @@
 
 // c++ header files
 #include <cstdlib>
+#include <cstring>
 #include <ctime>
 #include <cmath>
 #include <iostream>
@@ -57,18 +58,36 @@ int main(int argc, char *argv[])
 	//alignment_print(alignment); cout << endl;
 
 	// use simulated annealing to find an optimal alignment
-	gsl_siman_solve(r,
-					alignment,
-					alignment_energy,
-					alignment_step,
-					alignment_distance,
-					alignment_print,
-					_copy,
-					_copy_construct,
-					_destroy,
-					sizeof(alignment),
-					params);
+	// print out all of the incremental steps in the the optimization
+	if(argc==2 && strcmp(argv[1],"-v")==0)
+		gsl_siman_solve(r,
+						alignment,
+						alignment_energy,
+						alignment_step,
+						alignment_distance,
+						alignment_print,
+						_copy,
+						_copy_construct,
+						_destroy,
+						sizeof(alignment),
+						params);
+	// don't print out anything about the optimization
+	else
+		gsl_siman_solve(r,
+						alignment,
+						alignment_energy,
+						alignment_step,
+						alignment_distance,
+						NULL,
+						_copy,
+						_copy_construct,
+						_destroy,
+						sizeof(alignment),
+						params);
   	
+	// print out the "optimal" alignment
+	cout << "optimal = "; alignment_print(alignment); cout << endl;
+
 	// free allocated memory
 	alignment_free(alignment);
 	gsl_rng_free(r);
