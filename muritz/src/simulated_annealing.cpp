@@ -11,8 +11,10 @@
 #include <vector>
 
 // gsl header files
+#include <gsl/gsl_cdf.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_rng.h>
+#include <gsl/gsl_statistics.h>
 
 // local includes
 #include <common.hpp>
@@ -27,7 +29,7 @@ extern Network n1;
 extern Network n2;
 
 // calculate the distance between two roles
-double role_distance(Role *r1, Role *r2){
+double role_euclidean_distance(Role *r1, Role *r2){
 	double distance = 0;
 	for(int i=0;i<r1->f.size();++i){
 		if(r2->name != "NULL")
@@ -38,9 +40,91 @@ double role_distance(Role *r1, Role *r2){
   	return distance;
 }
 
-// calculate the similarity between two roles
-double role_similarity(Role *r1, Role *r2){
-  return 1 - role_distance(r1,r2);
+// calculate the correlation between two roles
+double role_correlation(Role *r1, Role *r2){
+	double f1[r1->f.size()];
+	double f2[r1->f.size()];
+
+	for(int i=0;i<r1->f.size();++i){
+		f1[i] = r1->f[i].frequency;
+
+		if(r2->name != "NULL")
+			f2[i] = r2->f[i].frequency;
+		else
+			f2[i] = 0;
+	}
+
+  	return gsl_stats_correlation(f1, 1,
+  								 f2, 1,
+  								 r1->f.size());
+}
+
+// role to role comparison based on chi-squared statistic
+void role_chisquared(Role *r1, Role *r2, double& chisq, int& df){
+	int i,j,nz_cols=0,total=0;
+	double expected;
+
+	// a vector for the row sums		
+	int rowsums[2] = {0};
+	// initialize a vector for the column sums 
+	int colsums[r1->f.size()];
+	for(i=0;i<r1->f.size();++i)
+		colsums[i] = 0;
+
+	// a counter for total number of "observations"
+	total = 0;
+	for(i=0;i<r1->f.size();++i){
+		j = r1->f[i].frequency;
+
+		total += j;
+		rowsums[0] += j;
+		colsums[i] += j;
+
+		if(r2->name != "NULL"){
+			j = r2->f[i].frequency;
+
+			total += j;
+			rowsums[1] += j;
+			colsums[i] += j;
+		}	
+	}
+
+	// sum the chisquared statistic over columns (rows are hardcoded below)
+	chisq = 0;
+	for(i=0;i<r1->f.size();++i){
+		if(colsums[i] != 0){
+			// a column that contributes to the total possible degrees of freedom
+			++nz_cols;
+
+			// expected and chisquared contribution for 0,i
+			expected = rowsums[0] * colsums[i] / float(total);
+			chisq += gsl_pow_2(r1->f[i].frequency - expected) / float(expected);
+
+			if(r2->name != "NULL"){
+				// expected and chisquared contribution for 1,i
+				expected = rowsums[1] * colsums[i] / float(total);
+				chisq += gsl_pow_2(r2->f[i].frequency - expected) / float(expected);
+			}
+		}
+	}
+
+	// calculate the degrees of freedom for the chisquared test 
+	// the final values depends on the number of non-zero columns
+	df = (nz_cols-1) * (2-1);
+
+	return;
+}
+
+// calculate the distance between two roles
+double role_distance(Role *r1, Role *r2){
+	if(r2->name == "NULL"){
+		return 1;
+	}
+	else{
+		double chisq; int df;
+		role_chisquared(r1, r2, chisq, df);
+		return gsl_cdf_chisq_P(chisq, df);
+	}
 }
 
 // calculate the energy/cost function of an alignment

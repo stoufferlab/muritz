@@ -5,8 +5,11 @@
 #include <gsl/gsl_rng.h>
 #include <common.hpp>
 
+double role_euclidean_distance(Role *r1, Role *r2);
+double role_correlation(Role *r1, Role *r2);
+void role_chisquared(Role *r1, Role *r2, double& chisq, int& df);
+
 double role_distance(Role *r1, Role *r2);
-double role_similarity(Role *r1, Role *r2);
 
 double alignment_energy(void *xp);
 void   alignment_step(const gsl_rng * r, void *xp, double step_size);
