@@ -198,7 +198,7 @@ void alignment_print(void *xp){
 	unsigned int i, j, k;
 	Role r1, r2;
 
-	cout << "  [";
+	cout << " [";
 	for(i=0;i<a->matches.size();++i){
 		j = a->matches[i].first;
 		k = a->matches[i].second;
@@ -218,7 +218,7 @@ void alignment_print(void *xp){
 			cout <<  ")";
 		}
 	}
-	cout << " ]  ";
+	cout << " ] ";
 }
 
 // copy from one alignment to another
