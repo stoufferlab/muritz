@@ -1,0 +1,4 @@
+#!/usr/bin/python
+
+from src.python.muritz import main
+main()

@@ -23,5 +23,6 @@ def parse_cl_options():
 
 	if len(args) != 2:
 		parser.print_help()
+		sys.exit()
 	else:
 		return (options, args)
