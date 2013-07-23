@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import os
 import random
 import subprocess
 import sys
@@ -68,32 +69,32 @@ def muritz(options, args):
 		vflag = ""
 
 	# call the muritz alignment code
-	muritz_stdout = tempfile.TemporaryFile()
-	command = "GSL_RNG_SEED=%s ./muritz/src/muritz %s" % (rnd_seed, vflag)
+	command = "GSL_RNG_SEED=%s %s/muritz/src/muritz %s" % (rnd_seed, os.path.dirname(__file__), vflag)
+	#muritz_out = tempfile.TemporaryFile()
 	process = subprocess.Popen(command,
+							   bufsize=0,
     	                       stdin=subprocess.PIPE,
-        	                   stdout=muritz_stdout,
+        	                   stdout=subprocess.PIPE,
 							   stderr=subprocess.PIPE,
-                	           shell=True)
+							   shell=True,
+							   )
 
+	# write the network and role data to muritz
 	process.stdin.write(muritz_in)
-	null_stdout, muritz_stderr = process.communicate()
+	process.stdin.close()
 
-	#muritz_out = ''
-	#for line in iter(process.stdout.readline, ""):
-	#	print line,
-	#	output += line
+	# print out the muritz stdout line by line as it comes
+	for line in iter(process.stdout.readline, ''):
+		print(line),
 
-	#process.wait()
+	process.wait()
 
 	# get rid of the GSL seed info and any empty lines from stderr
-	muritz_stderr = [i for i in muritz_stderr.split('\n') if "GSL_RNG_SEED" not in i and i != '']
+	muritz_stderr = [i for i in process.stderr.readlines() if "GSL_RNG_SEED" not in i and i != '']
 	if muritz_stderr:
-		sys.stderr.write('\n'.join(muritz_stderr))
+		sys.stderr.write(''.join(muritz_stderr))
 
 	# print out the optimization output
-	muritz_stdout.seek(0)
-	print(''.join(muritz_stdout.readlines()))
 	#print(muritz_stdout)
 	#muritz_out.seek(0)
 	#print(muritz_out.readlines())
