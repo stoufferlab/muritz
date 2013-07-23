@@ -127,6 +127,26 @@ double role_distance(Role *r1, Role *r2){
 	}
 }
 
+gsl_siman_params_t alignment_params(void *xp){
+	Alignment * a = (Alignment *) xp;
+	
+	int N_TRIES = 2.0;             							/* how many points do we try before stepping */
+	int ITERS_FIXED_T = gsl_pow_2(a->matches.size());       /* how many iterations for each T? */
+	double STEP_SIZE = 0.0;        							/* max step size in random walk */
+	double K = 1.0;                							/* Boltzmann constant */
+	double T_INITIAL = 1/0.7;                               /* initial temperature */
+	double MU_T = 1.001;                                    /* damping factor for temperature */
+	double T_MIN = 1.0e-7;							        /* minimum temperature */
+
+	return {N_TRIES,
+			ITERS_FIXED_T,
+			STEP_SIZE,
+			K,
+			T_INITIAL,
+			MU_T,
+			T_MIN};
+}
+
 // calculate the energy/cost function of an alignment
 double alignment_energy(void *xp){
 	//cout << "energying\n";

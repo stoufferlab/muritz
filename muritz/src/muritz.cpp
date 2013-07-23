@@ -27,17 +27,6 @@
 // namespaces
 using namespace std;
 
-#define N_TRIES 200             /* how many points do we try before stepping */
-#define ITERS_FIXED_T 20      /* how many iterations for each T? */
-#define STEP_SIZE 1.0           /* max step size in random walk */
-#define K 1.0                   /* Boltzmann constant */
-#define T_INITIAL 5000.0        /* initial temperature */
-#define MU_T 1.002              /* damping factor for temperature */
-#define T_MIN 5.0e-1
-
-gsl_siman_params_t params = {N_TRIES, ITERS_FIXED_T, STEP_SIZE,
-                             K, T_INITIAL, MU_T, T_MIN};
-
 // the networks are stored as global variables
 Network n1;
 Network n2;
@@ -55,7 +44,9 @@ int main(int argc, char *argv[])
 
   	// set up the alignment between networks
 	Alignment * alignment = setup_alignment();
-	//alignment_print(alignment); cout << endl;
+	
+	// set up the simulated annealing parameters
+	gsl_siman_params_t params = alignment_params(alignment);
 
 	// use simulated annealing to find an optimal alignment
 	// print out all of the incremental steps in the the optimization
