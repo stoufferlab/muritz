@@ -3,6 +3,7 @@
 import random
 import subprocess
 import sys
+import tempfile
 
 from pymfinder import motif_roles,print_roles
 from option_parser import parse_cl_options
@@ -67,20 +68,38 @@ def muritz(options, args):
 		vflag = ""
 
 	# call the muritz alignment code
+	muritz_stdout = tempfile.TemporaryFile()
 	command = "GSL_RNG_SEED=%s ./muritz/src/muritz %s" % (rnd_seed, vflag)
 	process = subprocess.Popen(command,
     	                       stdin=subprocess.PIPE,
-        	                   stdout=subprocess.PIPE,
+        	                   stdout=muritz_stdout,
 							   stderr=subprocess.PIPE,
                 	           shell=True)
 
-	muritzout, muritzerr = process.communicate(muritz_in)
+	process.stdin.write(muritz_in)
+	null_stdout, muritz_stderr = process.communicate()
 
-	muritzerr = [i for i in muritzerr.split('\n') if "GSL_RNG_SEED" not in i and i != '']
-	if muritzerr:
-		sys.stderr.write('\n'.join(muritzerr))
+	#muritz_out = ''
+	#for line in iter(process.stdout.readline, ""):
+	#	print line,
+	#	output += line
 
-	sys.stdout.write(muritzout)
+	#process.wait()
+
+	# get rid of the GSL seed info and any empty lines from stderr
+	muritz_stderr = [i for i in muritz_stderr.split('\n') if "GSL_RNG_SEED" not in i and i != '']
+	if muritz_stderr:
+		sys.stderr.write('\n'.join(muritz_stderr))
+
+	# print out the optimization output
+	muritz_stdout.seek(0)
+	print(''.join(muritz_stdout.readlines()))
+	#print(muritz_stdout)
+	#muritz_out.seek(0)
+	#print(muritz_out.readlines())
+	#for line in muritz_out:
+	#	print(line)
+	#sys.stdout.write(muritz_stdout)
 
 ########################################
 ########################################
