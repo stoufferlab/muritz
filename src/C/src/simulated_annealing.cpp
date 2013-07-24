@@ -13,6 +13,7 @@
 // gsl header files
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_math.h>
+#include <gsl/gsl_matrix.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_statistics.h>
 
@@ -27,6 +28,9 @@ using namespace std;
 // externs
 extern Network n1;
 extern Network n2;
+
+// keep some parameters as globals (whether I like it or not)
+gsl_matrix * distance_matrix;
 
 // calculate the distance between two roles
 double role_euclidean_distance(Role *r1, Role *r2){
@@ -127,6 +131,8 @@ double role_distance(Role *r1, Role *r2){
 	}
 }
 
+// set up the SA parameter values
+// TODO: this can be made far more elegant and refined
 gsl_siman_params_t alignment_params(void *xp){
 	Alignment * a = (Alignment *) xp;
 	
@@ -147,32 +153,39 @@ gsl_siman_params_t alignment_params(void *xp){
 			T_MIN};
 }
 
+// calculate a full role-to-role distance matrix to speed up the SA
+void prepare_distance_matrix(){
+	unsigned int i,j;
+
+	distance_matrix = gsl_matrix_calloc(n1.nodes.size(),n2.nodes.size());
+
+	for(i=0;i<n1.nodes.size();++i)
+		for(j=0;j<n2.nodes.size();++j)
+			gsl_matrix_set(distance_matrix, i, j, role_distance(&(n1.roles[i]), &(n2.roles[j])));
+}
+
 // calculate the energy/cost function of an alignment
 double alignment_energy(void *xp){
 	Alignment * a = (Alignment *) xp;
 	unsigned int i, j, k;
-	double E = 0;
-	Role r1, r2, null;
+	double E;
+	Role null;
 	null.name = "NULL";
+
+	E = 0;
 
 	for(i=0;i<a->matches.size();++i){
 		j = a->matches[i].first;
 		k = a->matches[i].second;
 
 		if(j != -1){
-			r1 = n1.roles[j];
-			if(k != -1){
-				r2 = n2.roles[k];
-				E += role_distance(&r1,&r2);
-			}else{
-				E += role_distance(&r1,&null);
-			}
-		}else{
-			if(k != -1){
-				r2 = n2.roles[k];
-				E += role_distance(&r2,&null);
-			}
-		}
+			if(k != -1)
+				E += gsl_matrix_get(distance_matrix, j, k);
+			else
+				E += role_distance(&(n1.roles[j]),&null);
+		}else
+			if(k != -1)
+				E += role_distance(&(n2.roles[k]),&null);
 	}
 
 	return E;
