@@ -149,7 +149,6 @@ gsl_siman_params_t alignment_params(void *xp){
 
 // calculate the energy/cost function of an alignment
 double alignment_energy(void *xp){
-	//cout << "energying\n";
 	Alignment * a = (Alignment *) xp;
 	unsigned int i, j, k;
 	double E = 0;
@@ -176,15 +175,11 @@ double alignment_energy(void *xp){
 		}
 	}
 
-	//cout << "energy = " << E << ": ";
-	//alignment_print(xp);
-	//cout << endl;
 	return E;
 }
 
 /* make a move in the alignment space */
 void alignment_step(const gsl_rng * r, void *xp, double step_size){
-	//cout << "stepping\n";
 	step_size = 0 ; // prevent warnings about unused parameter
 
 	Alignment * a = (Alignment *) xp;
@@ -201,7 +196,6 @@ void alignment_step(const gsl_rng * r, void *xp, double step_size){
 
 // calculate the distance between two alignments
 double alignment_distance(void *xp, void *yp){
-	//cout << "distancing\n";
 	Alignment *a1 = (Alignment *) xp, *a2 = (Alignment *) yp;
 	double distance = 0;
   	for(unsigned int i=0; i<a1->matches.size();++i){
@@ -213,7 +207,6 @@ double alignment_distance(void *xp, void *yp){
 
 // print out an alignment
 void alignment_print(void *xp){
-	//cout << "printing\n";
 	Alignment * a = (Alignment *) xp;
 	unsigned int i, j, k;
 	Role r1, r2;
