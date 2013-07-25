@@ -574,6 +574,7 @@ CCDEPMODE
 ac_ct_CC
 CFLAGS
 CC
+AM_CXXFLAGS
 am__fastdepCXX_FALSE
 am__fastdepCXX_TRUE
 CXXDEPMODE
@@ -3064,6 +3065,7 @@ fi
 ac_config_headers="$ac_config_headers config.h"
 
 
+AM_CXXFLAGS="-pedantic -fpic -Wall -Wextra -O2"
 
 
 # Indicate this is a release build and that
