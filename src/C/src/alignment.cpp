@@ -25,8 +25,8 @@ void read_alignment_data(char separator, Network& A, Network& B)
 {
   string line, item, pred, prey;
   char t[1024];
-  int pred_i, prey_i, ncols;
-  bool firstline,roles;
+  int pred_i, prey_i, ncols = 0;
+  bool firstline = true, roles;
   
   Network *N = &A;
 
@@ -119,18 +119,18 @@ void read_alignment_data(char separator, Network& A, Network& B)
 
 // setup an alignment structure to manipulate in the SA code
 Alignment * setup_alignment(){
-	unsigned int i,j,k;
-	Alignment * a = alignment_alloc(n1.roles.size()+n2.roles.size());
+	unsigned int i,j;
+	Alignment * a = alignment_alloc(n1.nodes.size()+n2.nodes.size());
 
   	// add NULL matches for the nodes in network 1
-  	for(i=0;i<n1.roles.size();++i){
+  	for(i=0;i<n1.nodes.size();++i){
   		a->matches[i].first = i;
   		a->matches[i].second = -1;
   	}
 
   	// add NULL matches for the nodes in network 2
-  	for(i=0;i<n2.roles.size();++i){
-  		j = n1.roles.size() + i;
+  	for(i=0;i<n2.nodes.size();++i){
+  		j = n1.nodes.size() + i;
   		a->matches[j].first = -1;
   		a->matches[j].second = i;
   	}

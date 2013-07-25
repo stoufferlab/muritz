@@ -144,17 +144,22 @@ gsl_siman_params_t alignment_params(void *xp){
 	double MU_T = 1.001;                                    /* damping factor for temperature */
 	double T_MIN = 1.0e-7;							        /* minimum temperature */
 
-	return {N_TRIES,
-			ITERS_FIXED_T,
-			STEP_SIZE,
-			K,
-			T_INITIAL,
-			MU_T,
-			T_MIN};
+	gsl_siman_params_t params;
+	
+	params.n_tries = N_TRIES;
+	params.iters_fixed_T = ITERS_FIXED_T;
+	params.step_size = STEP_SIZE;
+	
+	params.k = K;
+	params.t_initial = T_INITIAL;
+	params.mu_t = MU_T;
+	params.t_min = T_MIN;
+
+	return params;
 }
 
 // calculate a full role-to-role distance matrix to speed up the SA
-void prepare_distance_matrix(){
+void prepare_distance_matrix(void){
 	unsigned int i,j;
 
 	distance_matrix = gsl_matrix_calloc(n1.nodes.size(),n2.nodes.size());
@@ -193,15 +198,19 @@ double alignment_energy(void *xp){
 
 /* make a move in the alignment space */
 void alignment_step(const gsl_rng * r, void *xp, double step_size){
-	step_size = 0 ; // prevent warnings about unused parameter
+	int i,j;
 
+	// prevent warnings about unused parameter
+	step_size = 0 ; 
+
+	// case the alignment as an alignment
 	Alignment * a = (Alignment *) xp;
 
 	// pick the pairs to swap
 	unsigned int p1 = gsl_rng_uniform_int(r,a->matches.size());
 	unsigned int p2 = gsl_rng_uniform_int(r,a->matches.size());
 
-	// swap the indices for net2
+	// swap the indices for net2 within the alignment object
 	unsigned int tmp = a->matches[p1].second;
 	a->matches[p1].second = a->matches[p2].second;
 	a->matches[p2].second = tmp;

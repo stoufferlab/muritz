@@ -24,7 +24,7 @@ vector<Role> read_roles(char *filename, char separator, Network N)
   string line,item;
   char t[1024];
   bool firstline = true;
-  int ncols;
+  int ncols=0;
 
   // start with an empty role vector
   vector<Role> roles(N.nodes.size());
@@ -77,7 +77,7 @@ vector<Role> read_roles(char separator, Network N)
   string line,item;
   char t[1024];
   bool firstline = true;
-  int ncols;
+  int ncols=0;
 
   // start with an empty role vector
   vector<Role> roles(N.nodes.size());
