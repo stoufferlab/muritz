@@ -9,7 +9,8 @@ AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 AC_PROG_CXX
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
-
+AM_CXXFLAGS="-pedantic -fpic -Wall -Wextra -O2"
+AC_SUBST(AM_CXXFLAGS)
 
 # Indicate this is a release build and that
 # dependancies for changes between Makefile.am and Makefile.in
