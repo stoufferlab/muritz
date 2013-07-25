@@ -56,6 +56,7 @@ void read_alignment_data(char separator, Network& A, Network& B)
             
             Node * n = new Node;
             n->name = pred;
+            n->idx = pred_i;
             N->nodes.push_back(n);
             
             Role R;
@@ -69,6 +70,7 @@ void read_alignment_data(char separator, Network& A, Network& B)
             
             Node * n = new Node;
             n->name = prey;
+            n->idx = prey_i;
             N->nodes.push_back(n);
 
             Role R;
