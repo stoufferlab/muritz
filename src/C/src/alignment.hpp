@@ -6,7 +6,7 @@
 
 void read_alignment_data(char separator,Network& A,Network& B);
 Alignment * setup_alignment();
-Alignment * alignment_alloc(size_t n);
+Alignment * alignment_alloc(size_t,size_t);
 void alignment_free(Alignment *a);
 
 #endif

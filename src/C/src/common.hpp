@@ -39,6 +39,8 @@ typedef struct {
 // Alignment information
 typedef struct {
         vector<pair<int,int> > matches;
+        vector<int> match1;
+        vector<int> match2;
 } Alignment;
 
 #endif
