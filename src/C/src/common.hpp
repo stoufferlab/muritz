@@ -9,10 +9,10 @@ using namespace std;
 
 // Node structure
 struct Node {
-	string name;
-        int idx;
-	vector<Node *> predators;
-	vector<Node *> prey;
+    string name;
+    int idx;
+    vector<Node *> predators;
+    vector<Node *> prey;
 };
 
 // Position structure
@@ -41,6 +41,8 @@ typedef struct {
         vector<pair<int,int> > matches;
         vector<int> match1;
         vector<int> match2;
+
+        double (*dfunc)(Role*,Role*);
 } Alignment;
 
 #endif

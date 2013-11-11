@@ -45,8 +45,8 @@ int main(int argc, char *argv[])
   	// set up the alignment between networks
 	Alignment * alignment = setup_alignment();
 
-	// set up the distance matrix to speed up SA calcs
-	prepare_distance_matrix();
+    // decide on what the node-to-node distance function is
+    alignment->dfunc = &role_correlation;
 
 	// set up the simulated annealing parameters
 	gsl_siman_params_t params = alignment_params(alignment);

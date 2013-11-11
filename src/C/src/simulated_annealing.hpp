@@ -8,10 +8,14 @@
 
 double role_euclidean_distance(Role *r1, Role *r2);
 double role_correlation(Role *r1, Role *r2);
-void role_chisquared(Role *r1, Role *r2, double& chisq, int& df);
-double role_distance(Role *r1, Role *r2);
+double role_chisquared(Role *r1, Role *r2);
 
-void prepare_distance_matrix(void);
+double node_distance(int i, int j, double (*dfunc) (Role*, Role*));
+double neighborhood_distance(int i, int j, double (*dfunc) (Role*, Role*), int degree);
+double distance(int i, int j, double (*dfunc) (Role*, Role*));
+
+void prepare_distance_matrix(double (*dfunc) (Role*, Role*));
+
 gsl_siman_params_t alignment_params(void *xp);
 
 double alignment_energy(void *xp);
