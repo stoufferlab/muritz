@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
   	
 	// print out the "optimal" alignment
 	cout << "optimal ="; alignment_print(alignment); cout << endl;
+    cout << "energy = " << alignment_energy(alignment) << endl;
 
 	// free allocated memory
 	alignment_free(alignment);
