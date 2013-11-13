@@ -11,10 +11,11 @@ double role_correlation(Role *r1, Role *r2);
 double role_chisquared(Role *r1, Role *r2);
 
 double node_distance(int i, int j, double (*dfunc) (Role*, Role*));
-double neighborhood_distance(int i, int j, double (*dfunc) (Role*, Role*), int degree);
-double distance(int i, int j, double (*dfunc) (Role*, Role*));
+double neighbor_distance(int i, int j, double (*dfunc) (Role*, Role*), unsigned int degree);
+double distance(Alignment *a, unsigned int i);
 
 void prepare_distance_matrix(double (*dfunc) (Role*, Role*));
+void prepare_neighbor_data(unsigned int degree);
 
 gsl_siman_params_t alignment_params(void *xp);
 

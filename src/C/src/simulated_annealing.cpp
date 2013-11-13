@@ -19,6 +19,7 @@
 
 // local includes
 #include <common.hpp>
+#include <network.hpp>
 #include <alignment.hpp>
 #include <simulated_annealing.hpp>
 
@@ -29,11 +30,11 @@ using namespace std;
 extern Network n1;
 extern Network n2;
 
-// keep some parameters as globals (whether I like it or not)
-bool distance_matrix_def = false;
-gsl_matrix * distance_matrix;
-double* nulldist1;
-double* nulldist2;
+// globals
+bool distance_matrix_def = false; // can we access store of node-to-node distances to speed up some calculations?
+gsl_matrix * distance_matrix; // node-to-node distances
+double* nulldist1; // distances when unaligned
+double* nulldist2; // distances when unaligned
 
 // calculate the role-to-role euclidean distance
 double role_euclidean_distance(Role *r1, Role *r2){
@@ -58,7 +59,7 @@ double role_correlation(Role *r1, Role *r2){
 		if(r2->name != "NULL")
 			f2[i] = r2->f[i].frequency;
 		else
-            return 2;
+            return 1;
 	}
 
     double r = gsl_stats_correlation(f1, 1,
@@ -150,9 +151,36 @@ void prepare_distance_matrix(double (*dfunc) (Role*,Role*)){
     distance_matrix_def = true;
 }
 
+// calculate the nth degree neighbor lists to speed up the neighborhood-based SA
+void prepare_neighbor_data(unsigned int degree){
+    unsigned int i;
+    set<Node *> nbrs;
+    set<Node *>::iterator nbrs_it;
+
+    // set up the degree-th neighbor data for nodes in network 1
+    for(i=0;i<n1.nodes.size();++i){
+        // add all prey
+        n1.nodes[i]->neighbors[degree] = neighbors(&n1, n1.nodes[i], degree, 1);
+        // add all predators
+        nbrs = neighbors(&n1, n1.nodes[i], degree, -1);
+        for(nbrs_it=nbrs.begin();nbrs_it!=nbrs.end();++nbrs_it)
+            n1.nodes[i]->neighbors[degree].insert(*nbrs_it);
+    }
+
+    // set up the degree-th neighbor data for nodes in network 1
+    for(i=0;i<n2.nodes.size();++i){
+        // add all prey
+        n2.nodes[i]->neighbors[degree] = neighbors(&n2, n2.nodes[i], degree, 1);
+        // add all predators
+        nbrs = neighbors(&n2, n2.nodes[i], degree, -1);
+        for(nbrs_it=nbrs.begin();nbrs_it!=nbrs.end();++nbrs_it)
+            n2.nodes[i]->neighbors[degree].insert(*nbrs_it);
+    }
+}
+
 // calculate the distance between the roles of two nodes
 double node_distance(int i, int j, double (*dfunc) (Role*,Role*)){
-    // if we don't have any "cheater" matrices/vectors defined
+    // if we don't the quick ref matrices/vectors defined
     if(!distance_matrix_def)
         prepare_distance_matrix(dfunc);
     
@@ -160,37 +188,110 @@ double node_distance(int i, int j, double (*dfunc) (Role*,Role*)){
     if(i != -1 && j != -1)
         return gsl_matrix_get(distance_matrix, i, j);
     else{
-        if(i != -1 && j == -1)
-            return nulldist1[i];
+        if(i == -1)
+            return nulldist2[j];
         else
-            if(i == -1 && j != -1)
-                return nulldist2[j];
+            return nulldist1[i];
     }
 }
 
-// search around a node up to degree 'degree' and calculate the paired distance
-// TODO: if degree != 0, generate a list of their degree-th neighbors and calculate *their* pairwise distances
-double neighborhood_distance(int i, int j, double (*dfunc) (Role*,Role*), int degree){
-    if(degree == 0)
-        return(node_distance(i,j,dfunc));
-    else{
-        // TODO
+// search around up to 'degree' connections away from the aligned nodes and calculate the collective alignment there
+double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
+    int l;
+    double d = 0;
+    int i,j;
+    set<Node *> nbr_i, nbr_j;
+    set<Node *>::iterator nbr_it;
+
+    i = a->matches[m].first;
+    j = a->matches[m].second;
+
+    // i is not null
+    if(i != -1){
+        // have we already calculated i's list of degree-th neighbors?
+        if(n1.nodes[i]->neighbors.count(degree) == 0)
+            prepare_neighbor_data(degree);
+
+        // j is not null
+        if(j != -1){
+            // save within a local pointer to avoid complications later
+            nbr_i = n1.nodes[i]->neighbors[degree];
+    
+            // save within a local pointer to avoid complications later
+            nbr_j = n2.nodes[j]->neighbors[degree];
+
+            // compute the local alignment for all of i's neighbors
+            for(nbr_it=nbr_i.begin(); nbr_it!=nbr_i.end(); ++nbr_it){
+                // who is i's neighbor aligned to?
+                l = a->match1[(*nbr_it)->idx];
+
+                // if l is not null and is also one of j's neighbors
+                if(l != -1 && nbr_j.count(n2.nodes[l]) != 0)
+                    d += node_distance((*nbr_it)->idx, l, a->dfunc);
+
+                // l is null or is not one of j's neighbors
+                else
+                    d += node_distance((*nbr_it)->idx, -1, a->dfunc);
+            }
+
+            // compute the local alignment for all of j's neighbors that weren't previously paired
+            for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
+                // who is j's neighbor aligned to?
+                l = a->match2[(*nbr_it)->idx];
+
+                // if l is null or is not one of i's neighbors (and hence hasn't been aligned already)
+                if(l == -1 || nbr_i.count(n1.nodes[l]) == 0)
+                    d += node_distance(-1, (*nbr_it)->idx, a->dfunc);
+            }
+        }
+        // there are no potential neighbor alignments (j is null)
+        else{
+            // all neighbors of i are treated as unaligned
+            for(nbr_it=nbr_i.begin(); nbr_it!=nbr_i.end(); ++nbr_it){
+                d += node_distance((*nbr_it)->idx, -1, a->dfunc);
+            }
+        }
     }
+    // i is null
+    else{
+        // j is not null
+        if(j != -1){
+            // have we already calculated j's list of degree-th neighbors?
+            if(n2.nodes[j]->neighbors.count(degree) == 0)
+                prepare_neighbor_data(degree);
+
+            // save within a local pointer to avoid complications later
+            nbr_j = n2.nodes[j]->neighbors[degree];
+
+            // all neighbor nodes are treated as unaligned (i is null)
+            for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
+                d += node_distance(-1, (*nbr_it)->idx, a->dfunc);
+            }
+        }
+    }
+
+    return d;
 }
 
 // calculate the weighted distance between two nodes based on the overall alignment
 // TODO: set this function up so that we can give it a vector of weights across different "neighborness"
-double distance(int i, int j, double (*dfunc) (Role*, Role*)){
-    return neighborhood_distance(i,j,dfunc,0);
+double distance(Alignment *a, unsigned int i){
+    unsigned int degree = 1;
+    double d;
+    if(degree == 0)
+        d = node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
+    else
+        d = neighbor_distance(a,i,degree);
+    return d;
 }
 
 // set up the SA parameter values
-// TODO: this can be made far more elegant and refined
+// TODO: this should be made far more refined by actually using the data to inform the SA
 gsl_siman_params_t alignment_params(void *xp){
 	Alignment * a = (Alignment *) xp;
 	
 	int N_TRIES = 2.0;             							/* how many points do we try before stepping */
-	int ITERS_FIXED_T = gsl_pow_2(a->matches.size());       /* how many iterations for each T? */
+    int ITERS_FIXED_T = gsl_pow_2(a->matches.size());       /* how many iterations for each T? */
 	double STEP_SIZE = 0.0;        							/* max step size in random walk */
 	double K = 1.0;                							/* Boltzmann constant */
 	double T_INITIAL = 1/0.7;                               /* initial temperature */
@@ -220,7 +321,7 @@ double alignment_energy(void *xp){
 
     // sum the cost function across all paired and unpaired nodes
 	for(unsigned int i=0;i<a->matches.size();++i){
-		E += distance(a->matches[i].first, a->matches[i].second, a->dfunc);
+		E += distance(a, i);
 	}
 
 	return E;
@@ -229,7 +330,11 @@ double alignment_energy(void *xp){
 /* make a move in the alignment space */
 void alignment_step(const gsl_rng * r, void *xp, double step_size){
 	// prevent warnings about unused parameter
-	double dummy = step_size; 
+	double dummy = step_size;
+    if(dummy != step_size){
+        cerr << "Who framed Roger Rabbit?\n" << endl;
+        exit(1);
+    }
 
 	// case the alignment as an alignment
 	Alignment * a = (Alignment *) xp;
