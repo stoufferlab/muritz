@@ -8,6 +8,7 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -109,4 +110,26 @@ void print_network(Network N)
   for(unsigned int i=0;i<N.nodes.size();++i)
     for(unsigned int j=0;j<N.nodes[i]->prey.size();++j)
       cout << N.nodes[i]->name << " " << N.nodes[i]->prey[j]->name << endl;
+}
+
+// TODO: return a list of the degree-th neighbors to a focal node
+set<Node *> neighbors(Network *N, Node *n, unsigned int degree, int direction=0){
+    unsigned int i,j,k;
+    set<Node *> nbrs;
+    if(degree == 0){
+        nbrs.insert(n);
+    }else{
+        if(degree == 1){
+            if(direction == 0 || direction == 1)
+                for(i=0;i<n->prey.size();++i)
+                    nbrs.insert(n->prey[i]);
+            if(direction == 0 || direction == -1)
+                for(i=0;i<n->predators.size();++i)
+                    nbrs.insert(n->predators[i]);
+        }else{
+            cerr << "Sorry, neighborhoods of greater than one degree away are not yet implemented.\n" << endl;
+            exit(1);
+        }
+    }
+    return nbrs;
 }
