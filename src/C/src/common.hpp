@@ -3,6 +3,7 @@
 #define __COMMON_HPP
 
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 using namespace std;
@@ -13,6 +14,7 @@ struct Node {
     int idx;
     vector<Node *> predators;
     vector<Node *> prey;
+    map<unsigned int, set<Node *> > neighbors;
 };
 
 // Position structure
