@@ -51,33 +51,26 @@ int main(int argc, char *argv[])
 	// set up the simulated annealing parameters
 	gsl_siman_params_t params = alignment_params(alignment);
 
+    // set up whether or not to print things
+    void (*printfunc)(void*);
+	if(argc>1 && strcmp(argv[1],"-v")==0)
+        printfunc = &alignment_print;
+    else
+        printfunc = NULL;
+
 	// use simulated annealing to find an optimal alignment
 	// print out all of the incremental steps in the the optimization
-	if(argc==2 && strcmp(argv[1],"-v")==0)
-		gsl_siman_solve(r,
-						alignment,
-						alignment_energy,
-						alignment_step,
-						alignment_distance,
-						alignment_print,
-						_copy,
-						_copy_construct,
-						_destroy,
-						sizeof(alignment),
-						params);
-	// don't print out anything about the optimization
-	else
-		gsl_siman_solve(r,
-						alignment,
-						alignment_energy,
-						alignment_step,
-						alignment_distance,
-						NULL,
-						_copy,
-						_copy_construct,
-						_destroy,
-						sizeof(alignment),
-						params);
+	gsl_siman_solve(r,
+					alignment,
+					alignment_energy,
+					alignment_step,
+					alignment_distance,
+					printfunc,
+					_copy,
+					_copy_construct,
+					_destroy,
+					sizeof(alignment),
+					params);
   	
 	// print out the "optimal" alignment
 	cout << "optimal ="; alignment_print(alignment); cout << endl;
