@@ -1,6 +1,6 @@
 
 // autotools
-#include <config.h>
+//#include <config.h>
 
 // c++ header files
 #include <cstdlib>
