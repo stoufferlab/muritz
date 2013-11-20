@@ -1,0 +1,11 @@
+#!/bin/bash
+
+(
+    cat ../../data/chains-1.net ;
+    echo "###" ;
+    cat ../../data/chains-1.roles ;
+    echo "///" ;
+    cat ../../data/chains-3.net ;
+    echo "###" ;
+    cat ../../data/chains-3.roles ;
+) | GSL_RNG_SEED=$RANDOM ./muritz $1

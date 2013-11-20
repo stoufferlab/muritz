@@ -1,0 +1,11 @@
+#!/bin/bash
+
+(
+    cat ../../data/unipartite-1.net ;
+    echo "###" ;
+    cat ../../data/unipartite-1.roles ;
+    echo "///" ;
+    cat ../../data/unipartite-1.net ;
+    echo "###" ;
+    cat ../../data/unipartite-1.roles ;
+) | GSL_RNG_SEED=$RANDOM ./muritz $1
