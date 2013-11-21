@@ -68,7 +68,7 @@ def muritz(options, args):
 		vflag = ""
 
 	# call the muritz alignment code
-	command = "GSL_RNG_SEED=%s %s/../C/src/muritz %s" % (rnd_seed, os.path.dirname(__file__), vflag)
+	command = "GSL_RNG_SEED=%s muritz.x %s" % (rnd_seed, vflag)
 	#muritz_out = tempfile.TemporaryFile()
 	process = subprocess.Popen(command,
 							   bufsize=0,
