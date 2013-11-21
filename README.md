@@ -6,7 +6,7 @@ At its core, muritz is a Python wrapper for a C/C++ network-alignment code that 
 
 ## Installation instructions
 
-Installation should be surprisingly painless, though it might require a bit of elbow grease.
+Installation should be relatively painless, though it might require a bit of elbow grease.
 
 1. You must first install [pymfinder](http://github.com/stoufferlab/pymfinder) since muritz cannot run without it. Anyone with access to muritz should have access to pymfinder...
 
