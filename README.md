@@ -14,11 +14,11 @@ Installation is no where close to straightforward and hence not appropriate for 
 
 		git clone git@github.com:stoufferlab/muritz.git
 
-3. Within the cloned repository, run setup.py (if it doesn't work as specified below, try adding '--user' at the end or specifying a different '--prefix=/foo')
+3. Within the cloned repository, run setup.py to install
 	
-		python setup.py
+		python setup.py install
    
-   Beyond a lack of permissions, the most likely source of consternation is a lack of GNU Standard C++ Library, GSL, and/or GSL BLAS on your machine.
+    If this doesn't work, try adding '--user' at the end or specifying a different '--prefix=/foo'. Beyond a lack of permissions, the most likely source of consternation is a lack of GNU Standard C++ Library, GSL, and/or GSL BLAS on your machine.
 
 4. Assuming you made it this far, you should in fact be able to run muritz
 
