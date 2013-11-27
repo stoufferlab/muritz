@@ -43,8 +43,13 @@ typedef struct {
         vector<pair<int,int> > matches;
         vector<int> match1;
         vector<int> match2;
-
         double (*dfunc)(Role*,Role*);
+
+        int iters_fixed_T;
+        double t_initial;
+        double mu_t;
+        double t_min;
+        unsigned int degree;
 } Alignment;
 
 #endif

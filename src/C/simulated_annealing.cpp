@@ -276,38 +276,39 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
 // calculate the weighted distance between two nodes based on the overall alignment
 // TODO: set this function up so that we can give it a vector of weights across different "neighborness"
 double distance(Alignment *a, unsigned int i){
-    unsigned int degree = 1;
     double d;
-    if(degree == 0)
+    if(a->degree == 0)
         d = node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
     else
-        d = neighbor_distance(a,i,degree);
+        d = neighbor_distance(a,i,a->degree);
     return d;
 }
 
 // set up the SA parameter values
 // TODO: this should be made far more refined by actually using the data to inform the SA
 gsl_siman_params_t alignment_params(void *xp){
+    // typecast the alignment object
 	Alignment * a = (Alignment *) xp;
-	
-	int N_TRIES = 2.0;             							/* how many points do we try before stepping */
-    int ITERS_FIXED_T = gsl_pow_2(a->matches.size());       /* how many iterations for each T? */
-	double STEP_SIZE = 0.0;        							/* max step size in random walk */
-	double K = 1.0;                							/* Boltzmann constant */
-	double T_INITIAL = 1/0.7;                               /* initial temperature */
-	double MU_T = 1.001;                                    /* damping factor for temperature */
-	double T_MIN = 1.0e-7;							        /* minimum temperature */
 
+    // SA parameter struct
 	gsl_siman_params_t params;
 	
-	params.n_tries = N_TRIES;
-	params.iters_fixed_T = ITERS_FIXED_T;
-	params.step_size = STEP_SIZE;
+	// max step size in random walk
+	params.step_size = 0.0;
+    // number of attempts before stepping
+    params.n_tries = 2.0;
+    // Boltzmann constant
+    params.k = 1.0;
+        	
+    // number of iterations at each temperature
+    params.iters_fixed_T = (a->iters_fixed_T) * gsl_pow_2(a->matches.size());
 	
-	params.k = K;
-	params.t_initial = T_INITIAL;
-	params.mu_t = MU_T;
-	params.t_min = T_MIN;
+    // initial temperature
+    params.t_initial = a->t_initial;
+    // damping factor for temperature
+	params.mu_t = a->mu_t;
+    // minimum temperature
+	params.t_min = a->t_min;
 
 	return params;
 }
@@ -404,9 +405,9 @@ void alignment_print(void *xp){
 
 // copy from one alignment to another
 void _copy(void *source, void *dest){
-	unsigned int i;
 	Alignment *a1 = (Alignment *) source, *a2 = (Alignment *) dest;
-	for(i=0;i<a1->matches.size();++i){
+	
+    for(unsigned int i=0;i<a1->matches.size();++i){
 		a2->matches[i] = a1->matches[i];
 
 		if(a1->matches[i].first != -1){
@@ -416,7 +417,13 @@ void _copy(void *source, void *dest){
 			a2->match2[a1->matches[i].second] = a1->matches[i].first;
         }
     }
+
     a2->dfunc = a1->dfunc;
+    a2->iters_fixed_T = a1->iters_fixed_T;
+    a2->t_initial = a1->t_initial;
+    a2->mu_t = a1->mu_t;
+    a2->t_min = a1->t_min;
+    a2->degree = a1->degree;
 }
 
 // copy constructor for an alignment
