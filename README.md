@@ -6,7 +6,7 @@ At its core, muritz is a Python wrapper for a C/C++ network-alignment code that 
 
 ## Installation instructions
 
-Installation is no where close to straightforward and hence not appropriate for the faint of heart. It requires patience, a long (but shortening) series of commands, and maybe a bit of elbow grease. If you've had enough with the idioms and platitudes, but are still there, please proceed as follows.
+Installation should be relatively painless, though it might require a bit of elbow grease.
 
 1. You must first install [pymfinder](http://github.com/stoufferlab/pymfinder) since muritz cannot run without it. Anyone with access to muritz should have access to pymfinder...
 
@@ -14,11 +14,11 @@ Installation is no where close to straightforward and hence not appropriate for 
 
 		git clone git@github.com:stoufferlab/muritz.git
 
-3. Within the cloned repository, run setup.py (if it doesn't work as specified below, try adding '--user' at the end or specifying a different '--prefix=/foo')
+3. Within the cloned repository, run setup.py to install
 	
-		python setup.py
+		python setup.py install
    
-   Beyond a lack of permissions, the most likely source of consternation is a lack of GNU Standard C++ Library, GSL, and/or GSL BLAS on your machine.
+    If this doesn't work, try adding '--user' at the end or specifying a different '--prefix=/foo'. Beyond a lack of permissions, the most likely source of consternation is a lack of GNU Standard C++ Library, GSL, and/or GSL BLAS on your machine.
 
 4. Assuming you made it this far, you should in fact be able to run muritz
 
