@@ -23,6 +23,7 @@ double alignment_energy(void *xp);
 void   alignment_step(const gsl_rng * r, void *xp, double step_size);
 double alignment_distance(void *xp, void *yp);
 void   alignment_print(void *xp);
+void   alignment_print_pairs(void *xp);
 
 void _copy(void *source, void *dest);
 void * _copy_construct(void *xp);

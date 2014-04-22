@@ -43,6 +43,11 @@ def parse_cl_options():
 					  help="print out incremental alignment data [default: %default]",
 					  default=False,
 					 )
+	parser.add_option("-p", "--pairs",
+					  action="store_true", dest="pairs",
+					  help="print out pairwise alignment data [default: %default]",
+					  default=False,
+					 )
 	#parser.add_option("-r", "--first-roles", dest="roles1", help="read role data for first network from ROLE_FILENAME", )
 	#parser.add_option("-s", "--second-roles", dest="roles2", help="read role data for second network from ROLE_FILENAME", )
 	parser.set_defaults(roles1=None, roles2=None)

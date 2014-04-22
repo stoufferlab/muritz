@@ -403,6 +403,38 @@ void alignment_print(void *xp){
 	cout << " ] ";
 }
 
+// print out an alignment with pairwise energies
+void alignment_print_pairs(void *xp){
+	Alignment * a = (Alignment *) xp;
+	unsigned int i;
+	int j, k;
+	//Role r1, r2;
+
+	cout << " [";
+	for(i=0;i<a->matches.size();++i){
+		j = a->matches[i].first;
+		k = a->matches[i].second;
+
+		// don't print out NULL matches		
+		if(j!=-1 || k!=-1){
+			cout << " (";
+			if (j != -1)
+				cout << n1.roles[j].name;
+			else
+				cout << "NULL";
+			cout << ",";
+			if (k != -1)
+				cout << n2.roles[k].name;
+			else
+				cout << "NULL";
+            cout << ":";
+            cout << distance(a, i);
+			cout <<  ")";
+		}
+	}
+	cout << " ] ";
+}
+
 // copy from one alignment to another
 void _copy(void *source, void *dest){
 	Alignment *a1 = (Alignment *) source, *a2 = (Alignment *) dest;

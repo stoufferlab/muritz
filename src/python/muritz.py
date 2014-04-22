@@ -67,13 +67,20 @@ def muritz(options, args):
 	else:
 		vflag = ""
 
+	# do we want to print pairwise energies?the output from muritz?
+	if options.pairs:
+		pflag = "-p"
+	else:
+		pflag = ""
+
 	# call the muritz alignment code
-	command = "GSL_RNG_SEED=%s muritz.x -n %s -t %s -c %s -m %s -k %s %s" % (rnd_seed,
+	command = "GSL_RNG_SEED=%s muritz.x -n %s -t %s -c %s -m %s -k %s %s %s" % (rnd_seed,
 																			 options.iterations,
 																			 options.tinitial,
 																			 options.cooling,
 																			 options.tminimum,
 																			 options.degree,
+																			 pflag,
 																			 vflag)
 	#muritz_out = tempfile.TemporaryFile()
 	process = subprocess.Popen(command,

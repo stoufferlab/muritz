@@ -43,6 +43,7 @@ int main(int argc, char *argv[])
 {
     // relevant parameters for simulated annealing
     void (*printfunc)(void*) = NULL;
+    bool pairs = false;
     int iters_fixed_T = 1;
     double t_initial = 1./0.7;
     double mu_t = 1.001;
@@ -52,10 +53,13 @@ int main(int argc, char *argv[])
     // set the above parameters with command line options
     int flags, opt;
     flags = 0;
-    while((opt = getopt(argc, argv, "vn:t:c:m:k:")) != -1) {
+    while((opt = getopt(argc, argv, "vpn:t:c:m:k:")) != -1) {
     	switch (opt) {
     		case 'v':
     			printfunc = &alignment_print;
+    			break;
+    		case 'p':
+    			pairs = true;
     			break;
     		case 'n':
     			if(optarg)
@@ -130,7 +134,11 @@ int main(int argc, char *argv[])
 					params);
   	
 	// print out the "optimal" alignment
-	cout << "optimal ="; alignment_print(alignment); cout << endl;
+    if(!pairs){
+    	cout << "optimal ="; alignment_print(alignment); cout << endl;
+    }else{
+    	cout << "optimal ="; alignment_print_pairs(alignment); cout << endl;
+    }
     cout << "energy = " << alignment_energy(alignment) << endl;
 
 	// free allocated memory
