@@ -45,7 +45,7 @@ typedef struct {
         vector<int> match2;
         double (*dfunc)(Role*,Role*);
 
-        int iters_fixed_T;
+        double iters_fixed_T;
         double t_initial;
         double mu_t;
         double t_min;

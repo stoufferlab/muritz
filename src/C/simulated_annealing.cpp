@@ -59,7 +59,7 @@ double role_correlation(Role *r1, Role *r2){
 		if(r2->name != "NULL")
 			f2[i] = r2->f[i].frequency;
 		else
-            return 1;
+            return 1; // this corresponds to complete lack of correlation
 	}
 
     double r = gsl_stats_correlation(f1, 1,
@@ -220,28 +220,33 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
             // save within a local pointer to avoid complications later
             nbr_j = n2.nodes[j]->neighbors[degree];
 
-            // compute the local alignment for all of i's neighbors
-            for(nbr_it=nbr_i.begin(); nbr_it!=nbr_i.end(); ++nbr_it){
-                // who is i's neighbor aligned to?
-                l = a->match1[(*nbr_it)->idx];
+            // align neighbors using the node with the greatest total number as the baseline
+            if(nbr_i.size()>=nbr_j.size()){
+                // compute the local alignment for all of i's neighbors
+                for(nbr_it=nbr_i.begin(); nbr_it!=nbr_i.end(); ++nbr_it){
+                    // who is i's neighbor aligned to?
+                    l = a->match1[(*nbr_it)->idx];
 
-                // if l is not null and is also one of j's neighbors
-                if(l != -1 && nbr_j.count(n2.nodes[l]) != 0)
-                    d += node_distance((*nbr_it)->idx, l, a->dfunc);
+                    // if l is not null and is also one of j's neighbors
+                    if(l != -1 && nbr_j.count(n2.nodes[l]) != 0)
+                        d += node_distance((*nbr_it)->idx, l, a->dfunc);
+                    // l is null or is not one of j's neighbors
+                    else
+                        d += node_distance((*nbr_it)->idx, -1, a->dfunc);
+                }
+            }else{
+                // compute the local alignment for all of j's neighbors
+                for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
+                    // who is j's neighbor aligned to?
+                    l = a->match2[(*nbr_it)->idx];
 
-                // l is null or is not one of j's neighbors
-                else
-                    d += node_distance((*nbr_it)->idx, -1, a->dfunc);
-            }
-
-            // compute the local alignment for all of j's neighbors that weren't previously paired
-            for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
-                // who is j's neighbor aligned to?
-                l = a->match2[(*nbr_it)->idx];
-
-                // if l is null or is not one of i's neighbors (and hence hasn't been aligned already)
-                if(l == -1 || nbr_i.count(n1.nodes[l]) == 0)
-                    d += node_distance(-1, (*nbr_it)->idx, a->dfunc);
+                    // if l is not null and is also one of i's neighbors
+                    if(l != -1 && nbr_i.count(n1.nodes[l]) != 0)
+                        d += node_distance(l, (*nbr_it)->idx, a->dfunc);
+                    // l is null or is not one of j's neighbors
+                    else
+                        d += node_distance(l, (*nbr_it)->idx, a->dfunc);
+                }
             }
         }
         // there are no potential neighbor alignments (j is null)
@@ -301,7 +306,7 @@ gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp){
     params.k = 1.0;
         	
     // number of iterations at each temperature
-    params.iters_fixed_T = (a->iters_fixed_T) * gsl_pow_2(a->matches.size());
+    params.iters_fixed_T = int((a->iters_fixed_T) * gsl_pow_2(a->matches.size()) + 0.5);
 	
     // initial temperature
     if(a->t_initial != -1)

@@ -124,41 +124,39 @@ Alignment * setup_alignment(){
 	unsigned int i,j;
 	Alignment * a = alignment_alloc(n1.nodes.size(),n2.nodes.size());
 
-  	// add NULL matches for the nodes in network 1
-  	for(i=0;i<n1.nodes.size();++i){
-  		a->matches[i].first = i;
-        a->match1[j] = -1;
-    }
+ 	// add NULL matches for the nodes in network 1
+ 	for(i=0;i<n1.nodes.size();++i){
+ 		a->matches[i].first = i;
+  }
 
-  	// add NULL matches for the nodes in network 2
-  	for(i=0;i<n2.nodes.size();++i){
-  		j = i + n1.nodes.size(); // offset based on size of first network
-  		a->matches[j].second = i;
-        a->match2[i] = -1;
-    }
+ 	// add NULL matches for the nodes in network 2
+ 	for(i=0;i<n2.nodes.size();++i){
+ 		j = i + n1.nodes.size(); // offset based on size of first network
+ 		a->matches[j].second = i;
+  }
 
-  	return a;
+ 	return a;
 }
 
 // allocate a new alignment
 Alignment * alignment_alloc(size_t foo, size_t bar){
-    unsigned int i;
+  unsigned int i;
 	Alignment * a = new Alignment;
 	for(i=0;i<foo;++i){
-        a->matches.push_back(pair<int,int>(-1,-1));
-        a->match1.push_back(-1);
-    }
-    for(i=0;i<bar;++i){
-        a->matches.push_back(pair<int,int>(-1,-1));
-        a->match2.push_back(-1);
-    }
+    a->matches.push_back(pair<int,int>(-1,-1));
+    a->match1.push_back(-1);
+  }
+  for(i=0;i<bar;++i){
+    a->matches.push_back(pair<int,int>(-1,-1));
+    a->match2.push_back(-1);
+  }
 	return a;
 }
 
 // free all memory associated with an alignment
 void alignment_free(Alignment * a){
 	a->matches.clear();
-    a->match1.clear();
-    a->match2.clear();
+  a->match1.clear();
+  a->match2.clear();
 	delete a;
 }

@@ -44,8 +44,8 @@ int main(int argc, char *argv[])
     // relevant parameters for simulated annealing
     void (*printfunc)(void*) = NULL;
     bool pairs = false;
-    int iters_fixed_T = 1;
-    double t_initial = -1;
+    double iters_fixed_T = 1.0;
+    double t_initial = -1.0;
     double mu_t = 1.001;
     double t_min = 1E-7;
     long degree = 0;
