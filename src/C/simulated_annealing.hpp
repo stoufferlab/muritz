@@ -17,7 +17,7 @@ double distance(Alignment *a, unsigned int i);
 void prepare_distance_matrix(double (*dfunc) (Role*, Role*));
 void prepare_neighbor_data(unsigned int degree);
 
-gsl_siman_params_t alignment_params(void *xp);
+gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp);
 
 double alignment_energy(void *xp);
 void   alignment_step(const gsl_rng * r, void *xp, double step_size);

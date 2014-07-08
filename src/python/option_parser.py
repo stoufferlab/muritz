@@ -21,7 +21,7 @@ def parse_cl_options():
 	parser.add_option("-t", "--tinitial",
 					  action="store", dest="tinitial", type="float",
 					  help="initial temperature for simulated annealing [default: %default]",
-					  default=1./0.7,
+					  default=-1,
 					 )
 	parser.add_option("-m", "--tminimum",
 					  action="store", dest="tminimum", type="float",

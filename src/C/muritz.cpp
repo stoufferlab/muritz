@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     void (*printfunc)(void*) = NULL;
     bool pairs = false;
     int iters_fixed_T = 1;
-    double t_initial = 1./0.7;
+    double t_initial = -1;
     double mu_t = 1.001;
     double t_min = 1E-7;
     long degree = 0;
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
     alignment->degree = degree;
 
 	// set up the simulated annealing parameters
-	gsl_siman_params_t params = alignment_params(alignment);
+	gsl_siman_params_t params = alignment_params(r,alignment);
 
 	// use simulated annealing to find an optimal alignment
 	// print out all of the incremental steps in the the optimization

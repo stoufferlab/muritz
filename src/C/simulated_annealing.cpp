@@ -286,7 +286,7 @@ double distance(Alignment *a, unsigned int i){
 
 // set up the SA parameter values
 // TODO: this should be made far more refined by actually using the data to inform the SA
-gsl_siman_params_t alignment_params(void *xp){
+gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp){
     // typecast the alignment object
 	Alignment * a = (Alignment *) xp;
 
@@ -304,9 +304,26 @@ gsl_siman_params_t alignment_params(void *xp){
     params.iters_fixed_T = (a->iters_fixed_T) * gsl_pow_2(a->matches.size());
 	
     // initial temperature
-    params.t_initial = a->t_initial;
+    if(a->t_initial != -1)
+        params.t_initial = a->t_initial;
+    else{
+        // calculate the average initial change in energy and use it to set the initial temperature
+        double ae, ae2, max_de;
+        max_de = 0;
+        ae = alignment_energy(a);
+        for(unsigned int i=0;i<params.iters_fixed_T;++i){
+            ae2 = ae;
+            alignment_step(r,a,0);
+            ae = alignment_energy(a);
+            max_de = max(max_de, abs(ae - ae2));
+        }
+        //de /= double(gsl_pow_2(a->matches.size()));
+        params.t_initial = max_de/0.7;
+    }
+
     // damping factor for temperature
 	params.mu_t = a->mu_t;
+
     // minimum temperature
 	params.t_min = a->t_min;
 
