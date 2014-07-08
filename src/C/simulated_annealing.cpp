@@ -313,17 +313,24 @@ gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp){
         params.t_initial = a->t_initial;
     else{
         // calculate the average initial change in energy and use it to set the initial temperature
-        double ae, ae2, max_de;
+        Alignment * b = setup_alignment();
+        _copy(a,b);
+        double ae, ae2, de, mean_de, max_de;
+        mean_de = 0;
         max_de = 0;
-        ae = alignment_energy(a);
-        for(unsigned int i=0;i<params.iters_fixed_T;++i){
+        ae = alignment_energy(b);
+        unsigned long shuffles = b->matches.size();
+        for(unsigned long i=0;i<shuffles;++i){
             ae2 = ae;
-            alignment_step(r,a,0);
-            ae = alignment_energy(a);
-            max_de = max(max_de, abs(ae - ae2));
+            alignment_step(r,b,0);
+            ae = alignment_energy(b);
+            de = abs(ae - ae2);
+            mean_de += de;
+            max_de = max(max_de, de);
         }
-        //de /= double(gsl_pow_2(a->matches.size()));
+        mean_de = de/double(shuffles);
         params.t_initial = max_de/0.7;
+        alignment_free(b);
     }
 
     // damping factor for temperature

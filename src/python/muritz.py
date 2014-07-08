@@ -61,6 +61,12 @@ def muritz(options, args):
 	# get a random seed
 	rnd_seed = random.randint(0,sys.maxint)
 
+	# do we want to start from a random initial alignment?
+	if options.randomstart:
+		rflag = "-r"
+	else:
+		rflag = ""
+
 	# do we want to track the output from muritz?
 	if options.verbose:
 		vflag = "-v"
@@ -74,12 +80,13 @@ def muritz(options, args):
 		pflag = ""
 
 	# call the muritz alignment code
-	command = "GSL_RNG_SEED=%s muritz.x -n %s -t %s -c %s -m %s -k %s %s %s" % (rnd_seed,
+	command = "GSL_RNG_SEED=%s muritz.x -n %s -t %s -c %s -m %s -k %s %s %s %s" % (rnd_seed,
 																			 options.iterations,
 																			 options.tinitial,
 																			 options.cooling,
 																			 options.tminimum,
 																			 options.degree,
+																			 rflag,
 																			 pflag,
 																			 vflag)
 	#muritz_out = tempfile.TemporaryFile()

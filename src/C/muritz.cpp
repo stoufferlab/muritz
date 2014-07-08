@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 {
     // relevant parameters for simulated annealing
     void (*printfunc)(void*) = NULL;
-    bool pairs = false;
+    bool pairs = false, randomstart = false;
     double iters_fixed_T = 1.0;
     double t_initial = -1.0;
     double mu_t = 1.001;
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     // set the above parameters with command line options
     int flags, opt;
     flags = 0;
-    while((opt = getopt(argc, argv, "vpn:t:c:m:k:")) != -1) {
+    while((opt = getopt(argc, argv, "vprn:t:c:m:k:")) != -1) {
     	switch (opt) {
     		case 'v':
     			printfunc = &alignment_print;
@@ -61,6 +61,9 @@ int main(int argc, char *argv[])
     		case 'p':
     			pairs = true;
     			break;
+            case 'r':
+                randomstart = true;
+                break;
     		case 'n':
     			if(optarg)
     				iters_fixed_T = strtod(optarg, NULL);
@@ -105,6 +108,8 @@ int main(int argc, char *argv[])
 
   	// set up the alignment between networks
 	Alignment * alignment = setup_alignment();
+    if(randomstart)
+        randomize_alignment(r,alignment);
 
     // decide on what the node-to-node distance function is
     alignment->dfunc = &role_correlation;

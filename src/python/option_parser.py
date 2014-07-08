@@ -38,6 +38,11 @@ def parse_cl_options():
 					  help="proportion of possible swaps to perform at each temperature [default: %default]",
 					  default=1,
 					 )
+	parser.add_option("-r", "--randomstart",
+					  action="store_true", dest="randomstart",
+					  help="start from a random alignment [default: %default]",
+					  default=False,
+					 )
 	parser.add_option("-v", "--verbose",
 					  action="store_true", dest="verbose",
 					  help="print out incremental alignment data [default: %default]",

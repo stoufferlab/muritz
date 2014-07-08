@@ -10,9 +10,14 @@
 #include <sstream>
 #include <vector>
 
+// gsl header files
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_rng.h>
+
 // local includes
 #include <common.hpp>
 #include <alignment.hpp>
+#include <simulated_annealing.hpp>
 
 // namespaces
 using namespace std;
@@ -136,6 +141,13 @@ Alignment * setup_alignment(){
   }
 
  	return a;
+}
+
+// randomize an alignment
+void randomize_alignment(const gsl_rng *r, Alignment *a){
+  unsigned long shuffles = 2*gsl_pow_2(a->matches.size());
+  for(unsigned long i=0;i<shuffles;++i)
+    alignment_step(r,a,0);
 }
 
 // allocate a new alignment
