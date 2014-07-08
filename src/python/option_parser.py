@@ -10,7 +10,7 @@ import sys
 
 def parse_cl_options():
 	#usage = "usage: %prog [-r ROLE_FILENAME] [-s ROLE_FILENAME] NETWORK_FILE NETWORK_FILE"
-	usage = "usage: %prog FIRST_NETWORK_FILE SECOND_NETWORK_FILE"
+	usage = "usage: %prog [OPTION] FIRST_NETWORK_FILE SECOND_NETWORK_FILE"
 	parser = OptionParser(usage)
 
 	parser.add_option("-k", "--degree",
