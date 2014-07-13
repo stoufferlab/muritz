@@ -50,21 +50,22 @@ double role_euclidean_distance(Role *r1, Role *r2){
 
 // calculate the role-to-role correlation coefficient
 double role_correlation(Role *r1, Role *r2){
+    double r;
 	double *f1 = (double*) calloc(r1->f.size(), sizeof(double));
 	double *f2 = (double*) calloc(r1->f.size(), sizeof(double));
 
-	for(unsigned int i=0;i<r1->f.size();++i){
-		f1[i] = r1->f[i].frequency;
+    if(r1->name == "NULL" || r2->name == "NULL")
+        r = 0; // this corresponds to complete lack of correlation
+    else{
+    	for(unsigned int i=0;i<r1->f.size();++i){
+	       	f1[i] = r1->f[i].frequency;
+		  	f2[i] = r2->f[i].frequency;
+    	}
 
-		if(r2->name != "NULL")
-			f2[i] = r2->f[i].frequency;
-		else
-            return 1; // this corresponds to complete lack of correlation
-	}
-
-    double r = gsl_stats_correlation(f1, 1,
-  			    					 f2, 1,
-  				    				 r1->f.size());
+        r = gsl_stats_correlation(f1, 1,
+  		      					  f2, 1,
+  			       	    		  r1->f.size());
+    }
 
     return 1 - r;
 }
@@ -203,20 +204,23 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
     set<Node *> nbr_i, nbr_j;
     set<Node *>::iterator nbr_it;
 
+    // save as ints to avoid confusion later
     i = a->matches[m].first;
     j = a->matches[m].second;
 
+    // prepare the lists of neighbors if this is the first time this has been run
+    if(i != -1 && n1.nodes[i]->neighbors.count(degree) == 0)
+        prepare_neighbor_data(degree);
+    if(j != -1 && n2.nodes[j]->neighbors.count(degree) == 0)
+        prepare_neighbor_data(degree);
+
     // i is not null
     if(i != -1){
-        // have we already calculated i's list of degree-th neighbors?
-        if(n1.nodes[i]->neighbors.count(degree) == 0)
-            prepare_neighbor_data(degree);
+        // save within a local pointer to avoid complications later
+        nbr_i = n1.nodes[i]->neighbors[degree];
 
         // j is not null
         if(j != -1){
-            // save within a local pointer to avoid complications later
-            nbr_i = n1.nodes[i]->neighbors[degree];
-    
             // save within a local pointer to avoid complications later
             nbr_j = n2.nodes[j]->neighbors[degree];
 
@@ -245,7 +249,7 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
                         d += node_distance(l, (*nbr_it)->idx, a->dfunc);
                     // l is null or is not one of j's neighbors
                     else
-                        d += node_distance(l, (*nbr_it)->idx, a->dfunc);
+                        d += node_distance(-1, (*nbr_it)->idx, a->dfunc);
                 }
             }
         }
