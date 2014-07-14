@@ -208,22 +208,31 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
     i = a->matches[m].first;
     j = a->matches[m].second;
 
-    // prepare the lists of neighbors if this is the first time this has been run
-    if(i != -1 && n1.nodes[i]->neighbors.count(degree) == 0)
-        prepare_neighbor_data(degree);
-    if(j != -1 && n2.nodes[j]->neighbors.count(degree) == 0)
-        prepare_neighbor_data(degree);
-
     // i is not null
     if(i != -1){
-        // save within a local pointer to avoid complications later
-        nbr_i = n1.nodes[i]->neighbors[degree];
+        // prepare the lists of neighbors if this is the first time this has been run
+        if(n1.nodes[i]->neighbors.count(degree) == 0)
+            prepare_neighbor_data(degree);
 
+        // save locally to avoid complications later
+        nbr_i = n1.nodes[i]->neighbors[degree];
+    }
+
+    // j is not null
+    if(j != -1){
+        // prepare the lists of neighbors if this is the first time this has been run
+        if(n2.nodes[j]->neighbors.count(degree) == 0)
+            prepare_neighbor_data(degree);
+        
+        // save locally to avoid complications later
+        nbr_j = n2.nodes[j]->neighbors[degree];
+    }
+
+    // let the energizing begin!
+    // i is not null
+    if(i != -1){
         // j is not null
         if(j != -1){
-            // save within a local pointer to avoid complications later
-            nbr_j = n2.nodes[j]->neighbors[degree];
-
             // align neighbors using the node with the greatest total number as the baseline
             if(nbr_i.size()>=nbr_j.size()){
                 // compute the local alignment for all of i's neighbors
@@ -253,7 +262,7 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
                 }
             }
         }
-        // there are no potential neighbor alignments (j is null)
+        // j is null
         else{
             // all neighbors of i are treated as unaligned
             for(nbr_it=nbr_i.begin(); nbr_it!=nbr_i.end(); ++nbr_it){
@@ -276,6 +285,10 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
             for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
                 d += node_distance(-1, (*nbr_it)->idx, a->dfunc);
             }
+        }
+        // j is null
+        else{
+            d = 0; // for goodness sake...
         }
     }
 
