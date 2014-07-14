@@ -150,6 +150,65 @@ void randomize_alignment(const gsl_rng *r, Alignment *a){
     alignment_step(r,a,0);
 }
 
+// print out an alignment in json format
+void alignment_print_json(void *xp, bool energy=true, bool pairs=false){
+  Alignment * a = (Alignment *) xp;
+  unsigned int i;
+  int j, k;
+  //Role r1, r2;
+
+  cout << "{\n";
+  cout << "  \"alignment\": {\n";
+
+  cout << "    \"energy\": ";
+  cout << alignment_energy(a) << ",\n";
+
+  cout << "    \"pairs\": [\n";
+
+  bool first = true;
+  for(i=0;i<a->matches.size();++i){
+    j = a->matches[i].first;
+    k = a->matches[i].second;
+
+    // don't print out double NULL matches   
+    if(j!=-1 || k!=-1){
+      if(!first){
+        cout << ",\n";
+      }
+
+      cout << "      {\n";
+      cout << "        \"first\": \"";
+      if (j != -1)
+        cout << n1.roles[j].name;
+      else
+        cout << "NULL";
+      cout << "\",\n";
+
+      cout << "        \"second\": \"";
+      if (k != -1)
+        cout << n2.roles[k].name;
+      else
+        cout << "NULL";
+      
+      if(pairs){
+        cout << "\",\n";
+        cout << "        \"distance\": ";
+        cout << distance(a, i) << endl;;
+      }
+      
+      cout << "      }";
+      first = false;
+    }
+  }
+
+  // pairs
+  cout << "\n    ]\n";
+
+  // alignment
+  cout << "  }\n}\n";
+}
+
+
 // allocate a new alignment
 Alignment * alignment_alloc(size_t foo, size_t bar){
   unsigned int i;
