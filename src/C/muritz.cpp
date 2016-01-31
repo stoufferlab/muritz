@@ -49,11 +49,12 @@ int main(int argc, char *argv[])
     double mu_t = 1.001;
     double t_min = 1E-7;
     long degree = 0;
+    long cost_function = 1;
 
     // set the above parameters with command line options
     int flags, opt;
     flags = 0;
-    while((opt = getopt(argc, argv, "vprn:t:c:m:k:")) != -1) {
+    while((opt = getopt(argc, argv, "vprn:t:c:m:k:b:")) != -1) {
     	switch (opt) {
     		case 'v':
     			printfunc = &alignment_print;
@@ -94,6 +95,12 @@ int main(int argc, char *argv[])
     			else
     				help();
     			break;
+    		case 'b':
+    			if(optarg)
+    				cost_function = strtoul(optarg, NULL, 0);
+    			else
+    				help();
+    			break;
     		default: // '?' //
     			help();
     	}
@@ -112,7 +119,17 @@ int main(int argc, char *argv[])
         randomize_alignment(r,alignment);
 
     // decide on what the node-to-node distance function is
-    alignment->dfunc = &role_correlation;
+
+    if(cost_function==0){
+        alignment->dfunc = &role_euclidean_distance;
+    }else{
+        if(cost_function==1){
+            alignment->dfunc = &role_correlation;
+        }else{
+            alignment->dfunc = &role_chisquared;
+        }
+    }
+
 
     // assign simulated annleaing parameters to pass to the function below
     alignment->iters_fixed_T = iters_fixed_T;

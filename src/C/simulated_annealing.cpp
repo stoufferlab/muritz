@@ -83,46 +83,46 @@ double role_chisquared(Role *r1, Role *r2){
 		colsums[i] = 0;
 
 	// calculate the row, column, and total sums
-	for(i=0;i<r1->f.size();++i){
-		j = r1->f[i].frequency;
+	if(r2->name == "NULL"){
+		return 1;
+	}else{
+		for(i=0;i<r1->f.size();++i){
+			j = r1->f[i].frequency;
 
-		total += j;
-		rowsums[0] += j;
-		colsums[i] += j;
+			total += j;
+			rowsums[0] += j;
+			colsums[i] += j;
 
-		if(r2->name != "NULL"){
 			j = r2->f[i].frequency;
 
 			total += j;
 			rowsums[1] += j;
-			colsums[i] += j;
-		}	
-	}
+			colsums[i] += j;	
+		}
 
-	// sum the chisquared statistic over columns (rows are hardcoded below)
-	chisq = 0;
-	for(i=0;i<r1->f.size();++i){
-		if(colsums[i] != 0){
-			// a column that contributes to the total possible degrees of freedom
-			++nz_cols;
+		// sum the chisquared statistic over columns (rows are hardcoded below)
+		chisq = 0;
+		for(i=0;i<r1->f.size();++i){
+			if(colsums[i] != 0){
+				// a column that contributes to the total possible degrees of freedom
+				++nz_cols;
 
-			// expected and chisquared contribution for 0,i
-			expected = rowsums[0] * colsums[i] / float(total);
-			chisq += gsl_pow_2(r1->f[i].frequency - expected) / float(expected);
+				// expected and chisquared contribution for 0,i
+				expected = rowsums[0] * colsums[i] / float(total);
+				chisq += gsl_pow_2(r1->f[i].frequency - expected) / float(expected);
 
-			if(r2->name != "NULL"){
 				// expected and chisquared contribution for 1,i
 				expected = rowsums[1] * colsums[i] / float(total);
 				chisq += gsl_pow_2(r2->f[i].frequency - expected) / float(expected);
 			}
 		}
+
+		// calculate the degrees of freedom for the chisquared test 
+		// the final values depends on the number of non-zero columns
+		df = (nz_cols-1) * (2-1);
+
+		return gsl_cdf_chisq_P(chisq, df);
 	}
-
-	// calculate the degrees of freedom for the chisquared test 
-	// the final values depends on the number of non-zero columns
-	df = (nz_cols-1) * (2-1);
-
-	return gsl_cdf_chisq_P(chisq, df);
 }
 
 // calculate a full role-to-role distance matrix to speed up the SA
