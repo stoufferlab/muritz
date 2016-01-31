@@ -156,12 +156,14 @@ int main(int argc, char *argv[])
 					params);
   	
 	// print out the "optimal" alignment
+    alignment_print_json(alignment, true, pairs);
+    /*
     if(!pairs){
     	cout << "optimal ="; alignment_print(alignment); cout << endl;
     }else{
     	cout << "optimal ="; alignment_print_pairs(alignment); cout << endl;
     }
-    cout << "energy = " << alignment_energy(alignment) << endl;
+    cout << "energy = " << alignment_energy(alignment) << endl;*/
 
 	// free allocated memory
 	alignment_free(alignment);
