@@ -80,12 +80,13 @@ def muritz(options, args):
 		pflag = ""
 
 	# call the muritz alignment code
-	command = "GSL_RNG_SEED=%s muritz.x -n %s -t %s -c %s -m %s -k %s %s %s %s" % (rnd_seed,
+	command = "GSL_RNG_SEED=%s muritz.x -n %s -t %s -c %s -m %s -k %s -b %s %s %s %s" % (rnd_seed,
 																			 options.iterations,
 																			 options.tinitial,
 																			 options.cooling,
 																			 options.tminimum,
 																			 options.degree,
+																			 options.cost_function,
 																			 rflag,
 																			 pflag,
 																			 vflag)

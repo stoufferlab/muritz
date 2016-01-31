@@ -18,6 +18,11 @@ def parse_cl_options():
 					  help="degree of alignment to conduct [default: %default]",
 					  default=0,
 					 )
+	parser.add_option("-b", "--cost_function",
+					  action="store", dest="cost_function", type="int",
+					  help="Euclidean distance (0), Pearson's correlation coeficient (1) or Chi-squared test (2) [default: %default]",
+					  default=1,
+					 )
 	parser.add_option("-t", "--tinitial",
 					  action="store", dest="tinitial", type="float",
 					  help="initial temperature for simulated annealing [default: %default]",
