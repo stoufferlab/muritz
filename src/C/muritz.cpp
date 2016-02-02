@@ -43,24 +43,27 @@ int main(int argc, char *argv[])
 {
     // relevant parameters for simulated annealing
     void (*printfunc)(void*) = NULL;
-    bool pairs = false, randomstart = false;
+    bool pairs = false, overflag=false, randomstart = false;
     double iters_fixed_T = 1.0;
     double t_initial = -1.0;
     double mu_t = 1.001;
     double t_min = 1E-7;
     long degree = 0;
-    long cost_function = 1;
+    long cost_function = 2;
 
     // set the above parameters with command line options
     int flags, opt;
     flags = 0;
-    while((opt = getopt(argc, argv, "vprn:t:c:m:k:b:")) != -1) {
+    while((opt = getopt(argc, argv, "vporn:t:c:m:k:b:")) != -1) {
     	switch (opt) {
     		case 'v':
     			printfunc = &alignment_print;
     			break;
     		case 'p':
     			pairs = true;
+    			break;
+    		case 'o':
+    			overflag = true;
     			break;
             case 'r':
                 randomstart = true;
@@ -156,14 +159,22 @@ int main(int argc, char *argv[])
 					params);
   	
 	// print out the "optimal" alignment
-    alignment_print_json(alignment, true, pairs);
-    /*
-    if(!pairs){
-    	cout << "optimal ="; alignment_print(alignment); cout << endl;
+    
+    //alignment_print_json(alignment, true, pairs);
+
+    if(!overflag){
+
+	if(!pairs){
+    		cout << "optimal ="; alignment_print(alignment); cout << endl;
+	}else{
+		cout << "optimal ="; alignment_print_pairs(alignment); cout << endl;
+	}
+	cout << "energy = " << alignment_energy(alignment) << endl;
+
     }else{
-    	cout << "optimal ="; alignment_print_pairs(alignment); cout << endl;
+	overlap_pairs(alignment, pairs);
+	cout << "energy = " << alignment_energy(alignment) << endl;
     }
-    cout << "energy = " << alignment_energy(alignment) << endl;*/
 
 	// free allocated memory
 	alignment_free(alignment);

@@ -122,7 +122,7 @@ muritz = ('muritz',
                                                               'simulated_annealing.cpp',
                                                              ]
                                ],
-                    'include_dirs' : ['src/C', '/usr/include'],
+                    'include_dirs' : ['src/C', '/usr/include', '/opt/gsl/include'],
                     'language' : 'c++',
                     'extra_compile_args' : ["-O3",],
                     'extra_link_args' : ['-lgsl', '-lgslcblas', '-lm', '-lstdc++', ]
