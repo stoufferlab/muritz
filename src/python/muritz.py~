@@ -98,7 +98,7 @@ def muritz(options, args):
 																			 options.cost_function,
 																			 rflag,
 																			 pflag,
-																			 vflag,
+																			 vflag
 
 overflag)
 	#muritz_out = tempfile.TemporaryFile()
