@@ -4,7 +4,6 @@ import random
 import subprocess
 import sys
 import tempfile
-import numpy as np
 
 from pymfinder import motif_roles,print_roles
 from option_parser import parse_cl_options
