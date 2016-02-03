@@ -38,6 +38,7 @@ def muritz_input(net1, net2, net1_roles, net2_roles):
 
 	return '\n'.join(input)
 
+
 def muritz(options, args):
 	net1 = read_network(args[0])
 	net2 = read_network(args[1])
@@ -57,6 +58,7 @@ def muritz(options, args):
 		net2_roles = motif_roles(args[1],motifsize=3,)
 
 	muritz_in = muritz_input(net1, net2, net1_roles, net2_roles)
+
 
 	# get a random seed
 	rnd_seed = random.randint(0,sys.maxint)
@@ -79,8 +81,14 @@ def muritz(options, args):
 	else:
 		pflag = ""
 
+	# do we want to calculate the overlap between networks?
+	if options.overlap:
+		overflag = "-o"
+	else:
+		overflag = ""
+
 	# call the muritz alignment code
-	command = "GSL_RNG_SEED=%s muritz.x -n %s -t %s -c %s -m %s -k %s -b %s %s %s %s" % (rnd_seed,
+	command = "GSL_RNG_SEED=%s muritz.x -n %s -t %s -c %s -m %s -k %s -b %s %s %s %s %s" % (rnd_seed,
 																			 options.iterations,
 																			 options.tinitial,
 																			 options.cooling,
@@ -89,30 +97,36 @@ def muritz(options, args):
 																			 options.cost_function,
 																			 rflag,
 																			 pflag,
-																			 vflag)
+																			 vflag,
+
+overflag)
 	#muritz_out = tempfile.TemporaryFile()
 	process = subprocess.Popen(command,
-							   bufsize=0,
-    	                       stdin=subprocess.PIPE,
-        	                   stdout=subprocess.PIPE,
-							   stderr=subprocess.PIPE,
-							   shell=True,
-							   )
+					bufsize=0,
+					stdin=subprocess.PIPE,
+					stdout=subprocess.PIPE,
+					stderr=subprocess.PIPE,
+					shell=True,
+					)
 
 	# write the network and role data to muritz
 	process.stdin.write(muritz_in)
 	process.stdin.close()
 
-	# print out the muritz stdout line by line as it comes
+
+	# print out and store the muritz stdout line by line as it comes
+
 	for line in iter(process.stdout.readline, ''):
 		print(line),
 
 	process.wait()
-
+		
 	# get rid of the GSL seed info and any empty lines from stderr
 	muritz_stderr = [i for i in process.stderr.readlines() if "GSL_RNG_SEED" not in i and i != '']
 	if muritz_stderr:
 		sys.stderr.write(''.join(muritz_stderr))
+
+
 
 	# print out the optimization output
 	#print(muritz_stdout)
