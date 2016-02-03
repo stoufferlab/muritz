@@ -8,6 +8,7 @@
 #include <cstring>
 #include <iostream>
 #include <string>
+#include <algorithm>    // std::set_intersection, std::sort
 #include <vector>
 
 // gsl header files
@@ -82,10 +83,10 @@ double role_chisquared(Role *r1, Role *r2){
 	for(i=0;i<r1->f.size();++i)
 		colsums[i] = 0;
 
-	// calculate the row, column, and total sums
 	if(r2->name == "NULL"){
 		return 1;
 	}else{
+		// calculate the row, column, and total sums
 		for(i=0;i<r1->f.size();++i){
 			j = r1->f[i].frequency;
 
@@ -480,6 +481,105 @@ void alignment_print_pairs(void *xp){
 	}
 	cout << " ] ";
 }
+
+void overlap_pairs(void *xp, bool pairs){
+	Alignment * a = (Alignment *) xp;
+	unsigned int i;
+	int j, k;
+	vector<int> totals(3);
+	set<int> v1;
+	set<int> v2;
+	vector<int> v;
+	set<Node *> nbr_j, nbr_k;
+	set<Node *>::iterator nbr_it;
+
+
+	//Role r1, r2;
+	cout << "optimal = [";
+	for(i=0;i<a->matches.size();++i){
+		j = a->matches[i].first;
+		k = a->matches[i].second;
+		
+		// don't print out NULL matches		
+		if(j!=-1 || k!=-1){
+			cout << " (";
+
+			if (j != -1 && a->match2[k]!= -1){
+
+				cout << n1.roles[j].name;
+				cout << ",";
+				cout << n2.roles[k].name;
+
+				//find neighbors of species j
+				v1.clear();
+				nbr_j = n1.nodes[j]->neighbors[1];
+				totals[1]+=nbr_j.size();
+				for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
+					v1.insert((*nbr_it)->idx);
+				}
+
+				//find neighbors of species k
+				v2.clear();
+				nbr_k = n2.nodes[k]->neighbors[1];
+				totals[2]+=nbr_k.size();
+				for(nbr_it=nbr_k.begin(); nbr_it!=nbr_k.end(); ++nbr_it){
+					v2.insert(a->match2[(*nbr_it)->idx]);
+				}
+
+				//find neighbors shared by species j and k
+				v.clear();
+				set_intersection(v1.begin(),v1.end(),v2.begin(),v2.end(), std::back_inserter(v));
+
+				v.erase(remove(v.begin(), v.end(), -1), v.end());
+
+				cout << ":";
+
+				totals[0] += v.size();
+				//print out fraction of interactions shared
+				cout << v.size() / float(nbr_j.size()); cout << ","; cout << v.size()/float(nbr_k.size());
+
+			}else{
+				//Print out alignment of non-aligned nodes
+				if (j != -1){
+
+					nbr_j = n1.nodes[j]->neighbors[1];
+					totals[1]+=nbr_k.size();
+
+					cout << n1.roles[j].name;
+					cout << ",NULL";
+					//Overlap between NULL and species j is set to 0 for both perspectives
+					cout << ":0,0";
+
+				}else{
+
+					nbr_k = n2.nodes[k]->neighbors[1];
+					totals[2]+=nbr_k.size();
+
+					cout << "NULL,";
+					cout << n2.roles[k].name;
+					//Overlap between NULL and species k is set to 0 for both perspectives
+					cout << ":0,0";
+
+				}
+
+			}
+
+		if(pairs){
+			//Print out pairs distance
+			cout << ":";
+			cout << distance(a, i);
+		}
+		cout <<  ")";
+		}
+
+	}
+	cout << " ] "; cout << endl;
+	cout << "overlap = ("; cout << totals[0] / float(totals[1]);
+	cout << ","; cout << totals[0] / float(totals[2]);
+	cout << ")"; cout << endl;
+}
+
+
 
 // copy from one alignment to another
 void _copy(void *source, void *dest){

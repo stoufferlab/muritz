@@ -21,7 +21,7 @@ def parse_cl_options():
 	parser.add_option("-b", "--cost_function",
 					  action="store", dest="cost_function", type="int",
 					  help="Euclidean distance (0), Pearson's correlation coeficient (1) or Chi-squared test (2) [default: %default]",
-					  default=1,
+					  default=2,
 					 )
 	parser.add_option("-t", "--tinitial",
 					  action="store", dest="tinitial", type="float",
@@ -56,6 +56,11 @@ def parse_cl_options():
 	parser.add_option("-p", "--pairs",
 					  action="store_true", dest="pairs",
 					  help="print out pairwise alignment data [default: %default]",
+					  default=False,
+					 )
+	parser.add_option("-o", "--overlap",
+					  action="store_true", dest="overlap",
+					  help="calculate the overlap between networks [default: %default]",
 					  default=False,
 					 )
 	#parser.add_option("-r", "--first-roles", dest="roles1", help="read role data for first network from ROLE_FILENAME", )
