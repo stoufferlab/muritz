@@ -10,7 +10,6 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
-#include <typeinfo>
 
 
 // gsl header files
