@@ -8,7 +8,7 @@
 #include <cstring>
 #include <iostream>
 #include <string>
-#include <algorithm>    // std::set_intersection, std::sort
+#include <algorithm>
 #include <vector>
 
 // gsl header files
@@ -52,20 +52,25 @@ double role_euclidean_distance(Role *r1, Role *r2){
 // calculate the role-to-role correlation coefficient
 double role_correlation(Role *r1, Role *r2){
     double r;
-	double *f1 = (double*) calloc(r1->f.size(), sizeof(double));
-	double *f2 = (double*) calloc(r1->f.size(), sizeof(double));
+    int rowsums[2] = {0};
+    double *f1 = (double*) calloc(r1->f.size(), sizeof(double));
+    double *f2 = (double*) calloc(r1->f.size(), sizeof(double));
 
     if(r1->name == "NULL" || r2->name == "NULL")
         r = 0; // this corresponds to complete lack of correlation
     else{
     	for(unsigned int i=0;i<r1->f.size();++i){
 	       	f1[i] = r1->f[i].frequency;
-		  	f2[i] = r2->f[i].frequency;
+		f2[i] = r2->f[i].frequency;
+		rowsums[0] += f1[i];
+		rowsums[1] += f2[i];
     	}
 
-        r = gsl_stats_correlation(f1, 1,
-  		      					  f2, 1,
-  			       	    		  r1->f.size());
+	if (rowsums[0]==0 || rowsums[1]==0)
+		// This corresponds to the case in which one of the nodes has a n-zero motif profile
+		r=0;
+	else
+		r = gsl_stats_correlation(f1, 1, f2, 1, r1->f.size());
     }
 
     return 1 - r;
@@ -101,28 +106,33 @@ double role_chisquared(Role *r1, Role *r2){
 			colsums[i] += j;	
 		}
 
-		// sum the chisquared statistic over columns (rows are hardcoded below)
-		chisq = 0;
-		for(i=0;i<r1->f.size();++i){
-			if(colsums[i] != 0){
-				// a column that contributes to the total possible degrees of freedom
-				++nz_cols;
+		if (rowsums[0]==0 || rowsums[1]==0){
+			// This corresponds to the case in which one of the nodes has a n-zero motif profile
+			return 1;
+		}else{
+			// sum the chisquared statistic over columns (rows are hardcoded below)
+			chisq = 0;
+			for(i=0;i<r1->f.size();++i){
+				if(colsums[i] != 0){
+					// a column that contributes to the total possible degrees of freedom
+					++nz_cols;
 
-				// expected and chisquared contribution for 0,i
-				expected = rowsums[0] * colsums[i] / float(total);
-				chisq += gsl_pow_2(r1->f[i].frequency - expected) / float(expected);
+					// expected and chisquared contribution for 0,i
+					expected = rowsums[0] * colsums[i] / float(total);
+					chisq += gsl_pow_2(r1->f[i].frequency - expected) / float(expected);
 
-				// expected and chisquared contribution for 1,i
-				expected = rowsums[1] * colsums[i] / float(total);
-				chisq += gsl_pow_2(r2->f[i].frequency - expected) / float(expected);
+					// expected and chisquared contribution for 1,i
+					expected = rowsums[1] * colsums[i] / float(total);
+					chisq += gsl_pow_2(r2->f[i].frequency - expected) / float(expected);
+				}
 			}
+
+			// calculate the degrees of freedom for the chisquared test 
+			// the final values depends on the number of non-zero columns
+			df = (nz_cols-1) * (2-1);
+
+			return gsl_cdf_chisq_P(chisq, df);
 		}
-
-		// calculate the degrees of freedom for the chisquared test 
-		// the final values depends on the number of non-zero columns
-		df = (nz_cols-1) * (2-1);
-
-		return gsl_cdf_chisq_P(chisq, df);
 	}
 }
 
@@ -528,7 +538,7 @@ void overlap_pairs(void *xp, bool pairs){
 
 				//find neighbors shared by species j and k
 				v.clear();
-				set_intersection(v1.begin(),v1.end(),v2.begin(),v2.end(), std::back_inserter(v));
+				set_intersection(v1.begin(),v1.end(),v2.begin(),v2.end(), back_inserter(v));
 
 				v.erase(remove(v.begin(), v.end(), -1), v.end());
 
