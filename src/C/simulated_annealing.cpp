@@ -514,7 +514,7 @@ void overlap_pairs(void *xp, bool pairs){
 		if(j!=-1 || k!=-1){
 			cout << " (";
 
-			if (j != -1 && a->match2[k]!= -1){
+			if (j != -1 && k != -1){
 
 				cout << n1.roles[j].name;
 				cout << ",";
@@ -523,6 +523,7 @@ void overlap_pairs(void *xp, bool pairs){
 				//find neighbors of species j
 				v1.clear();
 				nbr_j = n1.nodes[j]->neighbors[1];
+				//cout << n1.nodes[j]->predators.size();
 				totals[1]+=nbr_j.size();
 				for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
 					v1.insert((*nbr_it)->idx);
