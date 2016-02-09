@@ -492,16 +492,15 @@ void alignment_print_pairs(void *xp){
 	cout << " ] ";
 }
 
-void overlap_pairs(void *xp, bool pairs){
+void overlap_pairs(void *xp, bool pairs, int direction){
 	Alignment * a = (Alignment *) xp;
-	unsigned int i;
+	unsigned int i,m;
 	int j, k;
 	vector<int> totals(3);
 	set<int> v1;
 	set<int> v2;
 	vector<int> v;
-	set<Node *> nbr_j, nbr_k;
-	set<Node *>::iterator nbr_it;
+	Node * nbr;
 
 
 	//Role r1, r2;
@@ -522,21 +521,26 @@ void overlap_pairs(void *xp, bool pairs){
 
 				//find neighbors of species j
 				v1.clear();
-				nbr_j = n1.nodes[j]->neighbors[1];
-				//cout << n1.nodes[j]->predators.size();
-				totals[1]+=nbr_j.size();
-				for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
-					v1.insert((*nbr_it)->idx);
-				}
+				nbr = n1.nodes[j];
+				if(direction == 0 || direction == 1)
+					for(m=0;m<nbr->prey.size();++m)
+						v1.insert(nbr->prey[m]->idx);
+				if(direction == 0 || direction == -1)
+					for(m=0;m<nbr->predators.size();++m)
+						v1.insert(nbr->predators[m]->idx);
+
 
 				//find neighbors of species k
 				v2.clear();
-				nbr_k = n2.nodes[k]->neighbors[1];
-				totals[2]+=nbr_k.size();
-				for(nbr_it=nbr_k.begin(); nbr_it!=nbr_k.end(); ++nbr_it){
-					v2.insert(a->match2[(*nbr_it)->idx]);
-				}
-
+				nbr = n2.nodes[k];
+				if(direction == 0 || direction == 1)
+					for(m=0;m<nbr->prey.size();++m)
+						v2.insert(a->match2[nbr->prey[m]->idx]);
+				if(direction == 0 || direction == -1)
+					for(m=0;m<nbr->predators.size();++m)
+						v2.insert(a->match2[nbr->predators[m]->idx]);
+				
+				
 				//find neighbors shared by species j and k
 				v.clear();
 				set_intersection(v1.begin(),v1.end(),v2.begin(),v2.end(), back_inserter(v));
@@ -546,15 +550,31 @@ void overlap_pairs(void *xp, bool pairs){
 				cout << ":";
 
 				totals[0] += v.size();
+				totals[1] += v1.size();
+				totals[2] += v2.size();
 				//print out fraction of interactions shared
-				cout << v.size() / float(nbr_j.size()); cout << ","; cout << v.size()/float(nbr_k.size());
+
+				if(v1.size()!=0 && v2.size()!=0){
+					cout << v.size() / float(v1.size()); cout << ","; cout << v.size()/float(v2.size());
+				}else{
+					if(v2.size()!=0){
+						cout << 1; cout << ","; cout << v.size()/float(v2.size());
+					}else if(v1.size()!=0){
+						cout << v.size() / float(v1.size()); cout << ","; cout << 1;
+					}else{
+						cout << 1; cout << ","; cout << 1;
+					}
+				}
 
 			}else{
 				//Print out alignment of non-aligned nodes
 				if (j != -1){
 
-					nbr_j = n1.nodes[j]->neighbors[1];
-					totals[1]+=nbr_k.size();
+					nbr = n1.nodes[j];
+					if(direction == 0 || direction == 1)
+						totals[1]+=nbr->prey.size();
+					if(direction == 0 || direction == -1)
+						totals[1]+=nbr->predators.size();
 
 					cout << n1.roles[j].name;
 					cout << ",NULL";
@@ -563,8 +583,11 @@ void overlap_pairs(void *xp, bool pairs){
 
 				}else{
 
-					nbr_k = n2.nodes[k]->neighbors[1];
-					totals[2]+=nbr_k.size();
+					nbr = n2.nodes[k];
+					if(direction == 0 || direction == 1)
+						totals[2]+=nbr->prey.size();
+					if(direction == 0 || direction == -1)
+						totals[2]+=nbr->predators.size();
 
 					cout << "NULL,";
 					cout << n2.roles[k].name;
@@ -588,6 +611,7 @@ void overlap_pairs(void *xp, bool pairs){
 	cout << "overlap = ("; cout << totals[0] / float(totals[1]);
 	cout << ","; cout << totals[0] / float(totals[2]);
 	cout << ")"; cout << endl;
+
 }
 
 
