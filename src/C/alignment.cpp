@@ -9,6 +9,8 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <algorithm>
+
 
 // gsl header files
 #include <gsl/gsl_math.h>
@@ -32,7 +34,12 @@ void read_alignment_data(char separator, Network& A, Network& B)
   char t[1024];
   int pred_i, prey_i, ncols = 0;
   bool firstline = true, roles;
-  
+  set<string> v1;
+  set<string> v2;
+
+  vector<string> v_diff;
+  vector<string>::iterator it;
+
   Network *N = &A;
 
   A.name = string("Network A");
@@ -40,9 +47,28 @@ void read_alignment_data(char separator, Network& A, Network& B)
 
   roles = false;
   while (getline(cin,line)){
+
     if(line == string("///")){
       N = &B;
       roles=false;
+
+      //role vector set to n-zero for species that are not connected to the network and are not part of any motif
+      set_difference(v1.begin(),v1.end(),v2.begin(),v2.end(), back_inserter(v_diff));
+      for (it=v_diff.begin(); it!=v_diff.end(); ++it){
+             Role R;
+             R.name = *it;
+             for(int i=2;i<=ncols;++i){
+                   Position P;
+                   P.name = string(t);
+                   P.frequency = 0;
+                   R.f.push_back(P);
+             }
+             N->roles[N->node_i[R.name]] = R;
+      }
+
+      v1.clear();
+      v2.clear();
+
     }
     else
       if(line == string("###")){
@@ -66,6 +92,10 @@ void read_alignment_data(char separator, Network& A, Network& B)
             
             Role R;
             N->roles.push_back(R);
+
+            // This vector is for checking if 'pred' is an unconnected species
+            v1.insert(pred);
+
           }else
             pred_i = N->node_i[pred];
 
@@ -80,6 +110,10 @@ void read_alignment_data(char separator, Network& A, Network& B)
 
             Role R;
             N->roles.push_back(R);
+
+            // This vector is for checking if 'prey' is an unconnected species
+            v1.insert(prey);
+
           }else
             prey_i = N->node_i[prey];
 
@@ -94,6 +128,9 @@ void read_alignment_data(char separator, Network& A, Network& B)
           Role R;
           R.name = item;
 
+          // This vector is for checking if 'item' is an unconnected species 
+          v2.insert(item);
+
           if(firstline){
             firstline = false;
 
@@ -102,9 +139,7 @@ void read_alignment_data(char separator, Network& A, Network& B)
               Position P;
               sprintf(t,"%i",ncols-1); P.name = string(t);
               P.frequency = strtol(item.c_str(),NULL,10);
-
-              R.f.push_back(P);
-      
+              R.f.push_back(P);      
               ncols++;
             }
           }
@@ -114,7 +149,6 @@ void read_alignment_data(char separator, Network& A, Network& B)
               Position P;
               sprintf(t,"%i",ncols-1); P.name = string(t);
               P.frequency = strtol(item.c_str(),NULL,10);
-
               R.f.push_back(P);
             }
           }
@@ -122,6 +156,21 @@ void read_alignment_data(char separator, Network& A, Network& B)
           N->roles[N->node_i[R.name]] = R;
         }
   }
+
+  //role vector set to n-zero for species that are not connected to the network and are not part of any motif
+  set_difference(v1.begin(),v1.end(),v2.begin(),v2.end(), back_inserter(v_diff));
+  for (it=v_diff.begin(); it!=v_diff.end(); ++it){
+        Role R;
+        R.name = *it;
+        for(int i=2;i<=ncols;++i){
+              Position P;
+              P.name = string(t);
+              P.frequency = 0;
+              R.f.push_back(P);
+        }
+        N->roles[N->node_i[R.name]] = R;
+  }
+
 }
 
 // setup an alignment structure to manipulate in the SA code

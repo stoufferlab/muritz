@@ -8,7 +8,7 @@
 #include <cstring>
 #include <iostream>
 #include <string>
-#include <algorithm>    // std::set_intersection, std::sort
+#include <algorithm>
 #include <vector>
 
 // gsl header files
@@ -52,20 +52,25 @@ double role_euclidean_distance(Role *r1, Role *r2){
 // calculate the role-to-role correlation coefficient
 double role_correlation(Role *r1, Role *r2){
     double r;
-	double *f1 = (double*) calloc(r1->f.size(), sizeof(double));
-	double *f2 = (double*) calloc(r1->f.size(), sizeof(double));
+    int rowsums[2] = {0};
+    double *f1 = (double*) calloc(r1->f.size(), sizeof(double));
+    double *f2 = (double*) calloc(r1->f.size(), sizeof(double));
 
     if(r1->name == "NULL" || r2->name == "NULL")
         r = 0; // this corresponds to complete lack of correlation
     else{
     	for(unsigned int i=0;i<r1->f.size();++i){
 	       	f1[i] = r1->f[i].frequency;
-		  	f2[i] = r2->f[i].frequency;
+		f2[i] = r2->f[i].frequency;
+		rowsums[0] += f1[i];
+		rowsums[1] += f2[i];
     	}
 
-        r = gsl_stats_correlation(f1, 1,
-  		      					  f2, 1,
-  			       	    		  r1->f.size());
+	if (rowsums[0]==0 || rowsums[1]==0)
+		// This corresponds to the case in which one of the nodes has a n-zero motif profile
+		r=0;
+	else
+		r = gsl_stats_correlation(f1, 1, f2, 1, r1->f.size());
     }
 
     return 1 - r;
@@ -101,28 +106,33 @@ double role_chisquared(Role *r1, Role *r2){
 			colsums[i] += j;	
 		}
 
-		// sum the chisquared statistic over columns (rows are hardcoded below)
-		chisq = 0;
-		for(i=0;i<r1->f.size();++i){
-			if(colsums[i] != 0){
-				// a column that contributes to the total possible degrees of freedom
-				++nz_cols;
+		if (rowsums[0]==0 || rowsums[1]==0){
+			// This corresponds to the case in which one of the nodes has a n-zero motif profile
+			return 1;
+		}else{
+			// sum the chisquared statistic over columns (rows are hardcoded below)
+			chisq = 0;
+			for(i=0;i<r1->f.size();++i){
+				if(colsums[i] != 0){
+					// a column that contributes to the total possible degrees of freedom
+					++nz_cols;
 
-				// expected and chisquared contribution for 0,i
-				expected = rowsums[0] * colsums[i] / float(total);
-				chisq += gsl_pow_2(r1->f[i].frequency - expected) / float(expected);
+					// expected and chisquared contribution for 0,i
+					expected = rowsums[0] * colsums[i] / float(total);
+					chisq += gsl_pow_2(r1->f[i].frequency - expected) / float(expected);
 
-				// expected and chisquared contribution for 1,i
-				expected = rowsums[1] * colsums[i] / float(total);
-				chisq += gsl_pow_2(r2->f[i].frequency - expected) / float(expected);
+					// expected and chisquared contribution for 1,i
+					expected = rowsums[1] * colsums[i] / float(total);
+					chisq += gsl_pow_2(r2->f[i].frequency - expected) / float(expected);
+				}
 			}
+
+			// calculate the degrees of freedom for the chisquared test 
+			// the final values depends on the number of non-zero columns
+			df = (nz_cols-1) * (2-1);
+
+			return gsl_cdf_chisq_P(chisq, df);
 		}
-
-		// calculate the degrees of freedom for the chisquared test 
-		// the final values depends on the number of non-zero columns
-		df = (nz_cols-1) * (2-1);
-
-		return gsl_cdf_chisq_P(chisq, df);
 	}
 }
 
@@ -482,16 +492,15 @@ void alignment_print_pairs(void *xp){
 	cout << " ] ";
 }
 
-void overlap_pairs(void *xp, bool pairs){
+void overlap_pairs(void *xp, bool pairs, int direction){
 	Alignment * a = (Alignment *) xp;
-	unsigned int i;
+	unsigned int i,m;
 	int j, k;
 	vector<int> totals(3);
 	set<int> v1;
 	set<int> v2;
 	vector<int> v;
-	set<Node *> nbr_j, nbr_k;
-	set<Node *>::iterator nbr_it;
+	Node * nbr;
 
 
 	//Role r1, r2;
@@ -504,7 +513,7 @@ void overlap_pairs(void *xp, bool pairs){
 		if(j!=-1 || k!=-1){
 			cout << " (";
 
-			if (j != -1 && a->match2[k]!= -1){
+			if (j != -1 && k != -1){
 
 				cout << n1.roles[j].name;
 				cout << ",";
@@ -512,38 +521,60 @@ void overlap_pairs(void *xp, bool pairs){
 
 				//find neighbors of species j
 				v1.clear();
-				nbr_j = n1.nodes[j]->neighbors[1];
-				totals[1]+=nbr_j.size();
-				for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
-					v1.insert((*nbr_it)->idx);
-				}
+				nbr = n1.nodes[j];
+				if(direction == 0 || direction == 1)
+					for(m=0;m<nbr->prey.size();++m)
+						v1.insert(nbr->prey[m]->idx);
+				if(direction == 0 || direction == -1)
+					for(m=0;m<nbr->predators.size();++m)
+						v1.insert(nbr->predators[m]->idx);
+
 
 				//find neighbors of species k
 				v2.clear();
-				nbr_k = n2.nodes[k]->neighbors[1];
-				totals[2]+=nbr_k.size();
-				for(nbr_it=nbr_k.begin(); nbr_it!=nbr_k.end(); ++nbr_it){
-					v2.insert(a->match2[(*nbr_it)->idx]);
-				}
-
+				nbr = n2.nodes[k];
+				if(direction == 0 || direction == 1)
+					for(m=0;m<nbr->prey.size();++m)
+						v2.insert(a->match2[nbr->prey[m]->idx]);
+				if(direction == 0 || direction == -1)
+					for(m=0;m<nbr->predators.size();++m)
+						v2.insert(a->match2[nbr->predators[m]->idx]);
+				
+				
 				//find neighbors shared by species j and k
 				v.clear();
-				set_intersection(v1.begin(),v1.end(),v2.begin(),v2.end(), std::back_inserter(v));
+				set_intersection(v1.begin(),v1.end(),v2.begin(),v2.end(), back_inserter(v));
 
 				v.erase(remove(v.begin(), v.end(), -1), v.end());
 
 				cout << ":";
 
 				totals[0] += v.size();
+				totals[1] += v1.size();
+				totals[2] += v2.size();
 				//print out fraction of interactions shared
-				cout << v.size() / float(nbr_j.size()); cout << ","; cout << v.size()/float(nbr_k.size());
+
+				if(v1.size()!=0 && v2.size()!=0){
+					cout << v.size() / float(v1.size()); cout << ","; cout << v.size()/float(v2.size());
+				}else{
+					if(v2.size()!=0){
+						cout << 1; cout << ","; cout << v.size()/float(v2.size());
+					}else if(v1.size()!=0){
+						cout << v.size() / float(v1.size()); cout << ","; cout << 1;
+					}else{
+						cout << 1; cout << ","; cout << 1;
+					}
+				}
 
 			}else{
 				//Print out alignment of non-aligned nodes
 				if (j != -1){
 
-					nbr_j = n1.nodes[j]->neighbors[1];
-					totals[1]+=nbr_k.size();
+					nbr = n1.nodes[j];
+					if(direction == 0 || direction == 1)
+						totals[1]+=nbr->prey.size();
+					if(direction == 0 || direction == -1)
+						totals[1]+=nbr->predators.size();
 
 					cout << n1.roles[j].name;
 					cout << ",NULL";
@@ -552,8 +583,11 @@ void overlap_pairs(void *xp, bool pairs){
 
 				}else{
 
-					nbr_k = n2.nodes[k]->neighbors[1];
-					totals[2]+=nbr_k.size();
+					nbr = n2.nodes[k];
+					if(direction == 0 || direction == 1)
+						totals[2]+=nbr->prey.size();
+					if(direction == 0 || direction == -1)
+						totals[2]+=nbr->predators.size();
 
 					cout << "NULL,";
 					cout << n2.roles[k].name;
@@ -577,6 +611,7 @@ void overlap_pairs(void *xp, bool pairs){
 	cout << "overlap = ("; cout << totals[0] / float(totals[1]);
 	cout << ","; cout << totals[0] / float(totals[2]);
 	cout << ")"; cout << endl;
+
 }
 
 
