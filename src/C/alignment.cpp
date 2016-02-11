@@ -49,8 +49,6 @@ void read_alignment_data(char separator, Network& A, Network& B)
   while (getline(cin,line)){
 
     if(line == string("///")){
-      N = &B;
-      roles=false;
 
       //role vector set to n-zero for species that are not connected to the network and are not part of any motif
       set_difference(v1.begin(),v1.end(),v2.begin(),v2.end(), back_inserter(v_diff));
@@ -68,6 +66,10 @@ void read_alignment_data(char separator, Network& A, Network& B)
 
       v1.clear();
       v2.clear();
+      v_diff.clear();
+
+      N = &B;
+      roles=false;
 
     }
     else
