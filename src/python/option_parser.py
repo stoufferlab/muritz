@@ -59,9 +59,9 @@ def parse_cl_options():
 					  default=False,
 					 )
 	parser.add_option("-o", "--overlap",
-					  action="store_true", dest="overlap",
+					  action="store", dest="overlap", type="int",
 					  help="calculate the overlap between networks [default: %default]",
-					  default=False,
+					  default=2,
 					 )
 	#parser.add_option("-r", "--first-roles", dest="roles1", help="read role data for first network from ROLE_FILENAME", )
 	#parser.add_option("-s", "--second-roles", dest="roles2", help="read role data for second network from ROLE_FILENAME", )
