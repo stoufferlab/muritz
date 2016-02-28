@@ -114,7 +114,7 @@ void print_network(Network N)
 
 // TODO: return a list of the degree-th neighbors to a focal node
 set<Node *> neighbors(Network *N, Node *n, unsigned int degree, int direction=0){
-    unsigned int i,j,k;
+    unsigned int i;
     set<Node *> nbrs;
     if(degree == 0){
         nbrs.insert(n);

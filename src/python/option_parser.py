@@ -63,6 +63,12 @@ def parse_cl_options():
 					  help="calculate the overlap between networks [default: %default]",
 					  default=2,
 					 )
+	parser.add_option("-u", "--nullcost",
+					  action="store", dest="nullcost", type="float",
+					  help="contribution of non-aligned nodes to the cost function [default: %default]",
+					  default=1,
+					 )
+
 	#parser.add_option("-r", "--first-roles", dest="roles1", help="read role data for first network from ROLE_FILENAME", )
 	#parser.add_option("-s", "--second-roles", dest="roles2", help="read role data for second network from ROLE_FILENAME", )
 	parser.set_defaults(roles1=None, roles2=None)

@@ -34,10 +34,7 @@ void read_alignment_data(char separator, Network& A, Network& B)
   char t[1024];
   int pred_i, prey_i, ncols = 0;
   bool firstline = true, roles;
-  set<string> v1;
-  set<string> v2;
 
-  vector<string> v_diff;
   vector<string>::iterator it;
 
   Network *N = &A;
@@ -49,28 +46,8 @@ void read_alignment_data(char separator, Network& A, Network& B)
   while (getline(cin,line)){
 
     if(line == string("///")){
-
-      //role vector set to n-zero for species that are not connected to the network and are not part of any motif
-      set_difference(v1.begin(),v1.end(),v2.begin(),v2.end(), back_inserter(v_diff));
-      for (it=v_diff.begin(); it!=v_diff.end(); ++it){
-             Role R;
-             R.name = *it;
-             for(int i=2;i<=ncols;++i){
-                   Position P;
-                   P.name = string(t);
-                   P.frequency = 0;
-                   R.f.push_back(P);
-             }
-             N->roles[N->node_i[R.name]] = R;
-      }
-
-      v1.clear();
-      v2.clear();
-      v_diff.clear();
-
       N = &B;
       roles=false;
-
     }
     else
       if(line == string("###")){
@@ -95,9 +72,6 @@ void read_alignment_data(char separator, Network& A, Network& B)
             Role R;
             N->roles.push_back(R);
 
-            // This vector is for checking if 'pred' is an unconnected species
-            v1.insert(pred);
-
           }else
             pred_i = N->node_i[pred];
 
@@ -113,9 +87,6 @@ void read_alignment_data(char separator, Network& A, Network& B)
             Role R;
             N->roles.push_back(R);
 
-            // This vector is for checking if 'prey' is an unconnected species
-            v1.insert(prey);
-
           }else
             prey_i = N->node_i[prey];
 
@@ -129,9 +100,6 @@ void read_alignment_data(char separator, Network& A, Network& B)
           getline(linestream, item, separator);
           Role R;
           R.name = item;
-
-          // This vector is for checking if 'item' is an unconnected species 
-          v2.insert(item);
 
           if(firstline){
             firstline = false;
@@ -157,20 +125,6 @@ void read_alignment_data(char separator, Network& A, Network& B)
 
           N->roles[N->node_i[R.name]] = R;
         }
-  }
-
-  //role vector set to n-zero for species that are not connected to the network and are not part of any motif
-  set_difference(v1.begin(),v1.end(),v2.begin(),v2.end(), back_inserter(v_diff));
-  for (it=v_diff.begin(); it!=v_diff.end(); ++it){
-        Role R;
-        R.name = *it;
-        for(int i=2;i<=ncols;++i){
-              Position P;
-              P.name = string(t);
-              P.frequency = 0;
-              R.f.push_back(P);
-        }
-        N->roles[N->node_i[R.name]] = R;
   }
 
 }
