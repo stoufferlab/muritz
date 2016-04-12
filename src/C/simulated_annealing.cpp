@@ -30,6 +30,7 @@ using namespace std;
 // externs
 extern Network n1;
 extern Network n2;
+extern double nullcost;
 
 // globals
 bool distance_matrix_def = false; // can we access store of node-to-node distances to speed up some calculations?
@@ -57,7 +58,7 @@ double role_correlation(Role *r1, Role *r2){
     double *f2 = (double*) calloc(r1->f.size(), sizeof(double));
 
     if(r1->name == "NULL" || r2->name == "NULL")
-        r = 0; // this corresponds to complete lack of correlation
+        return nullcost; // this corresponds to complete lack of correlation
     else{
     	for(unsigned int i=0;i<r1->f.size();++i){
 	       	f1[i] = r1->f[i].frequency;
@@ -66,11 +67,7 @@ double role_correlation(Role *r1, Role *r2){
 		rowsums[1] += f2[i];
     	}
 
-	if (rowsums[0]==0 || rowsums[1]==0)
-		// This corresponds to the case in which one of the nodes has a n-zero motif profile
-		r=0;
-	else
-		r = gsl_stats_correlation(f1, 1, f2, 1, r1->f.size());
+	r = gsl_stats_correlation(f1, 1, f2, 1, r1->f.size());
     }
 
     return 1 - r;
@@ -89,7 +86,7 @@ double role_chisquared(Role *r1, Role *r2){
 		colsums[i] = 0;
 
 	if(r2->name == "NULL"){
-		return 1;
+		return nullcost;
 	}else{
 		// calculate the row, column, and total sums
 		for(i=0;i<r1->f.size();++i){
@@ -106,33 +103,28 @@ double role_chisquared(Role *r1, Role *r2){
 			colsums[i] += j;	
 		}
 
-		if (rowsums[0]==0 || rowsums[1]==0){
-			// This corresponds to the case in which one of the nodes has a n-zero motif profile
-			return 1;
-		}else{
-			// sum the chisquared statistic over columns (rows are hardcoded below)
-			chisq = 0;
-			for(i=0;i<r1->f.size();++i){
-				if(colsums[i] != 0){
-					// a column that contributes to the total possible degrees of freedom
-					++nz_cols;
+		// sum the chisquared statistic over columns (rows are hardcoded below)
+		chisq = 0;
+		for(i=0;i<r1->f.size();++i){
+			if(colsums[i] != 0){
+				// a column that contributes to the total possible degrees of freedom
+				++nz_cols;
 
-					// expected and chisquared contribution for 0,i
-					expected = rowsums[0] * colsums[i] / float(total);
-					chisq += gsl_pow_2(r1->f[i].frequency - expected) / float(expected);
+				// expected and chisquared contribution for 0,i
+				expected = rowsums[0] * colsums[i] / float(total);
+				chisq += gsl_pow_2(r1->f[i].frequency - expected) / float(expected);
 
-					// expected and chisquared contribution for 1,i
-					expected = rowsums[1] * colsums[i] / float(total);
-					chisq += gsl_pow_2(r2->f[i].frequency - expected) / float(expected);
-				}
+				// expected and chisquared contribution for 1,i
+				expected = rowsums[1] * colsums[i] / float(total);
+				chisq += gsl_pow_2(r2->f[i].frequency - expected) / float(expected);
 			}
-
-			// calculate the degrees of freedom for the chisquared test 
-			// the final values depends on the number of non-zero columns
-			df = (nz_cols-1) * (2-1);
-
-			return gsl_cdf_chisq_P(chisq, df);
 		}
+
+		// calculate the degrees of freedom for the chisquared test 
+		// the final values depends on the number of non-zero columns
+		df = (nz_cols-1) * (2-1);
+
+		return gsl_cdf_chisq_P(chisq, df);
 	}
 }
 

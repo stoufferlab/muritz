@@ -33,6 +33,8 @@ using namespace std;
 // the networks are stored as global variables
 Network n1;
 Network n2;
+double nullcost;
+
 
 void help(){
 	cerr << "Incorrect usage. Please RTFM.\n";
@@ -52,10 +54,10 @@ int main(int argc, char *argv[])
     long cost_function = 2;
     int overlap=2;
 
+
     // set the above parameters with command line options
-    int flags, opt;
-    flags = 0;
-    while((opt = getopt(argc, argv, "vprn:t:c:m:k:b:o:")) != -1) {
+    int opt;
+    while((opt = getopt(argc, argv, "vprn:t:c:m:k:b:o:u:")) != -1) {
     	switch (opt) {
     		case 'v':
     			printfunc = &alignment_print;
@@ -105,6 +107,12 @@ int main(int argc, char *argv[])
     		case 'o':
     			if(optarg)
     				overlap = strtoul(optarg, NULL, 0);
+    			else
+    				help();
+    			break;
+    		case 'u':
+    			if(optarg)
+    				nullcost = strtod(optarg, NULL);
     			else
     				help();
     			break;
