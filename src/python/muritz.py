@@ -53,10 +53,13 @@ def muritz(options, args):
 	net2, net2type = read_network(args[1])
 
 	#Are the networks unipartite or bipartite?
-	if net1type==net2type:
-		unipartite=net1type
+	if options.bipartite:
+		if net1type==False and net2type==False:
+			unipartite=net1type
+		else:
+			print "You are comparing a unipartite network with a bipartite one. Both will be considered as unipartite"
+			unipartite=True
 	else:
-		print "You are comparing a unipartite network with a bipartite one. Both will be considered as unipartite"
 		unipartite=True
 
 	if options.roles1:
@@ -71,7 +74,7 @@ def muritz(options, args):
 				net1_roles[i].update(net1_roles2[i])
 		else:
 			net1_roles = motif_roles(args[0],motifsize=2, networktype = "bipartite",)
-			for k in range(3,7):
+			for k in range(3,5):
 				net1_roles2 = motif_roles(args[0],motifsize=k, networktype = "bipartite",)
 				for i in net1_roles:
 					net1_roles[i].update(net1_roles2[i])
@@ -90,7 +93,7 @@ def muritz(options, args):
 				net2_roles[i].update(net2_roles2[i])
 		else:
 			net2_roles = motif_roles(args[1],motifsize=2, networktype = "bipartite",)
-			for k in range(3,7):
+			for k in range(3,5):
 				net2_roles2 = motif_roles(args[1],motifsize=k, networktype = "bipartite",)
 				for i in net2_roles:
 					net2_roles[i].update(net2_roles2[i])
@@ -119,7 +122,7 @@ def muritz(options, args):
 		pflag = ""
 
 	# call the muritz alignment code
-	command = "GSL_RNG_SEED=%s muritz.x -n %s -t %s -c %s -m %s -k %s -b %s -o %s -u %s %s %s %s" % (rnd_seed,
+	command = "GSL_RNG_SEED=%s muritz.x -n %s -t %s -c %s -m %s -k %s -l %s -o %s -u %s %s %s %s" % (rnd_seed,
 																			 options.iterations,
 																			 options.tinitial,
 																			 options.cooling,

@@ -18,7 +18,7 @@ def parse_cl_options():
 					  help="degree of alignment to conduct [default: %default]",
 					  default=0,
 					 )
-	parser.add_option("-b", "--cost_function",
+	parser.add_option("-l", "--cost_function",
 					  action="store", dest="cost_function", type="int",
 					  help="Euclidean distance (0), Pearson's correlation coeficient (1) or Chi-squared test (2) [default: %default]",
 					  default=2,
@@ -67,6 +67,11 @@ def parse_cl_options():
 					  action="store", dest="nullcost", type="float",
 					  help="contribution of non-aligned nodes to the cost function [default: %default]",
 					  default=1,
+					 )
+	parser.add_option("-b", "--bipartite",
+					  action="store_true", dest="bipartite",
+					  help="consider the networks as bipartite [default: %default]",
+					  default=False,
 					 )
 
 	#parser.add_option("-r", "--first-roles", dest="roles1", help="read role data for first network from ROLE_FILENAME", )

@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
     // set the above parameters with command line options
     int opt;
-    while((opt = getopt(argc, argv, "vprn:t:c:m:k:b:o:u:")) != -1) {
+    while((opt = getopt(argc, argv, "vprn:t:c:m:k:l:o:u:")) != -1) {
     	switch (opt) {
     		case 'v':
     			printfunc = &alignment_print;
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     			else
     				help();
     			break;
-    		case 'b':
+    		case 'l':
     			if(optarg)
     				cost_function = strtoul(optarg, NULL, 0);
     			else
