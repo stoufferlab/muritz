@@ -66,8 +66,12 @@ double role_correlation(Role *r1, Role *r2){
 		rowsums[0] += f1[i];
 		rowsums[1] += f2[i];
     	}
-
-	r = gsl_stats_correlation(f1, 1, f2, 1, r1->f.size());
+	
+	if (rowsums[0] == 0 || rowsums[1] == 0){
+		return nullcost;
+	}else{
+		r = gsl_stats_correlation(f1, 1, f2, 1, r1->f.size());
+	}
     }
 
     return 1 - r;
@@ -105,6 +109,9 @@ double role_chisquared(Role *r1, Role *r2){
 
 		// sum the chisquared statistic over columns (rows are hardcoded below)
 		chisq = 0;
+		if (rowsums[0] == 0 || rowsums[1] == 0){
+			return nullcost;
+		}
 		for(i=0;i<r1->f.size();++i){
 			if(colsums[i] != 0){
 				// a column that contributes to the total possible degrees of freedom
