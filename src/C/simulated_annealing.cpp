@@ -387,7 +387,7 @@ double alignment_energy(void *xp){
 void print_energy(void *xp, int cost_function, long degree){
 	double E = 0, Epair, Enorm=0;
 	int j, k, nei1, nei2, norm=0;
-	Node * nbr;
+	set<Node *> nbr_i;
 
 	// cast the void parameter as an alignment data type
 	Alignment * a = (Alignment *) xp;
@@ -402,12 +402,12 @@ void print_energy(void *xp, int cost_function, long degree){
 			if (j != -1 && k != -1){
 				norm++;
 				if (degree==1){
-					nbr=n1.nodes[j];
-					nei1=nbr->prey.size();
-					nei1+=nbr->predators.size();
-					nbr=n2.nodes[k];
-					nei2=nbr->prey.size();
-					nei2+=nbr->predators.size();
+ 					nbr_i = n1.nodes[j]->neighbors[degree];
+					nei1=nbr_i.size();
+
+ 					nbr_i = n2.nodes[k]->neighbors[degree];
+					nei2=nbr_i.size();
+
 					if (nei1<nei2){
 						if (nei1!=0){
 							Epair=Epair-nullcost*(nei2-nei1);
