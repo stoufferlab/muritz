@@ -380,9 +380,60 @@ double alignment_energy(void *xp){
 	for(unsigned int i=0;i<a->matches.size();++i){
 		E += distance(a, i);
 	}
-
 	return E;
 }
+
+// print the energy/cost and the normalized energy/cost function of an alignment
+void print_energy(void *xp, int cost_function, long degree){
+	double E = 0, Epair, Enorm=0;
+	int j, k, nei1, nei2, norm=0;
+	Node * nbr;
+
+	// cast the void parameter as an alignment data type
+	Alignment * a = (Alignment *) xp;
+
+    // sum the cost function across all paired and unpaired nodes
+	for(unsigned int i=0;i<a->matches.size();++i){
+		Epair = distance(a, i);
+		E += Epair;
+		if (cost_function==1){
+			j = a->matches[i].first;
+			k = a->matches[i].second;
+			if (j != -1 && k != -1){
+				norm++;
+				if (degree==1){
+					nbr=n1.nodes[j];
+					nei1=nbr->prey.size();
+					nei1+=nbr->predators.size();
+					nbr=n2.nodes[k];
+					nei2=nbr->prey.size();
+					nei2+=nbr->predators.size();
+					if (nei1<nei2){
+						if (nei1!=0){
+							Epair=Epair-nullcost*(nei2-nei1);
+							Enorm+=Epair/(double)nei1;
+						}
+					}else{
+						if (nei2!=0){
+							Epair=Epair-nullcost*(nei1-nei2);
+							Enorm+=Epair/(double)nei2;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	if (cost_function==1 && nullcost==1){
+		Enorm=Enorm/(double)norm;
+		cout << "Energy = " << E << endl;
+		cout << "Normalized energy = " << Enorm << endl;
+	}else{
+		cout << "Energy = " << E << endl;
+	}
+
+}
+
 
 /* make a move in the alignment space */
 void alignment_step(const gsl_rng * r, void *xp, double step_size){
