@@ -14,8 +14,8 @@
 #include <vector>
 
 // local includes
-#include <common.hpp>
-#include <network.hpp>
+#include "common.hpp"
+#include "network.hpp"
 
 // namespaces
 using namespace std;

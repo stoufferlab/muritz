@@ -10,16 +10,16 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
-
+#include <utility> 
 
 // gsl header files
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_rng.h>
 
 // local includes
-#include <common.hpp>
-#include <alignment.hpp>
-#include <simulated_annealing.hpp>
+#include "common.hpp"
+#include "alignment.hpp"
+#include "simulated_annealing.hpp"
 
 // namespaces
 using namespace std;
@@ -28,7 +28,98 @@ using namespace std;
 extern Network n1;
 extern Network n2;
 
-void read_alignment_data(char separator, Network& A, Network& B)
+void read_roles(string input, char separator, Network& N) {
+    istringstream in(input);
+    string line; 
+    bool firstline = true; 
+    bool set = false; 
+
+    int ncols = 0; 
+    string item; 
+    char t[1024]; 
+ 
+    while(getline(in, line)) {
+        istringstream linestream(line);
+        getline(linestream, item, separator);
+        Role R;
+        R.name = item;
+        
+        if(firstline){
+          firstline = false;
+
+          ncols = 1;
+          while(getline(linestream, item, separator)){
+            Position P;
+            sprintf(t,"%i",ncols-1); P.name = string(t);
+            P.frequency = strtol(item.c_str(),NULL,10);
+            R.f.push_back(P);      
+            ncols++;
+          }
+        }
+        else{
+          for(int i=2;i<=ncols;++i){
+            getline(linestream, item, separator);
+            Position P;
+            sprintf(t,"%i",ncols-1); P.name = string(t);
+            P.frequency = strtol(item.c_str(),NULL,10);
+            R.f.push_back(P);
+          }
+        }
+
+        N.roles[N.node_i[R.name]] = R;
+    }
+}
+
+void read_links(string input, char separator, Network& N) {
+    string pred, prey; 
+    istringstream in(input); 
+    string line; 
+    int pred_i, prey_i; 
+    bool set = false; 
+    
+    while(getline(in, line)) {
+        istringstream linestream(line);
+        getline(linestream, pred, separator);
+        getline(linestream, prey, separator);
+    
+        if(N.node_i.count(pred) == 0){
+          pred_i = N.nodes.size();
+          N.node_i[pred] = pred_i;
+          
+          Node * n = new Node;
+          n->name = pred;
+          n->idx = pred_i;
+          N.nodes.push_back(n);
+          
+          Role R;
+          N.roles.push_back(R);
+
+        }else 
+          pred_i = N.node_i[pred];
+
+        if(N.node_i.count(prey) == 0){
+          prey_i = N.nodes.size();
+          N.node_i[prey] = prey_i;
+          
+          Node * n = new Node;
+          n->name = prey;
+          n->idx = prey_i;
+          N.nodes.push_back(n);
+
+          Role R;
+          N.roles.push_back(R);
+
+        }else
+          prey_i = N.node_i[prey];
+
+        // add the interactions
+        N.nodes[pred_i]->prey.push_back(N.nodes[prey_i]);
+        N.nodes[prey_i]->predators.push_back(N.nodes[pred_i]);
+    } 
+}
+
+void read_alignment_data(char separator,string net1, string net1_roles, string net2, 
+string net2_roles, Network& A, Network& B)
 {
   string line, item, pred, prey;
   char t[1024];
@@ -37,119 +128,57 @@ void read_alignment_data(char separator, Network& A, Network& B)
 
   vector<string>::iterator it;
 
-  Network *N = &A;
-
   A.name = string("Network A");
   B.name = string("Network B");
+  
+  //network1
+  cout << "calling readlinks a..." << endl; 
+  read_links(net1, separator, A); 
+  cout << "calling readroles a..." << endl; 
+  read_roles(net1_roles, separator, A); 
 
-  roles = false;
-  while (getline(cin,line)){
-
-    if(line == string("///")){
-      N = &B;
-      roles=false;
-    }
-    else
-      if(line == string("###")){
-        roles=true;
-        firstline = true;
-      }
-      else
-        if(!roles){
-          istringstream linestream(line);
-          getline(linestream, pred, separator);
-          getline(linestream, prey, separator);
-
-          if(N->node_i.count(pred) == 0){
-            pred_i = N->nodes.size();
-            N->node_i[pred] = pred_i;
-            
-            Node * n = new Node;
-            n->name = pred;
-            n->idx = pred_i;
-            N->nodes.push_back(n);
-            
-            Role R;
-            N->roles.push_back(R);
-
-          }else
-            pred_i = N->node_i[pred];
-
-          if(N->node_i.count(prey) == 0){
-            prey_i = N->nodes.size();
-            N->node_i[prey] = prey_i;
-            
-            Node * n = new Node;
-            n->name = prey;
-            n->idx = prey_i;
-            N->nodes.push_back(n);
-
-            Role R;
-            N->roles.push_back(R);
-
-          }else
-            prey_i = N->node_i[prey];
-
-          // add the interactions
-          N->nodes[pred_i]->prey.push_back(N->nodes[prey_i]);
-          N->nodes[prey_i]->predators.push_back(N->nodes[pred_i]);
-        }
-        else{
-          istringstream linestream(line);
-
-          getline(linestream, item, separator);
-          Role R;
-          R.name = item;
-
-          if(firstline){
-            firstline = false;
-
-            ncols = 1;
-            while(getline(linestream, item, separator)){
-              Position P;
-              sprintf(t,"%i",ncols-1); P.name = string(t);
-              P.frequency = strtol(item.c_str(),NULL,10);
-              R.f.push_back(P);      
-              ncols++;
-            }
-          }
-          else{
-            for(int i=2;i<=ncols;++i){
-              getline(linestream, item, separator);
-              Position P;
-              sprintf(t,"%i",ncols-1); P.name = string(t);
-              P.frequency = strtol(item.c_str(),NULL,10);
-              R.f.push_back(P);
-            }
-          }
-
-          N->roles[N->node_i[R.name]] = R;
-        }
-  }
-
+  //network2
+  cout << "calling readlinks b..." << endl; 
+  read_links(net2, separator, B); 
+  cout << "calling readroles b..." << endl; 
+  read_roles(net2_roles, separator, B); 
 }
 
 // setup an alignment structure to manipulate in the SA code
-Alignment * setup_alignment(){
+Alignment * setup_alignment(vector< pair<int, int> > set_pairs){
 	unsigned int i,j;
 	Alignment * a = alignment_alloc(n1.nodes.size(),n2.nodes.size());
-
+    cout << "PRINTING NET1 before" << endl;
  	// add NULL matches for the nodes in network 1
  	for(i=0;i<n1.nodes.size();++i){
  		a->matches[i].first = i;
-  }
+    }
 
+    cout << "PRINTING NET2 before" << endl; 
  	// add NULL matches for the nodes in network 2
  	for(i=0;i<n2.nodes.size();++i){
  		j = i + n1.nodes.size(); // offset based on size of first network
  		a->matches[j].second = i;
-  }
+    }
 
+    //align the fixed pairs
+    int p1_i, p2_i;
+    for(i=0; i<set_pairs.size(); i++) {
+        p1_i = set_pairs[i].first; 
+        p2_i = set_pairs[i].second;
+        cout << "PAIR: " << p1_i << "  " << p2_i << endl; 
+        //add fixed matches for the nodes in net1
+        a->matches[p1_i].second = p2_i; 
+        //add fixed matches for the nodes in net2
+        a->matches[p2_i + n1.nodes.size()].first = p1_i; 
+    }
+    
  	return a;
 }
 
 // randomize an alignment
 void randomize_alignment(const gsl_rng *r, Alignment *a){
+    cout << endl << endl << "IN RANDOM ALIGNMENT" << endl << endl; 
   unsigned long shuffles = 2*gsl_pow_2(a->matches.size());
   for(unsigned long i=0;i<shuffles;++i)
     alignment_step(r,a,0);

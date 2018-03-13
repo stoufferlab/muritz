@@ -19,10 +19,10 @@
 #include <gsl/gsl_statistics.h>
 
 // local includes
-#include <common.hpp>
-#include <network.hpp>
-#include <alignment.hpp>
-#include <simulated_annealing.hpp>
+#include "common.hpp"
+#include "network.hpp"
+#include "alignment.hpp"
+#include "simulated_annealing.hpp"
 
 // namespaces
 using namespace std;
@@ -340,13 +340,14 @@ gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp){
         params.t_initial = a->t_initial;
     else{
         // calculate the average initial change in energy and use it to set the initial temperature
-        Alignment * b = setup_alignment();
+        Alignment * b = setup_alignment(a->set_pairs);
         _copy(a,b);
         double ae, ae2, de, mean_de, max_de;
         mean_de = 0;
         max_de = 0;
         ae = alignment_energy(b);
         unsigned long shuffles = b->matches.size();
+        cout << endl << endl <<  "CALLING IN SIMULATED ANNEALING " << endl << endl; 
         for(unsigned long i=0;i<shuffles;++i){
             ae2 = ae;
             alignment_step(r,b,0);
@@ -355,6 +356,7 @@ gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp){
             mean_de += de;
             max_de = max(max_de, de);
         }
+        cout << endl << endl << "DONE CALLING SIMULATEED ANNEALING " << endl << endl;
         mean_de = de/double(shuffles);
         params.t_initial = max_de/0.7;
         alignment_free(b);
@@ -450,23 +452,33 @@ void alignment_step(const gsl_rng * r, void *xp, double step_size){
 	// pick the pairs to swap
 	unsigned int p1 = gsl_rng_uniform_int(r,a->matches.size());
 	unsigned int p2 = gsl_rng_uniform_int(r,a->matches.size());
+   
+    //check if either species is fixed
+//    cout << endl;
+//    for(int i=0; i<a->fixed_pairs.size(); i++) {
+//        cout << a->fixed_pairs[i] << "  "; 
+//    }
+    bool first_swap_fixed = std::find(a->fixed_pairs.begin(), a->fixed_pairs.end(), a->matches[p1].second) != a->fixed_pairs.end();
+    bool second_swap_fixed = std::find(a->fixed_pairs.begin(), a->fixed_pairs.end(), a->matches[p2].second) != a->fixed_pairs.end();
+    if(!(first_swap_fixed) && !(second_swap_fixed)) { //not fixed
+//        cout << "I MADE IT IN" << endl; 
+        // swap the indices for net2 within the core alignment object
+        unsigned int tmp = a->matches[p1].second;
+        a->matches[p1].second = a->matches[p2].second;
+        a->matches[p2].second = tmp;
 
-	// swap the indices for net2 within the core alignment object
-	unsigned int tmp = a->matches[p1].second;
-	a->matches[p1].second = a->matches[p2].second;
-	a->matches[p2].second = tmp;
+        // swap the indices in the first cheater alignment object
+        if(a->matches[p1].first != -1)
+            a->match1[a->matches[p1].first] = a->matches[p1].second;
+        if(a->matches[p2].first != -1)
+            a->match1[a->matches[p2].first] = a->matches[p2].second;
 
-    // swap the indices in the first cheater alignment object
-    if(a->matches[p1].first != -1)
-        a->match1[a->matches[p1].first] = a->matches[p1].second;
-    if(a->matches[p2].first != -1)
-        a->match1[a->matches[p2].first] = a->matches[p2].second;
-
-    // swap the indices in the second cheater alignment object
-    if(a->matches[p1].second != -1)
-        a->match2[a->matches[p1].second] = a->matches[p1].first;
-    if(a->matches[p2].second != -1)
-        a->match2[a->matches[p2].second] = a->matches[p2].first;
+        // swap the indices in the second cheater alignment object
+        if(a->matches[p1].second != -1)
+            a->match2[a->matches[p1].second] = a->matches[p1].first;
+        if(a->matches[p2].second != -1)
+            a->match2[a->matches[p2].second] = a->matches[p2].first;
+    }
 }
 
 // calculate the distance between two alignments
@@ -483,6 +495,7 @@ double alignment_distance(void *xp, void *yp){
 // print out an alignment
 void alignment_print(void *xp){
 	Alignment * a = (Alignment *) xp;
+    cout << endl; 
 	unsigned int i;
 	int j, k;
 	//Role r1, r2;
@@ -687,6 +700,7 @@ void _copy(void *source, void *dest){
     a2->mu_t = a1->mu_t;
     a2->t_min = a1->t_min;
     a2->degree = a1->degree;
+    a2->fixed_pairs = a1->fixed_pairs; 
 }
 
 // copy constructor for an alignment

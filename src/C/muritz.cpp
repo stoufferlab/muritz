@@ -2,6 +2,7 @@
 // autotools
 //#include <config.h>
 
+#include <Python.h>
 // c++ header files
 #include <cstdlib>
 #include <cstring>
@@ -10,6 +11,8 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <utility> 
+#include <sstream> 
 
 // gsl header files
 #include <gsl/gsl_math.h>
@@ -21,15 +24,14 @@
 #include <unistd.h>
 
 // my header files
-#include <common.hpp>
-#include <alignment.hpp>
-#include <network.hpp>
-#include <roles.hpp>
-#include <simulated_annealing.hpp>
+#include "common.hpp"
+#include "alignment.hpp"
+#include "network.hpp"
+#include "roles.hpp"
+#include "simulated_annealing.hpp"
 
 // namespaces
 using namespace std;
-
 // the networks are stored as global variables
 Network n1;
 Network n2;
@@ -41,7 +43,7 @@ void help(){
 	exit(1);
 }
 
-int main(int argc, char *argv[])
+char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2, string net2_roles, string sset_pairs)
 {
     // relevant parameters for simulated annealing
     void (*printfunc)(void*) = NULL;
@@ -53,8 +55,7 @@ int main(int argc, char *argv[])
     long degree = 0;
     long cost_function = 2;
     int overlap=2;
-
-
+    cerr << "HI" << endl; 
     // set the above parameters with command line options
     int opt;
     while((opt = getopt(argc, argv, "vprn:t:c:m:k:l:o:u:")) != -1) {
@@ -124,15 +125,36 @@ int main(int argc, char *argv[])
 	// set up the random number generator
 	gsl_rng_env_setup();
 	gsl_rng * r = gsl_rng_alloc(gsl_rng_mt19937);
+    
 
 	// read in two files of networks
-	read_alignment_data(' ',n1,n2);
+	read_alignment_data(' ',net1, net1_roles, net2, net2_roles, n1,n2);
+    
+    //store fixed pairs into a vector
+    vector< pair<int, int> > set_pairs;
+    vector< int > fixed_pairs;  
+    cout << "MY PAIR STRING: " << sset_pairs << endl; 
+    stringstream ss(sset_pairs);
+    string pairline;
+    int p1_i, p2_i;
 
+    while(getline(ss, pairline)) {
+        stringstream ssp(pairline);
+        string p1, p2; 
+        ssp >> p1 >> p2; 
+        p1_i = n1.node_i[p1]; 
+        p2_i = n2.node_i[p2]; 
+        set_pairs.push_back(make_pair(p1_i, p2_i));
+        fixed_pairs.push_back(p2_i); 
+    }
+
+    cout << "setting alignment,,," << endl; 
   	// set up the alignment between networks
-	Alignment * alignment = setup_alignment();
+	Alignment * alignment = setup_alignment(set_pairs);
+    cout << "ended alignment" << endl; 
     if(randomstart)
         randomize_alignment(r,alignment);
-
+    
     // decide on what the node-to-node distance function is
 
     if(cost_function==0){
@@ -144,7 +166,7 @@ int main(int argc, char *argv[])
             alignment->dfunc = &role_chisquared;
         }
     }
-
+    
 
     // assign simulated annleaing parameters to pass to the function below
     alignment->iters_fixed_T = iters_fixed_T;
@@ -152,6 +174,7 @@ int main(int argc, char *argv[])
     alignment->mu_t = mu_t;
     alignment->t_min = t_min;
     alignment->degree = degree;
+    alignment->fixed_pairs = fixed_pairs;
 
 	// set up the simulated annealing parameters
 	gsl_siman_params_t params = alignment_params(r,alignment);
@@ -192,5 +215,11 @@ int main(int argc, char *argv[])
 	alignment_free(alignment);
 	gsl_rng_free(r);
 
-	return 0;
+	return "Hello!";
 }
+
+/*
+char* muritz(char* i) {
+    return("Hello!");
+}
+*/

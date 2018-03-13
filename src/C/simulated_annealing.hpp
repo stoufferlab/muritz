@@ -4,7 +4,7 @@
 
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_siman.h>
-#include <common.hpp>
+#include "common.hpp"
 
 double role_euclidean_distance(Role *r1, Role *r2);
 double role_correlation(Role *r1, Role *r2);
