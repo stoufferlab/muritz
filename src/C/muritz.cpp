@@ -55,7 +55,6 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     long degree = 0;
     long cost_function = 2;
     int overlap=2;
-    cerr << "HI" << endl; 
     // set the above parameters with command line options
     int opt;
     while((opt = getopt(argc, argv, "vprn:t:c:m:k:l:o:u:")) != -1) {
@@ -133,7 +132,6 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     //store fixed pairs into a vector
     vector< pair<int, int> > set_pairs;
     vector< int > fixed_pairs;  
-    cout << "MY PAIR STRING: " << sset_pairs << endl; 
     stringstream ss(sset_pairs);
     string pairline;
     int p1_i, p2_i;
@@ -148,10 +146,8 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
         fixed_pairs.push_back(p2_i); 
     }
 
-    cout << "setting alignment,,," << endl; 
   	// set up the alignment between networks
 	Alignment * alignment = setup_alignment(set_pairs);
-    cout << "ended alignment" << endl; 
     if(randomstart)
         randomize_alignment(r,alignment);
     

@@ -136,10 +136,7 @@ def muritz(options, args):
             pflag,
             vflag)
     
-    for i in range(5): 
-        print(muritz_in[i])
     muritzex.muritz(command, muritz_in[0], muritz_in[1], muritz_in[2], muritz_in[3], muritz_in[4])
-    print("BYE")
 #	# print out and store the muritz stdout line by line as it comes
 
 #	for line in iter(process.stdout.readline, ''):

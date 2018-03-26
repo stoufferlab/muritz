@@ -132,15 +132,11 @@ string net2_roles, Network& A, Network& B)
   B.name = string("Network B");
   
   //network1
-  cout << "calling readlinks a..." << endl; 
   read_links(net1, separator, A); 
-  cout << "calling readroles a..." << endl; 
   read_roles(net1_roles, separator, A); 
 
   //network2
-  cout << "calling readlinks b..." << endl; 
   read_links(net2, separator, B); 
-  cout << "calling readroles b..." << endl; 
   read_roles(net2_roles, separator, B); 
 }
 
@@ -148,13 +144,11 @@ string net2_roles, Network& A, Network& B)
 Alignment * setup_alignment(vector< pair<int, int> > set_pairs){
 	unsigned int i,j;
 	Alignment * a = alignment_alloc(n1.nodes.size(),n2.nodes.size());
-    cout << "PRINTING NET1 before" << endl;
  	// add NULL matches for the nodes in network 1
  	for(i=0;i<n1.nodes.size();++i){
  		a->matches[i].first = i;
     }
 
-    cout << "PRINTING NET2 before" << endl; 
  	// add NULL matches for the nodes in network 2
  	for(i=0;i<n2.nodes.size();++i){
  		j = i + n1.nodes.size(); // offset based on size of first network
@@ -166,7 +160,6 @@ Alignment * setup_alignment(vector< pair<int, int> > set_pairs){
     for(i=0; i<set_pairs.size(); i++) {
         p1_i = set_pairs[i].first; 
         p2_i = set_pairs[i].second;
-        cout << "PAIR: " << p1_i << "  " << p2_i << endl; 
         //add fixed matches for the nodes in net1
         a->matches[p1_i].second = p2_i; 
         //add fixed matches for the nodes in net2

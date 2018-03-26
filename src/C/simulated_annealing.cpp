@@ -347,7 +347,6 @@ gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp){
         max_de = 0;
         ae = alignment_energy(b);
         unsigned long shuffles = b->matches.size();
-        cout << endl << endl <<  "CALLING IN SIMULATED ANNEALING " << endl << endl; 
         for(unsigned long i=0;i<shuffles;++i){
             ae2 = ae;
             alignment_step(r,b,0);
@@ -356,7 +355,6 @@ gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp){
             mean_de += de;
             max_de = max(max_de, de);
         }
-        cout << endl << endl << "DONE CALLING SIMULATEED ANNEALING " << endl << endl;
         mean_de = de/double(shuffles);
         params.t_initial = max_de/0.7;
         alignment_free(b);
