@@ -171,7 +171,12 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     alignment->t_min = t_min;
     alignment->degree = degree;
     alignment->fixed_pairs = fixed_pairs;
-
+    for(int i=0; i<alignment->unfixed_pairs.size(); i++) {
+        cout << "index: " << i << endl; 
+        int index = alignment->unfixed_pairs[i]; 
+        cout << alignment->matches[index].first << "  " << alignment->matches[index].second << endl; 
+        cout << endl; 
+    }
 	// set up the simulated annealing parameters
 	gsl_siman_params_t params = alignment_params(r,alignment);
 

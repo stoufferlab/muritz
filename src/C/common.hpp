@@ -42,7 +42,8 @@ typedef struct {
 typedef struct {
         vector<pair<int,int> > matches;
         vector<pair<int,int> > set_pairs;
-        vector<int> fixed_pairs; 
+        vector<int> fixed_pairs;
+        vector<int> unfixed_pairs;    
         vector<int> match1;
         vector<int> match2;
         double (*dfunc)(Role*,Role*);

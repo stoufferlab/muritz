@@ -144,6 +144,7 @@ string net2_roles, Network& A, Network& B)
 Alignment * setup_alignment(vector< pair<int, int> > set_pairs){
 	unsigned int i,j;
 	Alignment * a = alignment_alloc(n1.nodes.size(),n2.nodes.size());
+
  	// add NULL matches for the nodes in network 1
  	for(i=0;i<n1.nodes.size();++i){
  		a->matches[i].first = i;
@@ -155,24 +156,41 @@ Alignment * setup_alignment(vector< pair<int, int> > set_pairs){
  		a->matches[j].second = i;
     }
 
+    //initialize unfixed pairs indeces
+    vector<int> unfixed_pairs; 
+    for(i=0; i<a->matches.size(); i++) {
+        unfixed_pairs.push_back(i); 
+    }
+
     //align the fixed pairs
     int p1_i, p2_i;
+    vector<int> fixed_indeces; 
     for(i=0; i<set_pairs.size(); i++) {
         p1_i = set_pairs[i].first; 
         p2_i = set_pairs[i].second;
         //add fixed matches for the nodes in net1
         a->matches[p1_i].second = p2_i; 
         //add fixed matches for the nodes in net2
-        a->matches[p2_i + n1.nodes.size()].first = p1_i; 
+        a->matches[p2_i + n1.nodes.size()].second =-1;
+        //add index to fixed list
+        fixed_indeces.push_back(p1_i); 
+        fixed_indeces.push_back(p2_i + n1.nodes.size());
+    }
+
+    //remove fixed pair indeces from unfixed pair indeces
+    sort(fixed_indeces.begin(), fixed_indeces.end());
+    for(int j =fixed_indeces.size()-1; j>=0; j--) { //descending
+         unfixed_pairs.erase(unfixed_pairs.begin() + fixed_indeces[j]);
     }
     
+    a->unfixed_pairs = unfixed_pairs;  
  	return a;
 }
 
 // randomize an alignment
 void randomize_alignment(const gsl_rng *r, Alignment *a){
     cout << endl << endl << "IN RANDOM ALIGNMENT" << endl << endl; 
-  unsigned long shuffles = 2*gsl_pow_2(a->matches.size());
+  unsigned long shuffles = 2*gsl_pow_2(a->unfixed_pairs.size());
   for(unsigned long i=0;i<shuffles;++i)
     alignment_step(r,a,0);
 }

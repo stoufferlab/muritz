@@ -333,7 +333,7 @@ gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp){
     params.k = 1.0;
         	
     // number of iterations at each temperature
-    params.iters_fixed_T = int((a->iters_fixed_T) * gsl_pow_2(a->matches.size()) + 0.5);
+    params.iters_fixed_T = int((a->iters_fixed_T) * gsl_pow_2(a->unfixed_pairs.size()) + 0.5);
 	
     // initial temperature
     if(a->t_initial != -1)
@@ -448,35 +448,25 @@ void alignment_step(const gsl_rng * r, void *xp, double step_size){
 	Alignment * a = (Alignment *) xp;
 
 	// pick the pairs to swap
-	unsigned int p1 = gsl_rng_uniform_int(r,a->matches.size());
-	unsigned int p2 = gsl_rng_uniform_int(r,a->matches.size());
-   
-    //check if either species is fixed
-//    cout << endl;
-//    for(int i=0; i<a->fixed_pairs.size(); i++) {
-//        cout << a->fixed_pairs[i] << "  "; 
-//    }
-    bool first_swap_fixed = std::find(a->fixed_pairs.begin(), a->fixed_pairs.end(), a->matches[p1].second) != a->fixed_pairs.end();
-    bool second_swap_fixed = std::find(a->fixed_pairs.begin(), a->fixed_pairs.end(), a->matches[p2].second) != a->fixed_pairs.end();
-    if(!(first_swap_fixed) && !(second_swap_fixed)) { //not fixed
-//        cout << "I MADE IT IN" << endl; 
-        // swap the indices for net2 within the core alignment object
-        unsigned int tmp = a->matches[p1].second;
-        a->matches[p1].second = a->matches[p2].second;
-        a->matches[p2].second = tmp;
+	unsigned int p1 = a->unfixed_pairs[gsl_rng_uniform_int(r,a->unfixed_pairs.size())];
+	unsigned int p2 = a->unfixed_pairs[gsl_rng_uniform_int(r,a->unfixed_pairs.size())];
 
-        // swap the indices in the first cheater alignment object
-        if(a->matches[p1].first != -1)
-            a->match1[a->matches[p1].first] = a->matches[p1].second;
-        if(a->matches[p2].first != -1)
-            a->match1[a->matches[p2].first] = a->matches[p2].second;
+    // swap the indices for net2 within the core alignment object
+    unsigned int tmp = a->matches[p1].second;
+    a->matches[p1].second = a->matches[p2].second;
+    a->matches[p2].second = tmp;
 
-        // swap the indices in the second cheater alignment object
-        if(a->matches[p1].second != -1)
-            a->match2[a->matches[p1].second] = a->matches[p1].first;
-        if(a->matches[p2].second != -1)
-            a->match2[a->matches[p2].second] = a->matches[p2].first;
-    }
+    // swap the indices in the first cheater alignment object
+    if(a->matches[p1].first != -1)
+        a->match1[a->matches[p1].first] = a->matches[p1].second;
+    if(a->matches[p2].first != -1)
+        a->match1[a->matches[p2].first] = a->matches[p2].second;
+
+    // swap the indices in the second cheater alignment object
+    if(a->matches[p1].second != -1)
+        a->match2[a->matches[p1].second] = a->matches[p1].first;
+    if(a->matches[p2].second != -1)
+        a->match2[a->matches[p2].second] = a->matches[p2].first;
 }
 
 // calculate the distance between two alignments
@@ -699,6 +689,7 @@ void _copy(void *source, void *dest){
     a2->t_min = a1->t_min;
     a2->degree = a1->degree;
     a2->fixed_pairs = a1->fixed_pairs; 
+    a2->unfixed_pairs = a1->unfixed_pairs; 
 }
 
 // copy constructor for an alignment
