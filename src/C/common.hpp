@@ -41,6 +41,9 @@ typedef struct {
 // Alignment information
 typedef struct {
         vector<pair<int,int> > matches;
+        vector<pair<int,int> > set_pairs;
+        vector<int> fixed_pairs;
+        vector<int> unfixed_pairs;    
         vector<int> match1;
         vector<int> match2;
         double (*dfunc)(Role*,Role*);
@@ -50,6 +53,7 @@ typedef struct {
         double mu_t;
         double t_min;
         unsigned int degree;
+        //add a set pairs vector<pair<int, int>>
 } Alignment;
 
 #endif

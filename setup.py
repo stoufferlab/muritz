@@ -113,21 +113,27 @@ class build_clib(_build_clib):
 #############################################################################
 #### the muritz setup
 #############################################################################
+# the c++ extension module
+extension_mod = Extension("muritzex", 
+    sources = ['/'.join(['src/C',f]) for f in ['alignment.cpp',
+    'muritz.cpp',
+    'network.cpp',
+    'roles.cpp',
+    'simulated_annealing.cpp',
+    'muritz_module.cpp']
+    ],
+    include_dirs = ['src/C', '/usr/include', '/usr/include/python2.7'],
+    library_dirs = ['/usr/lib'],
+    libraries = ['gsl', 'gslcblas', 'm'], 
+    language = 'c++',
+    extra_compile_args = ["-O3"],
+    extra_link_args = ['-lgsl', '-lgslcblas', '-lm', '-lstdc++'],
+)
 
-muritz = ('muritz', 
-                   {'sources' : ['/'.join(['src/C',f]) for f in ['alignment.cpp',
-                                                              'muritz.cpp',
-                                                              'network.cpp',
-                                                              'roles.cpp',
-                                                              'simulated_annealing.cpp',
-                                                             ]
-                               ],
-                    'include_dirs' : ['src/C', '/usr/include'],
-                    'language' : 'c++',
-                    'extra_compile_args' : ["-O3",],
-                    'extra_link_args' : ['-lgsl', '-lgslcblas', '-lm', '-lstdc++', ]
-                   }
-                  )
+setup(
+    name = "muritzex",
+    ext_modules=[extension_mod]
+)
 
 setup(
     name = "muritz",
@@ -138,13 +144,15 @@ setup(
     url = 'http://github.com/stoufferlab/muritz',
     packages = ['muritz'],
     package_dir={'muritz':'src/python'},
-    libraries = [muritz,], # note that this isn't actually a library (as defined by the build_clib hack above)
+    #libraries = [muritz,], # note that this isn't actually a library (as defined by the build_clib hack above)
     cmdclass={'build_clib': build_clib,
               'config': config,
               'install_lib': install_lib,
               },
-    scripts=['scripts/muritz','scripts/muritz.x'],
+    scripts=['scripts/muritz'],
     #install_requires=['pymfinder'],
     #dependency_links=["https://github.com/stoufferlab/pymfinder/tarball/master#egg=pymfinder-0.23"]
     #test_suite = 'tests',
 )
+
+
