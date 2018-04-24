@@ -135,15 +135,29 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     stringstream ss(sset_pairs);
     string pairline;
     int p1_i, p2_i;
+    
+    //make copies of the species list
+    map<string, int> temp_map1; 
+    map<string, int> temp_map2; 
+    temp_map1.insert(n1.node_i.begin(), n1.node_i.end()); 
+    temp_map2.insert(n2.node_i.begin(), n2.node_i.end()); 
 
     while(getline(ss, pairline)) {
         stringstream ssp(pairline);
         string p1, p2; 
         ssp >> p1 >> p2; 
-        p1_i = n1.node_i[p1]; 
-        p2_i = n2.node_i[p2]; 
-        set_pairs.push_back(make_pair(p1_i, p2_i));
-        fixed_pairs.push_back(p2_i); 
+        map<string, int>::iterator it1 = temp_map1.find(p1); 
+        map<string, int>::iterator it2 = temp_map2.find(p2);
+        if(it1 != temp_map1.end() && it2 != temp_map2.end()) { //if pair is in list
+            p1_i = temp_map1[p1]; 
+            p2_i = temp_map2[p2]; 
+            set_pairs.push_back(make_pair(p1_i, p2_i));
+            fixed_pairs.push_back(p2_i);
+            cout << "added and erasing...: " << p1 << " " << p2 << endl; 
+            //delete inserted pair
+            temp_map1.erase(it1); 
+            temp_map2.erase(it2);  
+        }
     }
 
   	// set up the alignment between networks
