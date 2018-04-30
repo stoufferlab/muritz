@@ -4,9 +4,8 @@ import sys
 import tempfile
 import subprocess
 
-from pymfinder import motif_roles,print_roles
+from pymfinder import motif_roles
 from optionparser import parse_cl_options
-import test
 import muritzex
 
 
@@ -53,28 +52,33 @@ def muritz(options, args):
 
     #Are the networks unipartite or bipartite?
     if options.bipartite:
-	if net1type==False and net2type==False:
-		unipartite=net1type
-	else:
-		print "You are comparing a unipartite network with a bipartite one. Both will be considered as unipartite"
-		unipartite=True
+        if net1type==False and net2type==False:
+            unipartite=net1type
+        else:
+            print "You are comparing a unipartite network with a bipartite one. Both will be considered as unipartite"
+            unipartite=True
     else:
     	unipartite=True
 
     if options.roles1:
-	sys.stderr.write("Sorry, the -r option isn't implemented yet.\n")
-	sys.exit()
-	#net1_roles = read_roles(options.roles1)
+        sys.stderr.write("Sorry, the -r option isn't implemented yet.\n")
+        sys.exit()
+        #net1_roles = read_roles(options.roles1)
     else:
-	if unipartite:
-            net1_roles = motif_roles(args[0],motifsize=2,)
-            net1_roles2 = motif_roles(args[0],motifsize=3,)
-            for i in net1_roles:
-                net1_roles[i].update(net1_roles2[i])
+        if unipartite:
+            if options.weighted: 
+                net1_roles = motif_roles(args[0],motifsize=2,allroles=True, weighted=True)
+                net1_roles2 = motif_roles(args[0],motifsize=3,allroles=True, weighted=True)
+            else: 
+                net1_roles = motif_roles(args[0],motifsize=2)
+                net1_roles2 = motif_roles(args[0],motifsize=3)
+                
+                for i in net1_roles:
+                    net1_roles[i].update(net1_roles2[i])
         else:
-            net1_roles = motif_roles(args[0],motifsize=2, networktype = "bipartite",)
+            net1_roles = motif_roles(args[0],motifsize=2, networktype = "bipartite", allroles=True)
             for k in range(3,5):
-                net1_roles2 = motif_roles(args[0],motifsize=k, networktype = "bipartite",)
+                net1_roles2 = motif_roles(args[0],motifsize=k, networktype = "bipartite", allroles=True)
                 for i in net1_roles:
                     net1_roles[i].update(net1_roles2[i])
 
@@ -85,18 +89,25 @@ def muritz(options, args):
         #net2_roles = read_roles(options.roles2)
     else:
         if unipartite:
-            net2_roles = motif_roles(args[1],motifsize=2,)
-            net2_roles2 = motif_roles(args[1],motifsize=3,)
+            if options.weighted: 
+                net2_roles = motif_roles(args[1],motifsize=2,allroles=True, weighted=True)
+                net2_roles2 = motif_roles(args[1],motifsize=3,allroles=True, weighted=True)
+                print("WEIGHTED!")
+                print(net2_roles)
+            else: 
+                net2_roles = motif_roles(args[1],motifsize=2)
+                net2_roles2 = motif_roles(args[1],motifsize=3)
+                
             for i in net2_roles:
                 net2_roles[i].update(net2_roles2[i])
         else:
-            net2_roles = motif_roles(args[1],motifsize=2, networktype = "bipartite",)
+            net2_roles = motif_roles(args[1],motifsize=2, networktype = "bipartite",allroles=True)
             for k in range(3,5):
-                net2_roles2 = motif_roles(args[1],motifsize=k, networktype = "bipartite",)
+                net2_roles2 = motif_roles(args[1],motifsize=k, networktype = "bipartite",allroles=True)
                 for i in net2_roles:
                     net2_roles[i].update(net2_roles2[i])
                     
-                    
+                   
     muritz_in = muritz_input(net1, net2, net1_roles, net2_roles, pairs)
 	
     # get a random seed

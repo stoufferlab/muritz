@@ -73,9 +73,16 @@ def parse_cl_options():
                       help="consider the networks as bipartite [default: %default]",
                       default=False,
                      )
+
     parser.add_option("-f", "--fixed",
                       action="store", dest="fixed_file", type="string",
                       help="file with fixed pairs [default: %default]",
+                      default=False,
+                     )
+    
+    parser.add_option("-w", "--weighted",
+                      action="store_true", dest="weighted",
+                      help="use interaction strengths to weight alignment [default: %default]",
                       default=False,
                      )
 

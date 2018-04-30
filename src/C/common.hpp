@@ -21,7 +21,7 @@ struct Node {
 typedef struct {
         string name;
         int size;
-        int frequency;
+        float frequency;
 } Position;
 
 // Role structure
