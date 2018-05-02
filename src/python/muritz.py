@@ -38,6 +38,10 @@ def muritz_input(net1, net2, net1_roles, net2_roles, pairs):
 	mat[4] = ('\n'.join([' '.join(link) for link in pairs]))
 	return(mat)
 
+#def fdict(obj):
+#    if obj.weighted:
+#
+#    return obj
 
 def muritz(options, args):
     pairs = ""
@@ -69,12 +73,13 @@ def muritz(options, args):
             if options.weighted: 
                 net1_roles = motif_roles(args[0],motifsize=2,allroles=True, weighted=True)
                 net1_roles2 = motif_roles(args[0],motifsize=3,allroles=True, weighted=True)
+                print(net1_roles)
             else: 
-                net1_roles = motif_roles(args[0],motifsize=2)
-                net1_roles2 = motif_roles(args[0],motifsize=3)
+                net1_roles = motif_roles(args[0],motifsize=2,allroles=True)
+                net1_roles2 = motif_roles(args[0],motifsize=3,allroles=True)
                 
-                for i in net1_roles:
-                    net1_roles[i].update(net1_roles2[i])
+            for i in net1_roles:
+                net1_roles[i].update(net1_roles2[i])
         else:
             net1_roles = motif_roles(args[0],motifsize=2, networktype = "bipartite", allroles=True)
             for k in range(3,5):
@@ -95,8 +100,8 @@ def muritz(options, args):
                 print("WEIGHTED!")
                 print(net2_roles)
             else: 
-                net2_roles = motif_roles(args[1],motifsize=2)
-                net2_roles2 = motif_roles(args[1],motifsize=3)
+                net2_roles = motif_roles(args[1],motifsize=2,allroles=True)
+                net2_roles2 = motif_roles(args[1],motifsize=3,allroles=True)
                 
             for i in net2_roles:
                 net2_roles[i].update(net2_roles2[i])
@@ -109,6 +114,7 @@ def muritz(options, args):
                     
                    
     muritz_in = muritz_input(net1, net2, net1_roles, net2_roles, pairs)
+    print(muritz_in)
 	
     # get a random seed
     rnd_seed = random.randint(0,sys.maxint)

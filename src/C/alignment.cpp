@@ -39,10 +39,12 @@ void read_roles(string input, char separator, Network& N) {
     char t[1024]; 
  
     while(getline(in, line)) {
+        cout << "LINE: " << line << endl; 
         istringstream linestream(line);
         getline(linestream, item, separator);
         Role R;
         R.name = item;
+        cout << "NAME: " << R.name << ": " << endl; 
         
         if(firstline){
           firstline = false;
@@ -51,7 +53,8 @@ void read_roles(string input, char separator, Network& N) {
           while(getline(linestream, item, separator)){
             Position P;
             sprintf(t,"%i",ncols-1); P.name = string(t);
-            P.frequency = strtol(item.c_str(),NULL,10);
+            P.frequency = strtof(item.c_str(),NULL);
+            cout << P.name << "  " << P.frequency << endl; 
             R.f.push_back(P);      
             ncols++;
           }
@@ -61,7 +64,8 @@ void read_roles(string input, char separator, Network& N) {
             getline(linestream, item, separator);
             Position P;
             sprintf(t,"%i",ncols-1); P.name = string(t);
-            P.frequency = strtol(item.c_str(),NULL,10);
+            P.frequency = strtof(item.c_str(),NULL);
+            cout << P.name << "  " << P.frequency << endl; 
             R.f.push_back(P);
           }
         }
