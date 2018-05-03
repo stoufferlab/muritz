@@ -3,6 +3,7 @@ import random
 import sys
 import tempfile
 import subprocess
+import operator
 
 from pymfinder import motif_roles
 from optionparser import parse_cl_options
@@ -38,6 +39,18 @@ def muritz_input(net1, net2, net1_roles, net2_roles, pairs):
 	mat[4] = ('\n'.join([' '.join(link) for link in pairs]))
 	return(mat)
 
+def class_to_dict(roles): 
+    #sort the role vectors
+    for n in roles.nodes:
+        sorted_list = sorted(roles.nodes[n].roles.items(), key = operator.itemgetter(0))
+        roles.nodes[n].roles = {item[0]: item[1] for item in sorted_list}
+        if roles.weighted:
+            #convert from class structure to dict
+            class_to_dict = {roles.nodes[n].id:roles.nodes[n].weighted_roles for n in roles.nodes}
+        else:
+            class_to_dict = {roles.nodes[n].id:roles.nodes[n].roles for n in roles.nodes}
+
+    return class_to_dict
 #def fdict(obj):
 #    if obj.weighted:
 #
@@ -71,12 +84,11 @@ def muritz(options, args):
     else:
         if unipartite:
             if options.weighted: 
-                net1_roles = motif_roles(args[0],motifsize=2,allroles=True, weighted=True)
-                net1_roles2 = motif_roles(args[0],motifsize=3,allroles=True, weighted=True)
-                print(net1_roles)
+                net1_roles = class_to_dict(motif_roles(args[0],motifsize=2,allroles=True, weighted=True))
+                net1_roles2 = class_to_dict(motif_roles(args[0],motifsize=3,allroles=True, weighted=True))
             else: 
-                net1_roles = motif_roles(args[0],motifsize=2,allroles=True)
-                net1_roles2 = motif_roles(args[0],motifsize=3,allroles=True)
+                net1_roles = class_to_dict(motif_roles(args[0],motifsize=2,allroles=True))
+                net1_roles2 = class_to_dict(motif_roles(args[0],motifsize=3,allroles=True))
                 
             for i in net1_roles:
                 net1_roles[i].update(net1_roles2[i])
@@ -95,13 +107,13 @@ def muritz(options, args):
     else:
         if unipartite:
             if options.weighted: 
-                net2_roles = motif_roles(args[1],motifsize=2,allroles=True, weighted=True)
-                net2_roles2 = motif_roles(args[1],motifsize=3,allroles=True, weighted=True)
+                net2_roles = class_to_dict(motif_roles(args[1],motifsize=2,allroles=True, weighted=True))
+                net2_roles2 = class_to_dict(motif_roles(args[1],motifsize=3,allroles=True, weighted=True))
                 print("WEIGHTED!")
                 print(net2_roles)
             else: 
-                net2_roles = motif_roles(args[1],motifsize=2,allroles=True)
-                net2_roles2 = motif_roles(args[1],motifsize=3,allroles=True)
+                net2_roles = class_to_dict(motif_roles(args[1],motifsize=2,allroles=True))
+                net2_roles2 = class_to_dict(motif_roles(args[1],motifsize=3,allroles=True))
                 
             for i in net2_roles:
                 net2_roles[i].update(net2_roles2[i])
