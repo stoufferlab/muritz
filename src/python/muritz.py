@@ -44,6 +44,7 @@ def class_to_dict(roles):
     for n in roles.nodes:
         sorted_list = sorted(roles.nodes[n].roles.items(), key = operator.itemgetter(0))
         roles.nodes[n].roles = {item[0]: item[1] for item in sorted_list}
+       
         if roles.weighted:
             #convert from class structure to dict
             class_to_dict = {roles.nodes[n].id:roles.nodes[n].weighted_roles for n in roles.nodes}
@@ -51,10 +52,6 @@ def class_to_dict(roles):
             class_to_dict = {roles.nodes[n].id:roles.nodes[n].roles for n in roles.nodes}
 
     return class_to_dict
-#def fdict(obj):
-#    if obj.weighted:
-#
-#    return obj
 
 def muritz(options, args):
     pairs = ""
@@ -109,8 +106,6 @@ def muritz(options, args):
             if options.weighted: 
                 net2_roles = class_to_dict(motif_roles(args[1],motifsize=2,allroles=True, weighted=True))
                 net2_roles2 = class_to_dict(motif_roles(args[1],motifsize=3,allroles=True, weighted=True))
-                print("WEIGHTED!")
-                print(net2_roles)
             else: 
                 net2_roles = class_to_dict(motif_roles(args[1],motifsize=2,allroles=True))
                 net2_roles2 = class_to_dict(motif_roles(args[1],motifsize=3,allroles=True))
@@ -126,7 +121,6 @@ def muritz(options, args):
                     
                    
     muritz_in = muritz_input(net1, net2, net1_roles, net2_roles, pairs)
-    print(muritz_in)
 	
     # get a random seed
     rnd_seed = random.randint(0,sys.maxint)
