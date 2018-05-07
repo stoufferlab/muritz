@@ -90,9 +90,9 @@ def muritz(options, args):
             for i in net1_roles:
                 net1_roles[i].update(net1_roles2[i])
         else:
-            net1_roles = motif_roles(args[0],motifsize=2, networktype = "bipartite", allroles=True)
+            net1_roles = class_to_dict(motif_roles(args[0],motifsize=2, networktype = "bipartite", allroles=True))
             for k in range(3,5):
-                net1_roles2 = motif_roles(args[0],motifsize=k, networktype = "bipartite", allroles=True)
+                net1_roles2 = class_to_dict(motif_roles(args[0],motifsize=k, networktype = "bipartite", allroles=True))
                 for i in net1_roles:
                     net1_roles[i].update(net1_roles2[i])
 
@@ -113,9 +113,9 @@ def muritz(options, args):
             for i in net2_roles:
                 net2_roles[i].update(net2_roles2[i])
         else:
-            net2_roles = motif_roles(args[1],motifsize=2, networktype = "bipartite",allroles=True)
+            net2_roles = class_to_dict(motif_roles(args[1],motifsize=2, networktype = "bipartite",allroles=True))
             for k in range(3,5):
-                net2_roles2 = motif_roles(args[1],motifsize=k, networktype = "bipartite",allroles=True)
+                net2_roles2 = class_to_dict(motif_roles(args[1],motifsize=k, networktype = "bipartite",allroles=True))
                 for i in net2_roles:
                     net2_roles[i].update(net2_roles2[i])
                     
