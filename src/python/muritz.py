@@ -119,7 +119,11 @@ def muritz(options, args):
                 for i in net2_roles:
                     net2_roles[i].update(net2_roles2[i])
                     
-                   
+                  
+    print("NET 1: " + str(net1))
+    print("NET 2: " + str(net2))
+#    print("NET 1 ROLES: " + str(net1_roles))
+#    print("NET 2 ROLES: " + str(net2_roles))
     muritz_in = muritz_input(net1, net2, net1_roles, net2_roles, pairs)
 	
     # get a random seed
@@ -160,6 +164,7 @@ def muritz(options, args):
             vflag)
     
     muritzex.muritz(command, muritz_in[0], muritz_in[1], muritz_in[2], muritz_in[3], muritz_in[4])
+    print("\n\n\n")
 #	# print out and store the muritz stdout line by line as it comes
 
 #	for line in iter(process.stdout.readline, ''):

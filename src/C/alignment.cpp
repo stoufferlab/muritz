@@ -39,7 +39,7 @@ void read_roles(string input, char separator, Network& N) {
     char t[1024]; 
  
     while(getline(in, line)) {
-        //cout << "LINE: " << line << endl; 
+        //cout << "ROLES: " << line << endl; 
         istringstream linestream(line);
         getline(linestream, item, separator);
         Role R;
