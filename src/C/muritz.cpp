@@ -204,7 +204,6 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
 	// print out the "optimal" alignment
     
     //alignment_print_json(alignment, true, pairs);
-
     if(overlap!=0 && overlap!=-1 && overlap!=1){
 
 	if(!pairs){

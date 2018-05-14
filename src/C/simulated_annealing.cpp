@@ -378,9 +378,10 @@ double alignment_energy(void *xp){
 	Alignment * a = (Alignment *) xp;
 
     // sum the cost function across all paired and unpaired nodes
-	for(unsigned int i=0;i<a->matches.size();++i){
-		E += distance(a, i);
-	}
+    for(unsigned int i=0;i<a->matches.size();++i){
+        double e = distance(a, i);
+        E += e;
+    }
 	return E;
 }
 
@@ -690,7 +691,7 @@ void _copy(void *source, void *dest){
     a2->t_min = a1->t_min;
     a2->degree = a1->degree;
     a2->fixed_pairs = a1->fixed_pairs; 
-    a2->unfixed_pairs = a1->unfixed_pairs; 
+    a2->unfixed_pairs = a1->unfixed_pairs;
 }
 
 // copy constructor for an alignment
