@@ -74,7 +74,6 @@ double role_correlation(Role *r1, Role *r2){
 	}
     }
     
-    cout << 1 - r << endl; 
     return 1 - r;
 }
 
@@ -341,13 +340,14 @@ gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp){
         params.t_initial = a->t_initial;
     else{
         // calculate the average initial change in energy and use it to set the initial temperature
+        cout << "LEN: " << a->set_pairs.size() << endl; 
         Alignment * b = setup_alignment(a->set_pairs);
         _copy(a,b);
         double ae, ae2, de, mean_de, max_de;
         mean_de = 0;
         max_de = 0;
         ae = alignment_energy(b);
-        unsigned long shuffles = b->matches.size();
+        unsigned long shuffles = b->unfixed_pairs.size();
         for(unsigned long i=0;i<shuffles;++i){
             ae2 = ae;
             alignment_step(r,b,0);
@@ -378,10 +378,9 @@ double alignment_energy(void *xp){
 	Alignment * a = (Alignment *) xp;
 
     // sum the cost function across all paired and unpaired nodes
-    for(unsigned int i=0;i<a->matches.size();++i){
-        double e = distance(a, i);
-        E += e;
-    }
+	for(unsigned int i=0;i<a->matches.size();++i){
+		E += distance(a, i);
+	}
 	return E;
 }
 
@@ -690,8 +689,10 @@ void _copy(void *source, void *dest){
     a2->mu_t = a1->mu_t;
     a2->t_min = a1->t_min;
     a2->degree = a1->degree;
-    a2->fixed_pairs = a1->fixed_pairs; 
-    a2->unfixed_pairs = a1->unfixed_pairs;
+
+    a2->fixed_pairs = a1->fixed_pairs;
+    a2->set_pairs = a1->set_pairs; 
+    a2->unfixed_pairs = a1->unfixed_pairs; 
 }
 
 // copy constructor for an alignment

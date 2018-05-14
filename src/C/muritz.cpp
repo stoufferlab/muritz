@@ -153,7 +153,6 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
             p2_i = temp_map2[p2]; 
             set_pairs.push_back(make_pair(p1_i, p2_i));
             fixed_pairs.push_back(p2_i);
-            cout << "added and erasing...: " << p1 << " " << p2 << endl; 
             //delete inserted pair
             temp_map1.erase(it1); 
             temp_map2.erase(it2);  
@@ -184,6 +183,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     alignment->t_min = t_min;
     alignment->degree = degree;
     alignment->fixed_pairs = fixed_pairs;
+    alignment->set_pairs = set_pairs; 
 	// set up the simulated annealing parameters
 	gsl_siman_params_t params = alignment_params(r,alignment);
 
