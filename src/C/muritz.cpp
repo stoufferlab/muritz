@@ -166,7 +166,6 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
         randomize_alignment(r,alignment);
     
     // decide on what the node-to-node distance function is
-
     if(cost_function==0){
         alignment->dfunc = &role_euclidean_distance;
     }else{

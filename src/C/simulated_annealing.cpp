@@ -73,7 +73,8 @@ double role_correlation(Role *r1, Role *r2){
 		r = gsl_stats_correlation(f1, 1, f2, 1, r1->f.size());
 	}
     }
-
+    
+    cout << 1 - r << endl; 
     return 1 - r;
 }
 

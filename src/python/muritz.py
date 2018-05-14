@@ -119,9 +119,11 @@ def muritz(options, args):
                 for i in net2_roles:
                     net2_roles[i].update(net2_roles2[i])
                     
-                   
+               
     muritz_in = muritz_input(net1, net2, net1_roles, net2_roles, pairs)
-	
+    for line in muritz_in: 
+        print(line)
+
     # get a random seed
     rnd_seed = random.randint(0,sys.maxint)
     os.environ['GSL_RNG_SEED'] = str(rnd_seed)
