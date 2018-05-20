@@ -181,6 +181,11 @@ Alignment * setup_alignment(vector< pair<int, int> > set_pairs){
         fixed_indeces.push_back(p2_i + n1.nodes.size());
     }
 
+    cout << "setup: " << endl; 
+    for(i=0; i<a->matches.size(); i++) {
+        cout << a->matches[i].first << "   " << a->matches[i].second << endl; 
+    }
+
     //remove fixed pair indeces from unfixed pair indeces
     sort(fixed_indeces.begin(), fixed_indeces.end());
     for(int j =fixed_indeces.size()-1; j>=0; j--) { //descending

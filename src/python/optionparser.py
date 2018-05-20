@@ -16,7 +16,7 @@ def parse_cl_options():
     parser.add_option("-k", "--degree",
                       action="store", dest="degree", type="int",
                       help="degree of alignment to conduct [default: %default]",
-                      default=1,
+                      default=0,
                      )
     parser.add_option("-l", "--cost_function",
                       action="store", dest="cost_function", type="int",

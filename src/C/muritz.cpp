@@ -184,6 +184,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     alignment->degree = degree;
     alignment->fixed_pairs = fixed_pairs;
     alignment->set_pairs = set_pairs; 
+    alignment->doneflag = false; 
 	// set up the simulated annealing parameters
 	gsl_siman_params_t params = alignment_params(r,alignment);
 
@@ -202,7 +203,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
 					params);
   	
 	// print out the "optimal" alignment
-    
+    alignment->doneflag = true;  
     //alignment_print_json(alignment, true, pairs);
     if(overlap!=0 && overlap!=-1 && overlap!=1){
 

@@ -40,6 +40,7 @@ typedef struct {
 
 // Alignment information
 typedef struct {
+        bool doneflag; 
         vector<pair<int,int> > matches;
         vector<pair<int,int> > set_pairs;
         vector<int> fixed_pairs;
