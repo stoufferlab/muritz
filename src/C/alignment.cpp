@@ -39,12 +39,10 @@ void read_roles(string input, char separator, Network& N) {
     char t[1024]; 
  
     while(getline(in, line)) {
-        //cout << "ROLES: " << line << endl; 
         istringstream linestream(line);
         getline(linestream, item, separator);
         Role R;
         R.name = item;
-        //cout << "NAME: " << R.name << ": " << endl; 
         
         if(firstline){
           firstline = false;
@@ -54,7 +52,6 @@ void read_roles(string input, char separator, Network& N) {
             Position P;
             sprintf(t,"%i",ncols-1); P.name = string(t);
             P.frequency = strtof(item.c_str(),NULL);
-            //cout << P.name << "  " << P.frequency << endl; 
             R.f.push_back(P);      
             ncols++;
           }
@@ -65,7 +62,6 @@ void read_roles(string input, char separator, Network& N) {
             Position P;
             sprintf(t,"%i",ncols-1); P.name = string(t);
             P.frequency = strtof(item.c_str(),NULL);
-            //cout << P.name << "  " << P.frequency << endl; 
             R.f.push_back(P);
           }
         }
@@ -181,9 +177,7 @@ Alignment * setup_alignment(vector< pair<int, int> > set_pairs){
         fixed_indeces.push_back(p2_i + n1.nodes.size());
     }
 
-    cout << "setup: " << endl; 
     for(i=0; i<a->matches.size(); i++) {
-        cout << a->matches[i].first << "   " << a->matches[i].second << endl; 
     }
 
     //remove fixed pair indeces from unfixed pair indeces
@@ -198,7 +192,6 @@ Alignment * setup_alignment(vector< pair<int, int> > set_pairs){
 
 // randomize an alignment
 void randomize_alignment(const gsl_rng *r, Alignment *a){
-    cout << endl << endl << "IN RANDOM ALIGNMENT" << endl << endl; 
   unsigned long shuffles = 2*gsl_pow_2(a->unfixed_pairs.size());
   for(unsigned long i=0;i<shuffles;++i)
     alignment_step(r,a,0);
@@ -260,6 +253,7 @@ void alignment_print_json(void *xp, bool energy=true, bool pairs=false){
 
   // alignment
   cout << "  }\n}\n";
+        cout << a->matches[i].first << "   " << a->matches[i].second << endl; 
 }
 
 

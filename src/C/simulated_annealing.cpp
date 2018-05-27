@@ -64,14 +64,10 @@ double role_correlation(Role *r1, Role *r2){
     	for(unsigned int i=0;i<r1->f.size();++i){
 	       	f1[i] = r1->f[i].frequency;
             f2[i] = r2->f[i].frequency;
-//            cout << "frequencies: " << f2[i] << "  " << f1[i] << endl;
             rowsums[0] += f1[i];
             rowsums[1] += f2[i];
     	}
-//        cout << "ROWSUMS: " << rowsums[0] << "  " << rowsums[1] << endl;	
-//        cout << "ROWSUMS BOOL: " << (rowsums[0] == 0) << "  " << (rowsums[1] == 0) << endl;	
         if (rowsums[0] == 0 || rowsums[1] == 0){
-//            cout << "made it in " << nullcost << endl;
             return nullcost;
         }else{
             r = gsl_stats_correlation(f1, 1, f2, 1, r1->f.size());
@@ -149,10 +145,8 @@ void prepare_distance_matrix(double (*dfunc) (Role*,Role*)){
     distance_matrix = gsl_matrix_calloc(n1.nodes.size(),n2.nodes.size());
 	for(i=0;i<n1.nodes.size();++i) {
 		for(j=0;j<n2.nodes.size();++j){
-            cout << dfunc(&(n1.roles[i]),&(n2.roles[j])) << "  "; 
 			gsl_matrix_set(distance_matrix, i, j, dfunc(&(n1.roles[i]),&(n2.roles[j])));
         }
-        cout << endl; 
     }
 
     // network 1 node distances when unaligned
@@ -347,7 +341,6 @@ gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp){
         params.t_initial = a->t_initial;
     else{
         // calculate the average initial change in energy and use it to set the initial temperature
-        cout << "LEN: " << a->set_pairs.size() << endl; 
         Alignment * b = setup_alignment(a->set_pairs);
         _copy(a,b);
         double ae, ae2, de, mean_de, max_de;

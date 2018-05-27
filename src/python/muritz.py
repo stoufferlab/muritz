@@ -77,7 +77,6 @@ def muritz(options, args):
     if options.roles1:
         sys.stderr.write("Sorry, the -r option isn't implemented yet.\n")
         sys.exit()
-        #net1_roles = read_roles(options.roles1)
     else:
         if unipartite:
             if options.weighted: 
@@ -100,7 +99,6 @@ def muritz(options, args):
     if options.roles2:
         sys.stderr.write("Sorry, the -s option isn't implemented yet.\n")
         sys.exit()
-        #net2_roles = read_roles(options.roles2)
     else:
         if unipartite:
             if options.weighted: 
@@ -120,9 +118,7 @@ def muritz(options, args):
                     net2_roles[i].update(net2_roles2[i])
                     
     muritz_in = muritz_input(net1, net2, net1_roles, net2_roles, pairs)
-    for line in muritz_in: 
-        print(line)
-
+    
     # get a random seed
     rnd_seed = random.randint(0,sys.maxint)
     os.environ['GSL_RNG_SEED'] = str(rnd_seed)
@@ -161,7 +157,6 @@ def muritz(options, args):
             vflag)
     
     muritzex.muritz(command, muritz_in[0], muritz_in[1], muritz_in[2], muritz_in[3], muritz_in[4])
-    print("\n\n\n")
 #	# print out and store the muritz stdout line by line as it comes
 
 #	for line in iter(process.stdout.readline, ''):
