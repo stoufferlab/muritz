@@ -53,27 +53,27 @@ double role_euclidean_distance(Role *r1, Role *r2){
 // calculate the role-to-role correlation coefficient
 double role_correlation(Role *r1, Role *r2){
     double r;
-    int rowsums[2] = {0};
+    double rowsums[2] = {0};
     double *f1 = (double*) calloc(r1->f.size(), sizeof(double));
     double *f2 = (double*) calloc(r1->f.size(), sizeof(double));
 
-    if(r1->name == "NULL" || r2->name == "NULL")
+    if(r1->name == "NULL" || r2->name == "NULL") {
         return nullcost; // this corresponds to complete lack of correlation
+    }
     else{
     	for(unsigned int i=0;i<r1->f.size();++i){
 	       	f1[i] = r1->f[i].frequency;
-		f2[i] = r2->f[i].frequency;
-		rowsums[0] += f1[i];
-		rowsums[1] += f2[i];
+            f2[i] = r2->f[i].frequency;
+            rowsums[0] += f1[i];
+            rowsums[1] += f2[i];
     	}
-	
-	if (rowsums[0] == 0 || rowsums[1] == 0){
-		return nullcost;
-	}else{
-		r = gsl_stats_correlation(f1, 1, f2, 1, r1->f.size());
-	}
+        if (rowsums[0] == 0 || rowsums[1] == 0){
+            return nullcost;
+        }else{
+            r = gsl_stats_correlation(f1, 1, f2, 1, r1->f.size());
+        }
     }
-
+    
     return 1 - r;
 }
 
@@ -83,7 +83,7 @@ double role_chisquared(Role *r1, Role *r2){
 	double expected,chisq;
 
 	// a vector for the row sums		
-	int rowsums[2] = {0};
+	double rowsums[2] = {0};
 	// initialize a vector for the column sums 
 	int *colsums = (int*) calloc(r1->f.size(), sizeof(int));
 	for(i=0;i<r1->f.size();++i)
@@ -143,10 +143,11 @@ void prepare_distance_matrix(double (*dfunc) (Role*,Role*)){
 
     // node-to-node distances
     distance_matrix = gsl_matrix_calloc(n1.nodes.size(),n2.nodes.size());
-	for(i=0;i<n1.nodes.size();++i)
+	for(i=0;i<n1.nodes.size();++i) {
 		for(j=0;j<n2.nodes.size();++j){
 			gsl_matrix_set(distance_matrix, i, j, dfunc(&(n1.roles[i]),&(n2.roles[j])));
         }
+    }
 
     // network 1 node distances when unaligned
     nulldist1 = (double*) calloc(n1.nodes.size(), sizeof(double));
@@ -346,7 +347,7 @@ gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp){
         mean_de = 0;
         max_de = 0;
         ae = alignment_energy(b);
-        unsigned long shuffles = b->matches.size();
+        unsigned long shuffles = b->unfixed_pairs.size();
         for(unsigned long i=0;i<shuffles;++i){
             ae2 = ae;
             alignment_step(r,b,0);
@@ -688,8 +689,11 @@ void _copy(void *source, void *dest){
     a2->mu_t = a1->mu_t;
     a2->t_min = a1->t_min;
     a2->degree = a1->degree;
-    a2->fixed_pairs = a1->fixed_pairs; 
-    a2->unfixed_pairs = a1->unfixed_pairs; 
+
+    a2->fixed_pairs = a1->fixed_pairs;
+    a2->set_pairs = a1->set_pairs; 
+    a2->unfixed_pairs = a1->unfixed_pairs;
+    a2->doneflag = a1->doneflag;  
 }
 
 // copy constructor for an alignment

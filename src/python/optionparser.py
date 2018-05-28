@@ -21,7 +21,7 @@ def parse_cl_options():
     parser.add_option("-l", "--cost_function",
                       action="store", dest="cost_function", type="int",
                       help="Euclidean distance (0), Pearson's correlation coeficient (1) or Chi-squared test (2) [default: %default]",
-                      default=2,
+                      default=1,
                      )
     parser.add_option("-t", "--tinitial",
                       action="store", dest="tinitial", type="float",
@@ -73,9 +73,16 @@ def parse_cl_options():
                       help="consider the networks as bipartite [default: %default]",
                       default=False,
                      )
+
     parser.add_option("-f", "--fixed",
                       action="store", dest="fixed_file", type="string",
                       help="file with fixed pairs [default: %default]",
+                      default=False,
+                     )
+    
+    parser.add_option("-w", "--weighted",
+                      action="store_true", dest="weighted",
+                      help="use interaction strengths to weight alignment [default: %default]",
                       default=False,
                      )
 

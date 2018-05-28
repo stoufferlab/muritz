@@ -21,7 +21,7 @@ struct Node {
 typedef struct {
         string name;
         int size;
-        int frequency;
+        double frequency;
 } Position;
 
 // Role structure
@@ -40,6 +40,7 @@ typedef struct {
 
 // Alignment information
 typedef struct {
+        bool doneflag; 
         vector<pair<int,int> > matches;
         vector<pair<int,int> > set_pairs;
         vector<int> fixed_pairs;
