@@ -212,11 +212,11 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
 	}else{
 		cout << "optimal ="; alignment_print_pairs(alignment); cout << endl;
 	}
-	cout << "energy = " << alignment_energy(alignment) << endl;
+	print_energy(alignment, cost_function, degree);
 
     }else{
 	overlap_pairs(alignment, pairs, overlap);
-	cout << "energy = " << alignment_energy(alignment) << endl;
+	print_energy(alignment, cost_function, degree);
     }
 
 	// free allocated memory

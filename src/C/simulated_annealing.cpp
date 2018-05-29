@@ -386,7 +386,7 @@ double alignment_energy(void *xp){
 
 // print the energy/cost and the normalized energy/cost function of an alignment
 void print_energy(void *xp, int cost_function, long degree){
-	double E = 0, Epair, Enorm=0;
+	double E = 0, Epair_nei, Epair_nod, Enorm_nei=0, Enorm_nod=0;
 	int j, k, nei1, nei2, norm=0;
 	set<Node *> nbr_i;
 
@@ -395,12 +395,14 @@ void print_energy(void *xp, int cost_function, long degree){
 
     // sum the cost function across all paired and unpaired nodes
 	for(unsigned int i=0;i<a->matches.size();++i){
-		Epair = distance(a, i);
-		E += Epair;
+		Epair_nei = distance(a, i);
+		Epair_nod = node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
+		E += Epair_nei;
 		if (cost_function==1){
 			j = a->matches[i].first;
 			k = a->matches[i].second;
 			if (j != -1 && k != -1){
+				Enorm_nod+=Epair_nod;
 				norm++;
 				if (degree==1){
  					nbr_i = n1.nodes[j]->neighbors[degree];
@@ -411,24 +413,34 @@ void print_energy(void *xp, int cost_function, long degree){
 
 					if (nei1<nei2){
 						if (nei1!=0){
-							Epair=Epair-nullcost*(nei2-nei1);
-							Enorm+=Epair/(double)nei1;
+							Epair_nei=Epair_nei-nullcost*(nei2-nei1);
+							Enorm_nei+=Epair_nei/(double)nei1;
+						}else{
+							Enorm_nei+=1;
 						}
 					}else{
 						if (nei2!=0){
-							Epair=Epair-nullcost*(nei1-nei2);
-							Enorm+=Epair/(double)nei2;
+							Epair_nei=Epair_nei-nullcost*(nei1-nei2);
+							Enorm_nei+=Epair_nei/(double)nei2;
+						}else{
+							Enorm_nei+=1;
 						}
 					}
+				}else{
+					Enorm_nei+=Epair_nei;
 				}
 			}
 		}
 	}
 	
 	if (cost_function==1 && nullcost==1){
-		Enorm=Enorm/(double)norm;
+		Enorm_nei=Enorm_nei/(double)norm;
+		Enorm_nod=Enorm_nod/(double)norm;
 		cout << "Energy = " << E << endl;
-		cout << "Normalized energy = " << Enorm << endl;
+		cout << "Normalized nodes energy = " << Enorm_nod << endl;
+		if (degree==1){
+			cout << "Normalized neighbours energy = " << Enorm_nei << endl;
+		}
 	}else{
 		cout << "Energy = " << E << endl;
 	}
@@ -538,7 +550,9 @@ void alignment_print_pairs(void *xp){
 				cout << "NULL";
             cout << ":";
             cout << distance(a, i);
-			cout <<  ")";
+            cout << ",";
+            cout << node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
+            cout <<  ")";
 		}
 	}
 	cout << " ] ";
@@ -654,6 +668,8 @@ void overlap_pairs(void *xp, bool pairs, int direction){
 			//Print out pairs distance
 			cout << ":";
 			cout << distance(a, i);
+			cout << ",";
+			cout << node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
 		}
 		cout <<  ")";
 		}

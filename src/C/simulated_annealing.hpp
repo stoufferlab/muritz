@@ -25,6 +25,7 @@ double alignment_distance(void *xp, void *yp);
 void   alignment_print(void *xp);
 void   alignment_print_pairs(void *xp);
 void   overlap_pairs(void *xp, bool pairs, int direction);
+void print_energy(void *xp, int cost_function, long degree);
 
 void _copy(void *source, void *dest);
 void * _copy_construct(void *xp);
