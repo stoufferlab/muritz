@@ -181,11 +181,11 @@ int main(int argc, char *argv[])
 	}else{
 		cout << "optimal ="; alignment_print_pairs(alignment); cout << endl;
 	}
-	cout << "energy = " << alignment_energy(alignment) << endl;
+	print_energy(alignment, cost_function, degree);
 
     }else{
 	overlap_pairs(alignment, pairs, overlap);
-	cout << "energy = " << alignment_energy(alignment) << endl;
+	print_energy(alignment, cost_function, degree);
     }
 
 	// free allocated memory
