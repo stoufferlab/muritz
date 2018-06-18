@@ -47,7 +47,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
 {
     // relevant parameters for simulated annealing
     void (*printfunc)(void*) = NULL;
-    bool pairs = false, randomstart = false;
+    bool pairs = false, randomstart = false, bipartite=false;
     double iters_fixed_T = 1.0;
     double t_initial = -1.0;
     double mu_t = 1.001;
@@ -57,8 +57,11 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     int overlap=2;
     // set the above parameters with command line options
     int opt;
-    while((opt = getopt(argc, argv, "vprn:t:c:m:k:l:o:u:")) != -1) {
+    while((opt = getopt(argc, argv, "bvprn:t:c:m:k:l:o:u:")) != -1) {
     	switch (opt) {
+    		case 'b':
+    			bipartite = true;
+    			break;
     		case 'v':
     			printfunc = &alignment_print;
     			break;
@@ -124,9 +127,10 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
 	// set up the random number generator
 	gsl_rng_env_setup();
 	gsl_rng * r = gsl_rng_alloc(gsl_rng_mt19937);
-    
 
 	// read in two files of networks
+        n1.bipartite = bipartite;
+        n2.bipartite = bipartite;
 	read_alignment_data(' ',net1, net1_roles, net2, net2_roles, n1,n2);
     
     //store fixed pairs into a vector
@@ -159,8 +163,9 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
         }
     }
 
-  	// set up the alignment between networks
-	Alignment * alignment = setup_alignment(set_pairs);
+    // set up the alignment between networks
+    Alignment * alignment = setup_alignment(set_pairs);
+
     if(randomstart)
         randomize_alignment(r,alignment);
     

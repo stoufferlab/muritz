@@ -93,6 +93,7 @@ void read_links(string input, char separator, Network& N) {
           
           Role R;
           N.roles.push_back(R);
+          n->side = 0;
 
         }else 
           pred_i = N.node_i[pred];
@@ -108,6 +109,12 @@ void read_links(string input, char separator, Network& N) {
 
           Role R;
           N.roles.push_back(R);
+
+          if(N.bipartite){
+              n->side = 1;
+          }else{
+              n->side = 0;
+          }
 
         }else
           prey_i = N.node_i[prey];
@@ -143,23 +150,29 @@ string net2_roles, Network& A, Network& B)
 // setup an alignment structure to manipulate in the SA code
 Alignment * setup_alignment(vector< pair<int, int> > set_pairs){
 	unsigned int i,j;
+        vector<int> unfixed_pairs_A; 
+        vector<int> unfixed_pairs_B;
 	Alignment * a = alignment_alloc(n1.nodes.size(),n2.nodes.size());
 
  	// add NULL matches for the nodes in network 1
  	for(i=0;i<n1.nodes.size();++i){
  		a->matches[i].first = i;
+                if (n1.nodes[i]->side == 0){
+                        unfixed_pairs_A.push_back(i);
+                }else{
+                        unfixed_pairs_B.push_back(i);
+                }
     }
 
  	// add NULL matches for the nodes in network 2
  	for(i=0;i<n2.nodes.size();++i){
  		j = i + n1.nodes.size(); // offset based on size of first network
  		a->matches[j].second = i;
-    }
-
-    //initialize unfixed pairs indeces
-    vector<int> unfixed_pairs; 
-    for(i=0; i<a->matches.size(); i++) {
-        unfixed_pairs.push_back(i); 
+                if (n2.nodes[i]->side == 0){
+                        unfixed_pairs_A.push_back(j);
+                }else{
+                        unfixed_pairs_B.push_back(j);
+                }
     }
 
     //align the fixed pairs
@@ -176,23 +189,28 @@ Alignment * setup_alignment(vector< pair<int, int> > set_pairs){
         fixed_indeces.push_back(p1_i); 
         fixed_indeces.push_back(p2_i + n1.nodes.size());
     }
-
-    for(i=0; i<a->matches.size(); i++) {
-    }
-
+    
+    ptrdiff_t pos;
     //remove fixed pair indeces from unfixed pair indeces
     sort(fixed_indeces.begin(), fixed_indeces.end());
     for(int j =fixed_indeces.size()-1; j>=0; j--) { //descending
-         unfixed_pairs.erase(unfixed_pairs.begin() + fixed_indeces[j]);
+         pos = find(unfixed_pairs_A.begin(), unfixed_pairs_A.end(), fixed_indeces[j]) - unfixed_pairs_A.begin();
+         if(pos >= unfixed_pairs_A.size()) {
+              pos = find(unfixed_pairs_B.begin(), unfixed_pairs_B.end(), fixed_indeces[j]) - unfixed_pairs_B.begin();
+              unfixed_pairs_B.erase(unfixed_pairs_B.begin() + pos);
+         } else {
+              unfixed_pairs_A.erase(unfixed_pairs_A.begin() + pos);
+         }
     }
-    
-    a->unfixed_pairs = unfixed_pairs;  
- 	return a;
+
+    a->unfixed_pairs_A = unfixed_pairs_A;  
+    a->unfixed_pairs_B = unfixed_pairs_B;  
+    return a;
 }
 
 // randomize an alignment
 void randomize_alignment(const gsl_rng *r, Alignment *a){
-  unsigned long shuffles = 2*gsl_pow_2(a->unfixed_pairs.size());
+  unsigned long shuffles = 2*gsl_pow_2(a->unfixed_pairs_A.size()+a->unfixed_pairs_B.size());
   for(unsigned long i=0;i<shuffles;++i)
     alignment_step(r,a,0);
 }
@@ -260,8 +278,8 @@ void alignment_print_json(void *xp, bool energy=true, bool pairs=false){
 // allocate a new alignment
 Alignment * alignment_alloc(size_t foo, size_t bar){
   unsigned int i;
-	Alignment * a = new Alignment;
-	for(i=0;i<foo;++i){
+  Alignment * a = new Alignment;
+  for(i=0;i<foo;++i){
     a->matches.push_back(pair<int,int>(-1,-1));
     a->match1.push_back(-1);
   }
@@ -274,7 +292,7 @@ Alignment * alignment_alloc(size_t foo, size_t bar){
 
 // free all memory associated with an alignment
 void alignment_free(Alignment * a){
-	a->matches.clear();
+  a->matches.clear();
   a->match1.clear();
   a->match2.clear();
 	delete a;

@@ -140,10 +140,16 @@ def muritz(options, args):
             pflag = "-p"
     else:
             pflag = ""
+
+    # Did you say bipartite?
+    if unipartite:
+            bflag = ""
+    else:
+            bflag = "-b"
     
     # call the muritz alignment code
     #command = "GSL_RNG_SEED=%s muritz.x -n %s -t %s -c %s -m %s -k %s -l %s -o %s -u %s %s %s %s" % (rnd_seed,
-    command = "-n %s -t %s -c %s -m %s -k %s -l %s -o %s -u %s %s %s %s" % (
+    command = "-n %s -t %s -c %s -m %s -k %s -l %s -o %s -u %s %s %s %s %s" % (
             options.iterations,
             options.tinitial,
             options.cooling,
@@ -154,7 +160,8 @@ def muritz(options, args):
             options.nullcost,
             rflag,
             pflag,
-            vflag)
+            vflag,
+            bflag)
     
     muritzex.muritz(command, muritz_in[0], muritz_in[1], muritz_in[2], muritz_in[3], muritz_in[4])
 #	# print out and store the muritz stdout line by line as it comes

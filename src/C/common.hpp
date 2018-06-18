@@ -12,6 +12,7 @@ using namespace std;
 struct Node {
     string name;
     int idx;
+    int side;
     vector<Node *> predators;
     vector<Node *> prey;
     map<unsigned int, set<Node *> > neighbors;
@@ -33,6 +34,7 @@ typedef struct {
 // Network structure
 typedef struct {
         string name;
+        bool bipartite;
         vector<Node *> nodes;
         map<string,int> node_i;
         vector<Role> roles;
@@ -40,11 +42,12 @@ typedef struct {
 
 // Alignment information
 typedef struct {
-        bool doneflag; 
+        bool doneflag;
         vector<pair<int,int> > matches;
         vector<pair<int,int> > set_pairs;
         vector<int> fixed_pairs;
-        vector<int> unfixed_pairs;    
+        vector<int> unfixed_pairs_A;
+        vector<int> unfixed_pairs_B;
         vector<int> match1;
         vector<int> match2;
         double (*dfunc)(Role*,Role*);

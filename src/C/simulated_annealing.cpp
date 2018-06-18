@@ -334,7 +334,9 @@ gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp){
     params.k = 1.0;
         	
     // number of iterations at each temperature
-    params.iters_fixed_T = int((a->iters_fixed_T) * gsl_pow_2(a->unfixed_pairs.size()) + 0.5);
+    // TODO: Change this next line to:
+    // int((a->iters_fixed_T) * (gsl_pow_2(a->unfixed_pairs_A.size())+gsl_pow_2(a->unfixed_pairs_B.size())) + 0.5); 
+    params.iters_fixed_T = int((a->iters_fixed_T) * gsl_pow_2(a->unfixed_pairs_A.size()+a->unfixed_pairs_B.size()) + 0.5);
 	
     // initial temperature
     if(a->t_initial != -1)
@@ -347,7 +349,7 @@ gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp){
         mean_de = 0;
         max_de = 0;
         ae = alignment_energy(b);
-        unsigned long shuffles = b->unfixed_pairs.size();
+        unsigned long shuffles = b->unfixed_pairs_A.size()+b->unfixed_pairs_B.size();
         for(unsigned long i=0;i<shuffles;++i){
             ae2 = ae;
             alignment_step(r,b,0);
@@ -461,8 +463,16 @@ void alignment_step(const gsl_rng * r, void *xp, double step_size){
 	Alignment * a = (Alignment *) xp;
 
 	// pick the pairs to swap
-	unsigned int p1 = a->unfixed_pairs[gsl_rng_uniform_int(r,a->unfixed_pairs.size())];
-	unsigned int p2 = a->unfixed_pairs[gsl_rng_uniform_int(r,a->unfixed_pairs.size())];
+
+	unsigned int p1, p2;
+
+	if(gsl_rng_uniform(r)<((float)a->unfixed_pairs_A.size()/(float)(a->unfixed_pairs_A.size()+a->unfixed_pairs_B.size()))){
+		p1 = a->unfixed_pairs_A[gsl_rng_uniform_int(r,a->unfixed_pairs_A.size())];
+		p2 = a->unfixed_pairs_A[gsl_rng_uniform_int(r,a->unfixed_pairs_A.size())];
+        }else{
+		p1 = a->unfixed_pairs_B[gsl_rng_uniform_int(r,a->unfixed_pairs_B.size())];
+		p2 = a->unfixed_pairs_B[gsl_rng_uniform_int(r,a->unfixed_pairs_B.size())];
+        }
 
     // swap the indices for net2 within the core alignment object
     unsigned int tmp = a->matches[p1].second;
@@ -708,7 +718,8 @@ void _copy(void *source, void *dest){
 
     a2->fixed_pairs = a1->fixed_pairs;
     a2->set_pairs = a1->set_pairs; 
-    a2->unfixed_pairs = a1->unfixed_pairs;
+    a2->unfixed_pairs_A = a1->unfixed_pairs_A;
+    a2->unfixed_pairs_B = a1->unfixed_pairs_B;
     a2->doneflag = a1->doneflag;  
 }
 
