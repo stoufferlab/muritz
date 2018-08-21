@@ -14,10 +14,13 @@ def read_network(filename):
 	network = []
 	predators=set([])
 	prey=set([])
+	spe=set([])
 	unipartite=False
 	inFile = open(filename,'r')
 	for line in inFile:
 		interaction=line.strip().split()
+                spe.add(interaction[0])
+                spe.add(interaction[1])
 		if unipartite==False and interaction[0] not in prey and interaction[1] not in predators:
 			predators.add(interaction[0])
 			prey.add(interaction[1])
@@ -25,7 +28,7 @@ def read_network(filename):
 			unipartite=True
 		network.append(interaction)
 	inFile.close()
-	return network, unipartite
+	return network, unipartite, spe
 
 def muritz_input(net1, net2, net1_roles, net2_roles, pairs):
 	all_roles = net1_roles[net1_roles.keys()[0]].keys()
@@ -53,6 +56,27 @@ def class_to_dict(roles):
 
     return class_to_dict
 
+def read_roles(filename, spe):
+    inFile=open(filename, "r+")
+    lines = [x.strip().split(":") for x in inFile.readlines()]
+    nspe=len(lines)
+    inFile.close()
+    roles = {x[0]:{idy:float(y) for idy, y in enumerate(x[1].strip().split(","))} for x in lines}
+
+    if nspe!=len(roles.keys()):
+        sys.stderr.write("There is something odd about file "+filename+", you should check the name of the nodes and look for repeated names.\n")
+        sys.exit()
+
+    if sorted(roles.keys())!=sorted(spe):
+        sys.stderr.write("The nodes in the network file do not match the nodes in "+filename+".\n")
+        sys.exit()
+
+    if any([len(roles[x])!=len(roles[roles.keys()[0]]) for x in roles.keys()]):
+        sys.stderr.write("There is something odd about file "+filename+", all roles should have the same size.\n")
+        sys.exit()
+
+    return roles
+
 def muritz(options, args):
     pairs = ""
     pairtype = None
@@ -61,8 +85,12 @@ def muritz(options, args):
         filename = options.fixed_file 
         pairs, pairtype = read_network(filename)
 
-    net1, net1type = read_network(args[0])
-    net2, net2type = read_network(args[1])
+    if(options.roles1!=None and options.roles2==None) or (options.roles1==None and options.roles2!=None):
+        sys.stderr.write("If you define the roles, you need to do it for both networks.\n")
+        sys.exit()
+
+    net1, net1type, spe1 = read_network(args[0])
+    net2, net2type, spe2 = read_network(args[1])
 
     #Are the networks unipartite or bipartite?
     if options.bipartite:
@@ -74,9 +102,8 @@ def muritz(options, args):
     else:
     	unipartite=True
 
-    if options.roles1:
-        sys.stderr.write("Sorry, the -r option isn't implemented yet.\n")
-        sys.exit()
+    if options.roles1!=None:
+        net1_roles=read_roles(options.roles1, spe1)
     else:
         if unipartite:
             if options.weighted: 
@@ -96,9 +123,8 @@ def muritz(options, args):
                     net1_roles[i].update(net1_roles2[i])
 
 
-    if options.roles2:
-        sys.stderr.write("Sorry, the -s option isn't implemented yet.\n")
-        sys.exit()
+    if options.roles2!=None:
+        net2_roles=read_roles(options.roles2, spe2)
     else:
         if unipartite:
             if options.weighted: 
@@ -116,6 +142,10 @@ def muritz(options, args):
                 net2_roles2 = class_to_dict(motif_roles(args[1],motifsize=k, networktype = "bipartite",allroles=True))
                 for i in net2_roles:
                     net2_roles[i].update(net2_roles2[i])
+
+    if len(net1_roles[net1_roles.keys()[0]])!=len(net2_roles[net2_roles.keys()[0]]):
+        sys.stderr.write("The roles for the nodes of each network need to have the same size.\n")
+        sys.exit()
                     
     muritz_in = muritz_input(net1, net2, net1_roles, net2_roles, pairs)
     
