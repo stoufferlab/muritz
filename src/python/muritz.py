@@ -58,7 +58,7 @@ def class_to_dict(roles):
 
 def read_roles(filename, spe):
     inFile=open(filename, "r+")
-    lines = [x.strip().split(",") for x in inFile.readlines()]
+    lines = [x.strip().split() for x in inFile.readlines()]
     nspe=len(lines)
     inFile.close()
     roles = {x[0]:{idy:float(y) for idy, y in enumerate(x[1:])} for x in lines}
