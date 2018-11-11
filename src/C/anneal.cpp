@@ -34,9 +34,9 @@ extern void anneal(void *alignment,
     while(temperature != 0) {
         if(temperature < params.minTemperature) temperature = 0;
         
-        for(int i < params.stepsPerTemperature) {
-            nextEnergy = propose_step(alignment);
-            probability = getStepProbability(currentEnergy, nextEnergy, temperature);
+        for(int i = 0; i < params.stepsPerTemperature; i++) {
+            nextEnergy = proposeStep(alignment);
+            double probability = getStepProbability(currentEnergy, nextEnergy, temperature);
             
             if(runif(gen) < probability) {
                 makeStep(alignment);

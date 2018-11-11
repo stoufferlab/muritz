@@ -120,7 +120,8 @@ extension_mod = Extension("muritzex",
     'network.cpp',
     'roles.cpp',
     'simulated_annealing.cpp',
-    'muritz_module.cpp']
+    'muritz_module.cpp',
+    'anneal.cpp']
     ],
     include_dirs = ['src/C', '/usr/include', '/usr/include/python2.7'],
     library_dirs = ['/usr/lib'],
