@@ -194,7 +194,7 @@ void prepare_neighbor_data(unsigned int degree){
 
 // calculate the distance between the roles of two nodes
 double node_distance(int i, int j, double (*dfunc) (Role*,Role*)){
-    // if we don't the quick ref matrices/vectors defined
+    // if we don't have the quick ref matrices/vectors defined
     if(!distance_matrix_def)
         prepare_distance_matrix(dfunc);
     
@@ -269,7 +269,7 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
                     // if l is not null and is also one of i's neighbors
                     if(l != -1 && nbr_i.count(n1.nodes[l]) != 0)
                         d += node_distance(l, (*nbr_it)->idx, a->dfunc);
-                    // l is null or is not one of j's neighbors
+                    // l is null or is not one of i's neighbors
                     else
                         d += node_distance(-1, (*nbr_it)->idx, a->dfunc);
                 }
@@ -352,7 +352,7 @@ anneal_params_t alignment_params(const gsl_rng *rng,
         mean_de = de/double(shuffles);
         params.initialTemperature = max_de/0.7;//TODO: Do something about this magic number.
         
-        // Ensure at a least some annealing happens. Some seeds never mind a change in energy and start temperature at zero otherwise.
+        // Ensure at a least some annealing happens. Some seeds never find a change in energy and start temperature at zero otherwise.
         // TODO: Test and improve this. Seed 6315191922508953630 on chains-1 and chains-1 displays this behaviour.
         params.initialTemperature = max(params.initialTemperature, minTemperature*2);
         
@@ -387,11 +387,11 @@ void print_energy(void *xp, int cost_function, long degree){
 	double E = 0, Epair_nei, Epair_nod, Enorm_nei=0, Enorm_nod=0;
 	int j, k, nei1, nei2, norm=0;
 	set<Node *> nbr_i;
-
+	
 	// cast the void parameter as an alignment data type
 	Alignment * a = (Alignment *) xp;
-
-    // sum the cost function across all paired and unpaired nodes
+	
+	// sum the cost function across all paired and unpaired nodes
 	for(unsigned int i=0;i<a->matches.size();++i){
 		Epair_nei = distance(a, i);
 		Epair_nod = node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
@@ -405,10 +405,10 @@ void print_energy(void *xp, int cost_function, long degree){
 				if (degree==1){
  					nbr_i = n1.nodes[j]->neighbors[degree];
 					nei1=nbr_i.size();
-
+					
  					nbr_i = n2.nodes[k]->neighbors[degree];
 					nei2=nbr_i.size();
-
+					
 					if (nei1<nei2){
 						if (nei1!=0){
 							Epair_nei=Epair_nei-nullcost*(nei2-nei1);
