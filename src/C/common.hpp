@@ -61,6 +61,7 @@ typedef struct {
     
     double energy;
     double proposedEnergy;
+    map<pair<int, int>, int> proposedContributionDeltas;
     
     vector<pair<int,int> > proposedMatches;
     vector<int> proposedMatch1;

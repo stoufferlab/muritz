@@ -223,6 +223,20 @@ void add_match(Alignment *a, int i, int j) {
     a->energy += node_distance(i, j, a->dfunc);
 }
 
+// add a contributing match delta to the map, and adjust proposed energy accordingly
+void add_delta(Alignment *a, int i, int j, int delta) {
+    if(a->proposedContributionDeltas.count(make_pair(i, j))) {
+        // if it already exists in the map
+        a->proposedContributionDeltas[make_pair(i, j)] += delta;// add delta
+    } else {
+        // it doesn't yet exist
+        a->proposedContributionDeltas.insert(make_pair(make_pair(i, j), delta));// insert it
+    }
+    
+    //adjust energy
+    a->proposedEnergy += node_distance(i, j, a->dfunc) * delta;
+}
+
 // search around up to 'degree' connections away from the aligned nodes and add matches contributing to the total energy
 static void add_matches_contributing(Alignment *a, unsigned int m, unsigned int degree) {
     int l;
@@ -400,70 +414,6 @@ anneal_params_t alignment_params(const gsl_rng *rng,
     return params;
 }
 
-// print the energy/cost and the normalized energy/cost function of an alignment
-// TODO: Sort out the whole printing deal again.
-/*void print_energy(void *xp, int cost_function, long degree){
-	double E = 0, Epair_nei, Epair_nod, Enorm_nei=0, Enorm_nod=0;
-	int j, k, nei1, nei2, norm=0;
-	set<Node *> nbr_i;
-	
-	// cast the void parameter as an alignment data type
-	Alignment * a = (Alignment *) xp;
-	
-	// sum the cost function across all paired and unpaired nodes
-	for(unsigned int i=0;i<a->matches.size();++i){
-		Epair_nei = distance(a, i);
-		Epair_nod = node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
-		E += Epair_nei;
-		if (cost_function==1){
-			j = a->matches[i].first;
-			k = a->matches[i].second;
-			if (j != -1 && k != -1){
-				Enorm_nod+=Epair_nod;
-				norm++;
-				if (degree==1){
- 					nbr_i = n1.nodes[j]->neighbors[degree];
-					nei1=nbr_i.size();
-					
- 					nbr_i = n2.nodes[k]->neighbors[degree];
-					nei2=nbr_i.size();
-					
-					if (nei1<nei2){
-						if (nei1!=0){
-							Epair_nei=Epair_nei-nullcost*(nei2-nei1);
-							Enorm_nei+=Epair_nei/(double)nei1;
-						}else{
-							Enorm_nei+=1;
-						}
-					}else{
-						if (nei2!=0){
-							Epair_nei=Epair_nei-nullcost*(nei1-nei2);
-							Enorm_nei+=Epair_nei/(double)nei2;
-						}else{
-							Enorm_nei+=1;
-						}
-					}
-				}else{
-					Enorm_nei+=Epair_nei;
-				}
-			}
-		}
-	}
-	
-	if (cost_function==1 && nullcost==1){
-		Enorm_nei=Enorm_nei/(double)norm;
-		Enorm_nod=Enorm_nod/(double)norm;
-		cout << "Energy = " << E << endl;
-		cout << "Normalized nodes energy = " << Enorm_nod << endl;
-		if (degree==1){
-			cout << "Normalized neighbours energy = " << Enorm_nei << endl;
-		}
-	}else{
-		cout << "Energy = " << E << endl;
-	}
-
-}*/
-
 
 /* Propose a move in the alignment space and return the energy of the resulting alignment. */
 double alignment_propose_step(void *xp, const gsl_rng *r)
@@ -542,6 +492,70 @@ void alignment_step(void *xp, const gsl_rng *r)
     alignment_propose_step(xp, r);
     alignment_commit_step(xp);
 }
+
+// print the energy/cost and the normalized energy/cost function of an alignment
+// TODO: Sort out the whole printing deal again.
+/*void print_energy(void *xp, int cost_function, long degree){
+	double E = 0, Epair_nei, Epair_nod, Enorm_nei=0, Enorm_nod=0;
+	int j, k, nei1, nei2, norm=0;
+	set<Node *> nbr_i;
+	
+	// cast the void parameter as an alignment data type
+	Alignment * a = (Alignment *) xp;
+	
+	// sum the cost function across all paired and unpaired nodes
+	for(unsigned int i=0;i<a->matches.size();++i){
+		Epair_nei = distance(a, i);
+		Epair_nod = node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
+		E += Epair_nei;
+		if (cost_function==1){
+			j = a->matches[i].first;
+			k = a->matches[i].second;
+			if (j != -1 && k != -1){
+				Enorm_nod+=Epair_nod;
+				norm++;
+				if (degree==1){
+ 					nbr_i = n1.nodes[j]->neighbors[degree];
+					nei1=nbr_i.size();
+					
+ 					nbr_i = n2.nodes[k]->neighbors[degree];
+					nei2=nbr_i.size();
+					
+					if (nei1<nei2){
+						if (nei1!=0){
+							Epair_nei=Epair_nei-nullcost*(nei2-nei1);
+							Enorm_nei+=Epair_nei/(double)nei1;
+						}else{
+							Enorm_nei+=1;
+						}
+					}else{
+						if (nei2!=0){
+							Epair_nei=Epair_nei-nullcost*(nei1-nei2);
+							Enorm_nei+=Epair_nei/(double)nei2;
+						}else{
+							Enorm_nei+=1;
+						}
+					}
+				}else{
+					Enorm_nei+=Epair_nei;
+				}
+			}
+		}
+	}
+	
+	if (cost_function==1 && nullcost==1){
+		Enorm_nei=Enorm_nei/(double)norm;
+		Enorm_nod=Enorm_nod/(double)norm;
+		cout << "Energy = " << E << endl;
+		cout << "Normalized nodes energy = " << Enorm_nod << endl;
+		if (degree==1){
+			cout << "Normalized neighbours energy = " << Enorm_nei << endl;
+		}
+	}else{
+		cout << "Energy = " << E << endl;
+	}
+
+}*/
 
 // print out an alignment
 void alignment_print(void *xp){
