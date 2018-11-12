@@ -26,15 +26,17 @@ extern anneal_params_t alignment_params(const gsl_rng *r,
                                         int stepsPerTemperature);
 
 double alignment_energy(void *xp);
-void   alignment_step(const gsl_rng * r, void *xp, double step_size);
+double alignment_propose_step(void *xp, const gsl_rng *r);
+void   alignment_commit_step(void *xp);
+void   alignment_step(void *xp, const gsl_rng *r);
 double alignment_distance(void *xp, void *yp);
 void   alignment_print(void *xp);
 void   alignment_print_pairs(void *xp);
 void   overlap_pairs(void *xp, bool pairs, int direction);
-void print_energy(void *xp, int cost_function, long degree);
+void   print_energy(void *xp, int cost_function, long degree);
 
-void _copy(void *source, void *dest);
-void * _copy_construct(void *xp);
+void _copy(const void *source, void *dest);
+void * _copy_construct(const void *xp);
 void _destroy(void *xp);
 
 #endif

@@ -215,21 +215,21 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
     int i,j;
     set<Node *> nbr_i, nbr_j;
     set<Node *>::iterator nbr_it;
-
+    
     // save as ints to avoid confusion later
     i = a->matches[m].first;
     j = a->matches[m].second;
-
+    
     // i is not null
     if(i != -1){
         // prepare the lists of neighbors if this is the first time this has been run
         if(n1.nodes[i]->neighbors.count(degree) == 0)
             prepare_neighbor_data(degree);
-
+        
         // save locally to avoid complications later
         nbr_i = n1.nodes[i]->neighbors[degree];
     }
-
+    
     // j is not null
     if(j != -1){
         // prepare the lists of neighbors if this is the first time this has been run
@@ -251,7 +251,7 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
                 for(nbr_it=nbr_i.begin(); nbr_it!=nbr_i.end(); ++nbr_it){
                     // who is i's neighbor aligned to?
                     l = a->match1[(*nbr_it)->idx];
-
+                    
                     // if l is not null and is also one of j's neighbors
                     if(l != -1 && nbr_j.count(n2.nodes[l]) != 0)
                         d += node_distance((*nbr_it)->idx, l, a->dfunc);
@@ -264,7 +264,7 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
                 for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
                     // who is j's neighbor aligned to?
                     l = a->match2[(*nbr_it)->idx];
-
+                    
                     // if l is not null and is also one of i's neighbors
                     if(l != -1 && nbr_i.count(n1.nodes[l]) != 0)
                         d += node_distance(l, (*nbr_it)->idx, a->dfunc);
@@ -286,13 +286,6 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
     else{
         // j is not null
         if(j != -1){
-            // have we already calculated j's list of degree-th neighbors?
-            if(n2.nodes[j]->neighbors.count(degree) == 0)
-                prepare_neighbor_data(degree);
-
-            // save within a local pointer to avoid complications later
-            nbr_j = n2.nodes[j]->neighbors[degree];
-
             // all neighbor nodes are treated as unaligned (i is null)
             for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
                 d += node_distance(-1, (*nbr_it)->idx, a->dfunc);
@@ -303,7 +296,7 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
             d = 0; // for goodness sake...
         }
     }
-
+    
     return d;
 }
 
@@ -320,7 +313,7 @@ double distance(Alignment *a, unsigned int i){
 
 // set up the SA parameter values
 // TODO: this should be made far more refined by actually using the data to inform the SA
-anneal_params_t alignment_params(const gsl_rng *r,
+anneal_params_t alignment_params(const gsl_rng *rng,
                                  const Alignment *a,
                                  double initialTemperature,//-1 if we should calculate it now.
                                  double coolingFactor,
@@ -346,17 +339,17 @@ anneal_params_t alignment_params(const gsl_rng *r,
         mean_de = 0;
         max_de = 0;
         ae = alignment_energy(b);
-        unsigned long shuffles = b->unfixed_pairs_A.size()+b->unfixed_pairs_B.size();
-        for(unsigned long i=0;i<shuffles;++i){//TODO: Rewrite this block with the new functions.
+        unsigned long shuffles = b->unfixed_pairs_A.size() + b->unfixed_pairs_B.size();
+        for(unsigned long i = 0; i < shuffles; i++){
             ae2 = ae;
-            alignment_step(r,b,0);
+            alignment_step(b,rng);
             ae = alignment_energy(b);
             de = abs(ae - ae2);
             mean_de += de;
             max_de = max(max_de, de);
         }
         mean_de = de/double(shuffles);
-        params.t_initial = max_de/0.7;//TODO: Do something about this magic number.
+        params.initialTemperature = max_de/0.7;//TODO: Do something about this magic number.
         alignment_free(b);
     }
     
@@ -364,7 +357,7 @@ anneal_params_t alignment_params(const gsl_rng *r,
     params.coolingFactor = coolingFactor;
     
     // minimum temperature
-    params.minTemperature = a->minTemperature;
+    params.minTemperature = minTemperature;
     
     return params;
 }
@@ -447,30 +440,31 @@ void print_energy(void *xp, int cost_function, long degree){
 }
 
 
-/* make a move in the alignment space */
-void alignment_step(const gsl_rng * r, void *xp, double step_size){
-	// prevent warnings about unused parameter
-	double dummy = step_size;
-    if(dummy != step_size){
-        cerr << "Who framed Roger Rabbit?\n" << endl;
-        exit(1);
+/* Propose a move in the alignment space and return the energy of the resulting alignment. */
+double alignment_propose_step(void *xp, const gsl_rng *r)
+{
+    // cast the alignment as an alignment
+    Alignment * a = (Alignment *) xp;
+    
+    // find the probability that the switch is of two nodes within network A, as opposed to B.
+    static float probA = ((float)a->unfixed_pairs_A.size() / (float)(a->unfixed_pairs_A.size()+a->unfixed_pairs_B.size()));
+    
+    // pick the pairs to swap
+    unsigned int p1, p2;
+    if(gsl_rng_uniform(r) < probA){
+        p1 = a->unfixed_pairs_A[gsl_rng_uniform_int(r,a->unfixed_pairs_A.size())];
+        p2 = a->unfixed_pairs_A[gsl_rng_uniform_int(r,a->unfixed_pairs_A.size())];
+    } else {
+        p1 = a->unfixed_pairs_B[gsl_rng_uniform_int(r,a->unfixed_pairs_B.size())];
+        p2 = a->unfixed_pairs_B[gsl_rng_uniform_int(r,a->unfixed_pairs_B.size())];
     }
-
-	// case the alignment as an alignment
-	Alignment * a = (Alignment *) xp;
-
-	// pick the pairs to swap
-
-	unsigned int p1, p2;
-
-	if(gsl_rng_uniform(r)<((float)a->unfixed_pairs_A.size()/(float)(a->unfixed_pairs_A.size()+a->unfixed_pairs_B.size()))){
-		p1 = a->unfixed_pairs_A[gsl_rng_uniform_int(r,a->unfixed_pairs_A.size())];
-		p2 = a->unfixed_pairs_A[gsl_rng_uniform_int(r,a->unfixed_pairs_A.size())];
-        }else{
-		p1 = a->unfixed_pairs_B[gsl_rng_uniform_int(r,a->unfixed_pairs_B.size())];
-		p2 = a->unfixed_pairs_B[gsl_rng_uniform_int(r,a->unfixed_pairs_B.size())];
-        }
-
+    
+    // back up the matches
+    vector<pair<int, int> > backupMatches = a->matches;
+    vector<int>             backupMatch1  = a->match1;
+    vector<int>             backupMatch2  = a->match2;
+    
+    
     // swap the indices for net2 within the core alignment object
     unsigned int tmp = a->matches[p1].second;
     a->matches[p1].second = a->matches[p2].second;
@@ -487,17 +481,50 @@ void alignment_step(const gsl_rng * r, void *xp, double step_size){
         a->match2[a->matches[p1].second] = a->matches[p1].first;
     if(a->matches[p2].second != -1)
         a->match2[a->matches[p2].second] = a->matches[p2].first;
+    
+    // calculate the energy of the new alignment
+    double energy = alignment_energy(xp);
+    
+    // set up the proposed matches and restore the current ones
+    a->proposedMatches = a->matches;
+    a->proposedMatch1  = a->match1;
+    a->proposedMatch2  = a->match2;
+    
+    a->matches = backupMatches;
+    a->match1  = backupMatch1;
+    a->match2  = backupMatch2;
+    
+    return energy;
+}
+
+/* Commit a proposed step. */
+void alignment_commit_step(void *xp)
+{
+    // cast the alignment as an alignment
+    Alignment * a = (Alignment *) xp;
+    
+    // update the matches to the proposed ones
+    a->matches = a->proposedMatches;
+    a->match1  = a->proposedMatch1;
+    a->match2  = a->proposedMatch2;
+}
+
+/* Propose and immediately make a step. */
+void alignment_step(void *xp, const gsl_rng *r)
+{
+    alignment_propose_step(xp, r);
+    alignment_commit_step(xp);
 }
 
 // calculate the distance between two alignments
 double alignment_distance(void *xp, void *yp){
-	Alignment *a1 = (Alignment *) xp, *a2 = (Alignment *) yp;
-	double distance = 0;
-  	for(unsigned int i=0; i<a1->matches.size();++i){
-  		// check if each pairwise match is the same
-		distance += ((a1->matches[i] == a2->matches[i]) ? 0 : 1);
-  	} 
-	return distance;
+    Alignment *a1 = (Alignment *) xp, *a2 = (Alignment *) yp;
+    double distance = 0;
+    for(unsigned int i=0; i<a1->matches.size();++i){
+        // check if each pairwise match is the same
+        distance += ((a1->matches[i] == a2->matches[i]) ? 0 : 1);
+    } 
+    return distance;
 }
 
 // print out an alignment
@@ -692,7 +719,7 @@ void overlap_pairs(void *xp, bool pairs, int direction){
 
 
 // copy from one alignment to another
-void _copy(void *source, void *dest){
+void _copy(const void *source, void *dest){
 	Alignment *a1 = (Alignment *) source, *a2 = (Alignment *) dest;
 	
     for(unsigned int i=0;i<a1->matches.size();++i){
@@ -707,10 +734,6 @@ void _copy(void *source, void *dest){
     }
 
     a2->dfunc = a1->dfunc;
-    a2->iters_fixed_T = a1->iters_fixed_T;
-    a2->t_initial = a1->t_initial;
-    a2->mu_t = a1->mu_t;
-    a2->t_min = a1->t_min;
     a2->degree = a1->degree;
 
     a2->fixed_pairs = a1->fixed_pairs;
@@ -721,7 +744,7 @@ void _copy(void *source, void *dest){
 }
 
 // copy constructor for an alignment
-void * _copy_construct(void *xp){
+void * _copy_construct(const void *xp){
 	Alignment *a1 = (Alignment *) xp;
 	Alignment *a2 = alignment_alloc(a1->match1.size(),a1->match2.size());
 	_copy(a1, a2);

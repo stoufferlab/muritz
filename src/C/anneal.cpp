@@ -16,12 +16,12 @@ static double getStepProbability(double oldEnergy, double newEnergy, double temp
 
 
 
-extern void anneal(void *alignment,
-                   anneal_params_t params,
-                   anneal_get_energy_t getEnergy,
-                   anneal_propose_step_t proposeStep,
-                   anneal_make_step_t makeStep,
-                   const gsl_rng *rng)
+void anneal(void *alignment,
+            anneal_params_t params,
+            anneal_get_energy_t getEnergy,
+            anneal_propose_step_t proposeStep,
+            anneal_make_step_t makeStep,
+            const gsl_rng *rng)
 {
     double temperature = params.initialTemperature;
     double currentEnergy = getEnergy(alignment);
@@ -31,7 +31,7 @@ extern void anneal(void *alignment,
         if(temperature < params.minTemperature) temperature = 0;//Do one final run of pure hill-climbing.
         
         for(int i = 0; i < params.stepsPerTemperature; i++) {
-            nextEnergy = proposeStep(alignment);//Propose a step and get its cost.
+            nextEnergy = proposeStep(alignment, rng);//Propose a step and get its cost.
             
             //Calculate the probability of taking the proposed step.
             double probability = getStepProbability(currentEnergy, nextEnergy, temperature);

@@ -123,15 +123,15 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     			help();
     	}
     }
-
-	// set up the random number generator
-	gsl_rng_env_setup();
-	gsl_rng * r = gsl_rng_alloc(gsl_rng_mt19937);
-
-	// read in two files of networks
-        n1.bipartite = bipartite;
-        n2.bipartite = bipartite;
-	read_alignment_data(' ',net1, net1_roles, net2, net2_roles, n1,n2);
+    
+    // set up the random number generator
+    gsl_rng_env_setup();
+    gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);
+    
+    // read in two files of networks
+    n1.bipartite = bipartite;
+    n2.bipartite = bipartite;
+    read_alignment_data(' ',net1, net1_roles, net2, net2_roles, n1,n2);
     
     //store fixed pairs into a vector
     vector< pair<int, int> > set_pairs;
@@ -145,7 +145,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     map<string, int> temp_map2; 
     temp_map1.insert(n1.node_i.begin(), n1.node_i.end()); 
     temp_map2.insert(n2.node_i.begin(), n2.node_i.end()); 
-
+    
     while(getline(ss, pairline)) {
         stringstream ssp(pairline);
         string p1, p2; 
@@ -162,10 +162,10 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
             temp_map2.erase(it2);  
         }
     }
-
+    
     // set up the alignment between networks
     Alignment * alignment = setup_alignment(set_pairs);
-
+    
     if(randomstart)
         randomize_alignment(r,alignment);
     
@@ -174,7 +174,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
         alignment->dfunc = &role_euclidean_distance;
     } else if(cost_function == 1) {
         alignment->dfunc = &role_correlation;
-    }else{
+    } else {
         alignment->dfunc = &role_chisquared;
     }
     
@@ -189,17 +189,12 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     
     // use simulated annealing to find an optimal alignment
     // print out all of the incremental steps in the the optimization
-    gsl_siman_solve(r,
-                    alignment,
-                    alignment_energy,
-                    alignment_step,
-                    alignment_distance,
-                    printfunc,
-                    _copy,
-                    _copy_construct,
-                    _destroy,
-                    sizeof(alignment),
-                    params);
+    anneal(alignment,
+           params,
+           alignment_energy,
+           alignment_propose_step,
+           alignment_commit_step,
+           r);
     
     // print out the "optimal" alignment
     alignment->doneflag = true;  
