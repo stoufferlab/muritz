@@ -39,6 +39,7 @@ void anneal(void *alignment,
             
             if(gsl_rng_uniform(rng) < probability) {
                 makeStep(alignment);//Take the step.
+                currentEnergy = nextEnergy;
             }
         }
         

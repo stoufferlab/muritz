@@ -148,18 +148,18 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     
     while(getline(ss, pairline)) {
         stringstream ssp(pairline);
-        string p1, p2; 
-        ssp >> p1 >> p2; 
-        map<string, int>::iterator it1 = temp_map1.find(p1); 
+        string p1, p2;
+        ssp >> p1 >> p2;
+        map<string, int>::iterator it1 = temp_map1.find(p1);
         map<string, int>::iterator it2 = temp_map2.find(p2);
         if(it1 != temp_map1.end() && it2 != temp_map2.end()) { //if pair is in list
-            p1_i = temp_map1[p1]; 
-            p2_i = temp_map2[p2]; 
+            p1_i = temp_map1[p1];
+            p2_i = temp_map2[p2];
             set_pairs.push_back(make_pair(p1_i, p2_i));
             fixed_pairs.push_back(p2_i);
             //delete inserted pair
-            temp_map1.erase(it1); 
-            temp_map2.erase(it2);  
+            temp_map1.erase(it1);
+            temp_map2.erase(it2);
         }
     }
     
