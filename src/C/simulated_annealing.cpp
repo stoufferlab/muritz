@@ -210,13 +210,13 @@ double node_distance(int i, int j, double (*dfunc) (Role*,Role*)) {
 }
 
 // add the relevant match as one match contributing, and adjust energy accordingly
-void add_match(Alignment *a, int i, int j) {
+static void adjust_contributing_matches(Alignment *a, int i, int j, int delta) {
     if(a->matchesContributing.count(make_pair(i, j))) {
         // if it already exists in the map
-        a->matchesContributing[make_pair(i, j)] ++;// add one
+        a->matchesContributing[make_pair(i, j)] += delta;// add one
     } else {
         // it doesn't yet exist
-        a->matchesContributing.insert(make_pair(make_pair(i, j), 1));// insert it with one copy
+        a->matchesContributing.insert(make_pair(make_pair(i, j), delta));// insert it with one copy
     }
     
     //adjust energy
@@ -224,7 +224,7 @@ void add_match(Alignment *a, int i, int j) {
 }
 
 // add a contributing match delta to the map, and adjust proposed energy accordingly
-void add_delta(Alignment *a, int i, int j, int delta) {
+static void adjust_proposed_deltas(Alignment *a, int i, int j, int delta) {
     if(a->proposedContributionDeltas.count(make_pair(i, j))) {
         // if it already exists in the map
         a->proposedContributionDeltas[make_pair(i, j)] += delta;// add delta
@@ -235,6 +235,14 @@ void add_delta(Alignment *a, int i, int j, int delta) {
     
     //adjust energy
     a->proposedEnergy += node_distance(i, j, a->dfunc) * delta;
+}
+
+// apply deltas to contributing matches
+static void apply_proposed_deltas(Alignment *a) {
+    for(map<pair<int, int>, int>::iterator it = a->proposedContributionDeltas.begin(); it != a->proposedContributionDeltas.end(); it++) {
+        adjust_contributing_matches(a, (*it).first.first, (*it).first.second, (*it).second);
+    }
+    a->proposedContributionDeltas.clear();
 }
 
 // search around up to 'degree' connections away from the aligned nodes and add matches contributing to the total energy
@@ -282,10 +290,10 @@ static void add_matches_contributing(Alignment *a, unsigned int m, unsigned int 
                     
                     // if l is not null and is also one of j's neighbors
                     if(l != -1 && nbr_j.count(n2.nodes[l]) != 0)
-                        add_match(a, (*nbr_it)->idx, l);//TODO
+                        adjust_contributing_matches(a, (*nbr_it)->idx, l, 1);
                     // l is null or is not one of j's neighbors
                     else
-                        add_match(a, (*nbr_it)->idx, -1);
+                        adjust_contributing_matches(a, (*nbr_it)->idx, -1, 1);
                 }
             }else{
                 // compute the local alignment for all of j's neighbors
@@ -295,10 +303,10 @@ static void add_matches_contributing(Alignment *a, unsigned int m, unsigned int 
                     
                     // if l is not null and is also one of i's neighbors
                     if(l != -1 && nbr_i.count(n1.nodes[l]) != 0)
-                        add_match(a, l, (*nbr_it)->idx);
+                        adjust_contributing_matches(a, l, (*nbr_it)->idx, 1);
                     // l is null or is not one of i's neighbors
                     else
-                        add_match(a, -1, (*nbr_it)->idx);
+                        adjust_contributing_matches(a, -1, (*nbr_it)->idx, 1);
                 }
             }
         }
@@ -306,7 +314,7 @@ static void add_matches_contributing(Alignment *a, unsigned int m, unsigned int 
         else{
             // all neighbors of i are treated as unaligned
             for(nbr_it=nbr_i.begin(); nbr_it!=nbr_i.end(); ++nbr_it){
-                add_match(a, (*nbr_it)->idx, -1);
+                adjust_contributing_matches(a, (*nbr_it)->idx, -1, 1);
             }
         }
     }
@@ -316,7 +324,7 @@ static void add_matches_contributing(Alignment *a, unsigned int m, unsigned int 
         if(j != -1){
             // all neighbor nodes are treated as unaligned (i is null)
             for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
-                add_match(a, -1, (*nbr_it)->idx);
+                adjust_contributing_matches(a, -1, (*nbr_it)->idx, 1);
             }
         }
         // else i and j are both null, nothing to add

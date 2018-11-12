@@ -54,7 +54,7 @@ typedef struct {
     
     // The matches contributing towards the total energy, and the number of them.
     // Only used if degree != 0.
-    map<pair<int, int>, unsigned int> matchesContributing;
+    map<pair<int, int>, int> matchesContributing;
     
     int p1, p2;// The proposed pair to switch.
     bool swapSecond;// True if and only if the proposed switch is of the second of the pairs in matches.
