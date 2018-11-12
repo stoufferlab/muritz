@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdio.h>
 #include <gsl/gsl_rng.h>
 #include "anneal.hpp"
 
@@ -41,6 +42,6 @@ void anneal(void *alignment,
             }
         }
         
-        temperature *= params.coolingFactor;
+        temperature /= params.coolingFactor;
     }
 }
