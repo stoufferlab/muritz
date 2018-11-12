@@ -508,6 +508,8 @@ double alignment_propose_step(void *xp, const gsl_rng *r)
         a->match2[a->matches[p2].second] = a->matches[p2].first;
     
     // calculate the energy of the new alignment
+    
+    alignment_energy_setup(a);
     double energy = alignment_energy(xp);
     
     // set up the proposed matches and restore the current ones
