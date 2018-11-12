@@ -261,7 +261,7 @@ void alignment_print_json(void *xp, bool energy=true, bool pairs=false){
             if(pairs){
                 cout << "\",\n";
                 cout << "        \"distance\": ";
-                cout << distance(a, i) << endl;;
+                //cout << distance(a, i) << endl; //TODO: Sort this out again.
             }
             
             cout << "      }";

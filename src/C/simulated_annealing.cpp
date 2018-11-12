@@ -606,7 +606,7 @@ void alignment_print(void *xp){
 	cout << " ] ";
 }*/
 
-void overlap_pairs(void *xp, bool pairs, int direction){
+/*void overlap_pairs(void *xp, bool pairs, int direction){
 	Alignment * a = (Alignment *) xp;
 	unsigned int i,m;
 	int j, k;
@@ -728,7 +728,7 @@ void overlap_pairs(void *xp, bool pairs, int direction){
 	cout << ","; cout << totals[0] / float(totals[2]);
 	cout << ")"; cout << endl;
 
-}
+}*/
 
 
 
