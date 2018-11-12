@@ -22,6 +22,7 @@
 #include "common.hpp"
 #include "network.hpp"
 #include "alignment.hpp"
+#include "anneal.hpp"
 #include "simulated_annealing.hpp"
 
 // namespaces
@@ -179,7 +180,7 @@ void prepare_neighbor_data(unsigned int degree){
             n1.nodes[i]->neighbors[degree].insert(*nbrs_it);
     }
 
-    // set up the degree-th neighbor data for nodes in network 1
+    // set up the degree-th neighbor data for nodes in network 2
     for(i=0;i<n2.nodes.size();++i){
         // add all prey
         n2.nodes[i]->neighbors[degree] = neighbors(&n2, n2.nodes[i], degree, 1);
@@ -319,29 +320,25 @@ double distance(Alignment *a, unsigned int i){
 
 // set up the SA parameter values
 // TODO: this should be made far more refined by actually using the data to inform the SA
-gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp){
-    // typecast the alignment object
-	Alignment * a = (Alignment *) xp;
-
+anneal_params_t alignment_params(const gsl_rng *r,
+                                 const Alignment *a,
+                                 double initialTemperature,//-1 if we should calculate it now.
+                                 double coolingFactor,
+                                 double minTemperature,
+                                 int stepsPerTemperature){
+    
     // SA parameter struct
-	gsl_siman_params_t params;
-	
-	// max step size in random walk
-	params.step_size = 0.0;
-    // number of attempts before stepping
-    params.n_tries = 2.0;
-    // Boltzmann constant
-    params.k = 1.0;
-        	
+    anneal_params_t params;
+    
     // number of iterations at each temperature
     // TODO: Change this next line to:
     // int((a->iters_fixed_T) * (gsl_pow_2(a->unfixed_pairs_A.size())+gsl_pow_2(a->unfixed_pairs_B.size())) + 0.5); 
-    params.iters_fixed_T = int((a->iters_fixed_T) * gsl_pow_2(a->unfixed_pairs_A.size()+a->unfixed_pairs_B.size()) + 0.5);
-	
+    params.stepsPerTemperature = int(stepsPerTemperature * gsl_pow_2(a->unfixed_pairs_A.size()+a->unfixed_pairs_B.size()) + 0.5);
+    
     // initial temperature
-    if(a->t_initial != -1)
-        params.t_initial = a->t_initial;
-    else{
+    if(initialTemperature != -1) {
+        params.initialTemperature = initialTemperature;
+    } else {
         // calculate the average initial change in energy and use it to set the initial temperature
         Alignment * b = setup_alignment(a->set_pairs);
         _copy(a,b);
@@ -350,7 +347,7 @@ gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp){
         max_de = 0;
         ae = alignment_energy(b);
         unsigned long shuffles = b->unfixed_pairs_A.size()+b->unfixed_pairs_B.size();
-        for(unsigned long i=0;i<shuffles;++i){
+        for(unsigned long i=0;i<shuffles;++i){//TODO: Rewrite this block with the new functions.
             ae2 = ae;
             alignment_step(r,b,0);
             ae = alignment_energy(b);
@@ -359,17 +356,17 @@ gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp){
             max_de = max(max_de, de);
         }
         mean_de = de/double(shuffles);
-        params.t_initial = max_de/0.7;
+        params.t_initial = max_de/0.7;//TODO: Do something about this magic number.
         alignment_free(b);
     }
-
+    
     // damping factor for temperature
-	params.mu_t = a->mu_t;
-
+    params.coolingFactor = coolingFactor;
+    
     // minimum temperature
-	params.t_min = a->t_min;
-
-	return params;
+    params.minTemperature = a->minTemperature;
+    
+    return params;
 }
 
 // calculate the energy/cost function of an alignment

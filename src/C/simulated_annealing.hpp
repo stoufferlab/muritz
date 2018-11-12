@@ -5,6 +5,7 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_siman.h>
 #include "common.hpp"
+#include "anneal.hpp"
 
 double role_euclidean_distance(Role *r1, Role *r2);
 double role_correlation(Role *r1, Role *r2);
@@ -17,7 +18,12 @@ double distance(Alignment *a, unsigned int i);
 void prepare_distance_matrix(double (*dfunc) (Role*, Role*));
 void prepare_neighbor_data(unsigned int degree);
 
-gsl_siman_params_t alignment_params(const gsl_rng * r, void *xp);
+extern anneal_params_t alignment_params(const gsl_rng *r,
+                                        const Alignment *a,
+                                        double initialTemperature,
+                                        double coolingFactor,
+                                        double minTemperature,
+                                        int stepsPerTemperature);
 
 double alignment_energy(void *xp);
 void   alignment_step(const gsl_rng * r, void *xp, double step_size);

@@ -170,65 +170,59 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
         randomize_alignment(r,alignment);
     
     // decide on what the node-to-node distance function is
-    if(cost_function==0){
+    if(cost_function == 0) {
         alignment->dfunc = &role_euclidean_distance;
+    } else if(cost_function == 1) {
+        alignment->dfunc = &role_correlation;
     }else{
-        if(cost_function==1){
-            alignment->dfunc = &role_correlation;
-        }else{
-            alignment->dfunc = &role_chisquared;
-        }
+        alignment->dfunc = &role_chisquared;
     }
     
-
+    
     // assign simulated annleaing parameters to pass to the function below
-    alignment->iters_fixed_T = iters_fixed_T;
-    alignment->t_initial = t_initial;
-    alignment->mu_t = mu_t;
-    alignment->t_min = t_min;
     alignment->degree = degree;
     alignment->fixed_pairs = fixed_pairs;
-    alignment->set_pairs = set_pairs; 
-    alignment->doneflag = false; 
-	// set up the simulated annealing parameters
-	gsl_siman_params_t params = alignment_params(r,alignment);
-
-	// use simulated annealing to find an optimal alignment
-	// print out all of the incremental steps in the the optimization
-	gsl_siman_solve(r,
-					alignment,
-					alignment_energy,
-					alignment_step,
-					alignment_distance,
-					printfunc,
-					_copy,
-					_copy_construct,
-					_destroy,
-					sizeof(alignment),
-					params);
-  	
-	// print out the "optimal" alignment
+    alignment->set_pairs = set_pairs;
+    alignment->doneflag = false;
+    // set up the simulated annealing parameters
+    anneal_params_t params = alignment_params(r, alignment, t_initial, mu_t, t_min, iters_fixed_T);
+    
+    // use simulated annealing to find an optimal alignment
+    // print out all of the incremental steps in the the optimization
+    gsl_siman_solve(r,
+                    alignment,
+                    alignment_energy,
+                    alignment_step,
+                    alignment_distance,
+                    printfunc,
+                    _copy,
+                    _copy_construct,
+                    _destroy,
+                    sizeof(alignment),
+                    params);
+    
+    // print out the "optimal" alignment
     alignment->doneflag = true;  
     //alignment_print_json(alignment, true, pairs);
     if(overlap!=0 && overlap!=-1 && overlap!=1){
-
-	if(!pairs){
-    		cout << "optimal ="; alignment_print(alignment); cout << endl;
-	}else{
-		cout << "optimal ="; alignment_print_pairs(alignment); cout << endl;
-	}
-	print_energy(alignment, cost_function, degree);
-
+    
+    if(!pairs){
+            cout << "optimal ="; alignment_print(alignment); cout << endl;
     }else{
-	overlap_pairs(alignment, pairs, overlap);
-	print_energy(alignment, cost_function, degree);
+        cout << "optimal ="; alignment_print_pairs(alignment); cout << endl;
     }
-
-	// free allocated memory
-	alignment_free(alignment);
-	gsl_rng_free(r);
-
-	return "Hello!";
+    print_energy(alignment, cost_function, degree);
+    
+    }else{
+    overlap_pairs(alignment, pairs, overlap);
+    print_energy(alignment, cost_function, degree);
+    }
+    
+    // free allocated memory
+    alignment_free(alignment);
+    gsl_rng_free(r);
+    
+    return "Hello!";
 }
 
 /*

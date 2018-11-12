@@ -18,7 +18,7 @@ class config(_config):
 
   def check_python_dev(self):
     from distutils.sysconfig import get_python_inc
-    log.info("cehcking for 'Python.h' header file")
+    log.info("checking for 'Python.h' header file")
     ok = self.check_header('Python.h',include_dirs=[get_python_inc()])
     if not ok:
       errmsg = ("The compiler cannot find the 'Python.h' header file.\n"

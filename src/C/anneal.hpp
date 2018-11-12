@@ -1,12 +1,12 @@
 #ifndef ANNEALING_H
 #define ANNEALING_H
 
-struct anneal_params_t {
+typedef struct {
     double initialTemperature;
     double coolingFactor;
     double minTemperature;
     int stepsPerTemperature;
-};
+} anneal_params_t;
 
 typedef double (*anneal_get_energy_t) (void *alignment);
 typedef double (*anneal_propose_step_t) (void *alignment);
