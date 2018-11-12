@@ -59,6 +59,9 @@ typedef struct {
     int p1, p2;// The proposed pair to switch.
     bool swapSecond;// True if and only if the proposed switch is of the second of the pairs in matches.
     
+    double energy;
+    double proposedEnergy;
+    
     vector<pair<int,int> > proposedMatches;
     vector<int> proposedMatch1;
     vector<int> proposedMatch2;

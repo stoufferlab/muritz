@@ -193,7 +193,7 @@ void prepare_neighbor_data(unsigned int degree){
 }
 
 // calculate the distance between the roles of two nodes
-double node_distance(int i, int j, double (*dfunc) (Role*,Role*)){
+double node_distance(int i, int j, double (*dfunc) (Role*,Role*)) {
     // if we don't have the quick ref matrices/vectors defined
     if(!distance_matrix_def)
         prepare_distance_matrix(dfunc);
@@ -209,10 +209,23 @@ double node_distance(int i, int j, double (*dfunc) (Role*,Role*)){
     }
 }
 
-// search around up to 'degree' connections away from the aligned nodes and calculate the collective alignment there
-double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
+// add the relevant match as one match contributing, and adjust energy accordingly
+void add_match(Alignment *a, int i, int j) {
+    if(a->matchesContributing.count(make_pair(i, j))) {
+        // if it already exists in the map
+        a->matchesContributing[make_pair(i, j)] ++;// add one
+    } else {
+        // it doesn't yet exist
+        a->matchesContributing.insert(make_pair(make_pair(i, j), 1));// insert it with one copy
+    }
+    
+    //adjust energy
+    a->energy += node_distance(i, j, a->dfunc);
+}
+
+// search around up to 'degree' connections away from the aligned nodes and add matches contributing to the total energy
+static void add_matches_contributing(Alignment *a, unsigned int m, unsigned int degree) {
     int l;
-    double d = 0;
     int i,j;
     set<Node *> nbr_i, nbr_j;
     set<Node *>::iterator nbr_it;
@@ -240,8 +253,8 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
         // save locally to avoid complications later
         nbr_j = n2.nodes[j]->neighbors[degree];
     }
-
-    // let the energizing begin!
+    
+    // start adding matches
     // i is not null
     if(i != -1){
         // j is not null
@@ -255,10 +268,10 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
                     
                     // if l is not null and is also one of j's neighbors
                     if(l != -1 && nbr_j.count(n2.nodes[l]) != 0)
-                        d += node_distance((*nbr_it)->idx, l, a->dfunc);
+                        add_match(a, (*nbr_it)->idx, l);//TODO
                     // l is null or is not one of j's neighbors
                     else
-                        d += node_distance((*nbr_it)->idx, -1, a->dfunc);
+                        add_match(a, (*nbr_it)->idx, -1);
                 }
             }else{
                 // compute the local alignment for all of j's neighbors
@@ -268,10 +281,10 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
                     
                     // if l is not null and is also one of i's neighbors
                     if(l != -1 && nbr_i.count(n1.nodes[l]) != 0)
-                        d += node_distance(l, (*nbr_it)->idx, a->dfunc);
+                        add_match(a, l, (*nbr_it)->idx);
                     // l is null or is not one of i's neighbors
                     else
-                        d += node_distance(-1, (*nbr_it)->idx, a->dfunc);
+                        add_match(a, -1, (*nbr_it)->idx);
                 }
             }
         }
@@ -279,7 +292,7 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
         else{
             // all neighbors of i are treated as unaligned
             for(nbr_it=nbr_i.begin(); nbr_it!=nbr_i.end(); ++nbr_it){
-                d += node_distance((*nbr_it)->idx, -1, a->dfunc);
+                add_match(a, (*nbr_it)->idx, -1);
             }
         }
     }
@@ -289,27 +302,46 @@ double neighbor_distance(Alignment *a, unsigned int m, unsigned int degree){
         if(j != -1){
             // all neighbor nodes are treated as unaligned (i is null)
             for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
-                d += node_distance(-1, (*nbr_it)->idx, a->dfunc);
+                add_match(a, -1, (*nbr_it)->idx);
             }
         }
-        // j is null
-        else{
-            d = 0; // for goodness sake...
-        }
+        // else i and j are both null, nothing to add
     }
-    
-    return d;
 }
 
-// calculate the weighted distance between two nodes based on the overall alignment
-// TODO: set this function up so that we can give it a vector of weights across different "neighborness"
-double distance(Alignment *a, unsigned int i){
-    double d;
-    if(a->degree == 0)
-        d = node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
-    else
-        d = neighbor_distance(a,i,a->degree);
-    return d;
+// set up the list of matches that contribute to the total energy and find the total energy in the process
+// TODO: set this function (and matchesContributing) up so that we can give it a vector of weights across different "neighborness"
+static void matches_contributing_setup(Alignment *a){
+    a->matchesContributing.clear();// wipe it to prepare to refill it
+    a->energy = 0.0;// reset the energy
+    
+    for(unsigned int i = 0; i < a->matches.size(); i++){
+        add_matches_contributing(a,i,a->degree);
+    }
+}
+
+// calculate the energy/cost function of an alignment and store it in the alignment
+// also sets up matchesContributing, if applicable (if degree != 0)
+void alignment_energy_setup(Alignment *a)
+{
+    if(a->degree == 0) {
+        a->energy = 0;
+        // sum the cost function across all paired and unpaired nodes
+        for(unsigned int i = 0; i < a->matches.size(); i++){
+            a->energy += node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
+        }
+    } else {// degree != 0
+        matches_contributing_setup(a);
+    }
+}
+
+// return the energy/cost function of an alignment
+double alignment_energy(void *xp)
+{
+    // cast the void parameter as an alignment data type
+    Alignment * a = (Alignment *) xp;
+    
+    return a->energy;
 }
 
 // set up the SA parameter values
@@ -319,8 +351,8 @@ anneal_params_t alignment_params(const gsl_rng *rng,
                                  double initialTemperature,//-1 if we should calculate it now.
                                  double coolingFactor,
                                  double minTemperature,
-                                 int stepsPerTemperature){
-    
+                                 int stepsPerTemperature)
+{
     // SA parameter struct
     anneal_params_t params;
     
@@ -368,22 +400,9 @@ anneal_params_t alignment_params(const gsl_rng *rng,
     return params;
 }
 
-// calculate the energy/cost function of an alignment
-double alignment_energy(void *xp){
-	double E = 0;
-
-	// cast the void parameter as an alignment data type
-	Alignment * a = (Alignment *) xp;
-
-    // sum the cost function across all paired and unpaired nodes
-	for(unsigned int i=0;i<a->matches.size();++i){
-		E += distance(a, i);
-	}
-	return E;
-}
-
 // print the energy/cost and the normalized energy/cost function of an alignment
-void print_energy(void *xp, int cost_function, long degree){
+// TODO: Sort out the whole printing deal again.
+/*void print_energy(void *xp, int cost_function, long degree){
 	double E = 0, Epair_nei, Epair_nod, Enorm_nei=0, Enorm_nod=0;
 	int j, k, nei1, nei2, norm=0;
 	set<Node *> nbr_i;
@@ -443,7 +462,7 @@ void print_energy(void *xp, int cost_function, long degree){
 		cout << "Energy = " << E << endl;
 	}
 
-}
+}*/
 
 
 /* Propose a move in the alignment space and return the energy of the resulting alignment. */
@@ -522,17 +541,6 @@ void alignment_step(void *xp, const gsl_rng *r)
     alignment_commit_step(xp);
 }
 
-// calculate the distance between two alignments
-double alignment_distance(void *xp, void *yp){
-    Alignment *a1 = (Alignment *) xp, *a2 = (Alignment *) yp;
-    double distance = 0;
-    for(unsigned int i=0; i<a1->matches.size();++i){
-        // check if each pairwise match is the same
-        distance += ((a1->matches[i] == a2->matches[i]) ? 0 : 1);
-    } 
-    return distance;
-}
-
 // print out an alignment
 void alignment_print(void *xp){
 	Alignment * a = (Alignment *) xp;
@@ -565,7 +573,7 @@ void alignment_print(void *xp){
 }
 
 // print out an alignment with pairwise energies
-void alignment_print_pairs(void *xp){
+/*void alignment_print_pairs(void *xp){
 	Alignment * a = (Alignment *) xp;
 	unsigned int i;
 	int j, k;
@@ -596,7 +604,7 @@ void alignment_print_pairs(void *xp){
 		}
 	}
 	cout << " ] ";
-}
+}*/
 
 void overlap_pairs(void *xp, bool pairs, int direction){
 	Alignment * a = (Alignment *) xp;

@@ -46,7 +46,7 @@ void help(){
 char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2, string net2_roles, string sset_pairs)
 {
     // relevant parameters for simulated annealing
-    void (*printfunc)(void*) = NULL;
+    //void (*printfunc)(void*) = NULL;
     bool pairs = false, randomstart = false, bipartite=false;
     double iters_fixed_T = 1.0;
     double t_initial = -1.0;
@@ -63,7 +63,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     			bipartite = true;
     			break;
     		case 'v':
-    			printfunc = &alignment_print;
+    			//printfunc = &alignment_print;
     			break;
     		case 'p':
     			pairs = true;
@@ -204,13 +204,13 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     if(!pairs){
             cout << "optimal ="; alignment_print(alignment); cout << endl;
     }else{
-        cout << "optimal ="; alignment_print_pairs(alignment); cout << endl;
+        //cout << "optimal ="; alignment_print_pairs(alignment); cout << endl;
     }
-    print_energy(alignment, cost_function, degree);
+    //print_energy(alignment, cost_function, degree);
     
     }else{
         overlap_pairs(alignment, pairs, overlap);
-        print_energy(alignment, cost_function, degree);
+        //print_energy(alignment, cost_function, degree);
     }
     
     // free allocated memory
