@@ -127,7 +127,7 @@ extension_mod = Extension("muritzex",
     library_dirs = ['/usr/lib'],
     libraries = ['gsl', 'gslcblas', 'm'], 
     language = 'c++',
-    extra_compile_args = ["-O3", "-std=gnu++11"],
+    extra_compile_args = ["-O3"],
     extra_link_args = ['-lgsl', '-lgslcblas', '-lm', '-lstdc++'],
 )
 
