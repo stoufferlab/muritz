@@ -49,7 +49,7 @@ double role_euclidean_distance(Role *r1, Role *r2){
 		else
 			distance += (r1->f[i].frequency) * (r1->f[i].frequency);
 	}
-  	return distance;
+	return distance;
 }
 
 // calculate the role-to-role correlation coefficient
@@ -356,6 +356,20 @@ void alignment_energy_setup(Alignment *a)
     } else {// degree != 0
         matches_contributing_setup(a);
     }
+    
+    /*
+    for(int i = 0; i < n1.nodes.size(); i++) {
+        cout << "nulldist1[" << n1.roles[i].name << "] = " << nulldist1[i] << endl;
+    }
+    for(int i = 0; i < n2.nodes.size(); i++) {
+        cout << "nulldist2[" << n2.roles[i].name << "] = " << nulldist2[i] << endl;
+    }
+    for(int i = 0; i < n1.nodes.size(); i++) {
+        for(int j = 0; j < n2.nodes.size(); j++) {
+            cout << "dist[" << n1.roles[i].name << "][" << n2.roles[j].name << "] = " << gsl_matrix_get(distance_matrix, i, j) << endl;
+        }
+    }
+    //*/
 }
 
 // return the energy/cost function of an alignment
@@ -584,7 +598,7 @@ static void update_proposed_energy(Alignment *a) {
         a->proposedEnergy -= node_distance(a->matches[a->p1].first, a->matches[a->p1].second, a->dfunc);
         a->proposedEnergy -= node_distance(a->matches[a->p2].first, a->matches[a->p2].second, a->dfunc);
         a->proposedEnergy += node_distance(a->matches[a->p1].first, a->matches[a->p2].second, a->dfunc);
-        a->proposedEnergy += node_distance(a->matches[a->p1].first, a->matches[a->p2].second, a->dfunc);
+        a->proposedEnergy += node_distance(a->matches[a->p2].first, a->matches[a->p1].second, a->dfunc);
     }
 }
 
@@ -769,16 +783,15 @@ void print_energy(void *xp, int cost_function, long degree){
 // print out an alignment
 void alignment_print(void *xp){
 	Alignment * a = (Alignment *) xp;
-    cout << endl; 
 	unsigned int i;
 	int j, k;
 	//Role r1, r2;
-
+	
 	cout << " [";
 	for(i=0;i<a->matches.size();++i){
 		j = a->matches[i].first;
 		k = a->matches[i].second;
-
+		
 		// don't print out NULL matches		
 		if(j!=-1 || k!=-1){
 			cout << " (";
