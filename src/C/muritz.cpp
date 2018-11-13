@@ -187,6 +187,9 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     // set up the simulated annealing parameters
     anneal_params_t params = alignment_params(r, alignment, t_initial, mu_t, t_min, iters_fixed_T);
     
+    // Set up the initial energy to be altered as the annealing goes on.
+    alignment_energy_setup(alignment);
+    
     // use simulated annealing to find an optimal alignment
     // print out all of the incremental steps in the the optimization
     anneal(alignment,

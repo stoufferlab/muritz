@@ -24,6 +24,7 @@ extern anneal_params_t alignment_params(const gsl_rng *r,
                                         int stepsPerTemperature);
 
 double alignment_energy(void *xp);
+void   alignment_energy_setup(Alignment *a);
 double alignment_propose_step(void *xp, const gsl_rng *r);
 void   alignment_commit_step(void *xp);
 void   alignment_step(void *xp, const gsl_rng *r);

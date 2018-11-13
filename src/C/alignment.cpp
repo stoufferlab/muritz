@@ -152,7 +152,7 @@ void read_alignment_data(char separator,
 // setup an alignment structure to manipulate in the SA code
 Alignment * setup_alignment(vector< pair<int, int> > set_pairs){
     unsigned int i,j;
-    vector<int> unfixed_pairs_A; 
+    vector<int> unfixed_pairs_A;
     vector<int> unfixed_pairs_B;
     Alignment * a = alignment_alloc(n1.nodes.size(),n2.nodes.size());
     
@@ -160,7 +160,7 @@ Alignment * setup_alignment(vector< pair<int, int> > set_pairs){
     for(i=0;i<n1.nodes.size();++i){
         a->matches[i].first = i;
             if (n1.nodes[i]->side == 0){
-                    unfixed_pairs_A.push_back(i);
+                unfixed_pairs_A.push_back(i);
             } else {
                 unfixed_pairs_B.push_back(i);
             }
@@ -170,30 +170,30 @@ Alignment * setup_alignment(vector< pair<int, int> > set_pairs){
     for(i=0;i<n2.nodes.size();++i){
         j = i + n1.nodes.size(); // offset based on size of first network
         a->matches[j].second = i;
-                if (n2.nodes[i]->side == 0){
-                        unfixed_pairs_A.push_back(j);
-                }else{
-                        unfixed_pairs_B.push_back(j);
-                }
+            if (n2.nodes[i]->side == 0){
+                unfixed_pairs_A.push_back(j);
+            }else{
+                unfixed_pairs_B.push_back(j);
+            }
     }
     
     //align the fixed pairs
     int p1_i, p2_i;
-    vector<int> fixed_indeces; 
+    vector<int> fixed_indeces;
     for(i=0; i<set_pairs.size(); i++) {
-        p1_i = set_pairs[i].first; 
+        p1_i = set_pairs[i].first;
         p2_i = set_pairs[i].second;
         //add fixed matches for the nodes in net1
-        a->matches[p1_i].second = p2_i; 
+        a->matches[p1_i].second = p2_i;
         //add fixed matches for the nodes in net2
         a->matches[p2_i + n1.nodes.size()].second =-1;
         //add index to fixed list
-        fixed_indeces.push_back(p1_i); 
+        fixed_indeces.push_back(p1_i);
         fixed_indeces.push_back(p2_i + n1.nodes.size());
     }
     
     ptrdiff_t pos;
-    //remove fixed pair indeces from unfixed pair indeces
+    //remove fixed pair indices from unfixed pair indices
     sort(fixed_indeces.begin(), fixed_indeces.end());
     for(int j =fixed_indeces.size()-1; j>=0; j--) { //descending
          pos = find(unfixed_pairs_A.begin(), unfixed_pairs_A.end(), fixed_indeces[j]) - unfixed_pairs_A.begin();
@@ -205,8 +205,9 @@ Alignment * setup_alignment(vector< pair<int, int> > set_pairs){
          }
     }
     
-    a->unfixed_pairs_A = unfixed_pairs_A;  
-    a->unfixed_pairs_B = unfixed_pairs_B;  
+    a->unfixed_pairs_A = unfixed_pairs_A;
+    a->unfixed_pairs_B = unfixed_pairs_B;
+    
     return a;
 }
 

@@ -595,7 +595,7 @@ double alignment_propose_step(void *xp, const gsl_rng *r)
     // cast the alignment as an alignment
     Alignment * a = (Alignment *) xp;
     
-    // find the probability that the switch is of two nodes within network A, as opposed to B.
+    // find the probability that the switch is of two nodes within network A, as opposed to B
     static float probA = ((float)a->unfixed_pairs_A.size() / (float)(a->unfixed_pairs_A.size()+a->unfixed_pairs_B.size()));
     
     // pick the pairs to swap
