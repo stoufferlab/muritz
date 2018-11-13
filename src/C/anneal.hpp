@@ -11,6 +11,7 @@ typedef struct {
 typedef double (*anneal_get_energy_t) (void *alignment);
 typedef double (*anneal_propose_step_t) (void *alignment, const gsl_rng *rng);
 typedef void (*anneal_make_step_t) (void *alignment);
+typedef void (*anneal_print_t) (void *alignment);
 
 /*Takes an alignment, parameters for the simulated annealing, and functions to
   interact with the alignment. Performs simulated annealing on the alignment, in place.*/
@@ -19,6 +20,7 @@ extern void anneal(void *alignment,
                    anneal_get_energy_t getEnergy,
                    anneal_propose_step_t proposeStep,
                    anneal_make_step_t makeStep,
+                   anneal_print_t printFunc,
                    const gsl_rng *rng);
 
 #endif

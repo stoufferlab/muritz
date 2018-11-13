@@ -22,6 +22,7 @@ void anneal(void *alignment,
             anneal_get_energy_t getEnergy,
             anneal_propose_step_t proposeStep,
             anneal_make_step_t makeStep,
+            anneal_print_t printFunc,
             const gsl_rng *rng)
 {
     double temperature = params.initialTemperature;
@@ -37,9 +38,18 @@ void anneal(void *alignment,
             //Calculate the probability of taking the proposed step.
             double probability = getStepProbability(currentEnergy, nextEnergy, temperature);
             
+            if(printFunc) printf("Current energy = %.12lf, proposed energy = %.12lf", currentEnergy, nextEnergy);
+            
             if(gsl_rng_uniform(rng) < probability) {
                 makeStep(alignment);//Take the step.
                 currentEnergy = nextEnergy;
+                if(printFunc) {
+                    printf(", taking step. New alignment:\n");
+                    printFunc(alignment);
+                    printf("\n");
+                }
+            } else if(printFunc) {
+                printf(", rejecting step.\n");
             }
         }
         
