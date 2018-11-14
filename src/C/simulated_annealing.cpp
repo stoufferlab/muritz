@@ -35,7 +35,6 @@ extern Network n2;
 extern double nullcost;
 
 // globals
-bool distance_matrix_def = false; // can we access store of node-to-node distances to speed up some calculations?
 gsl_matrix * distance_matrix; // node-to-node distances
 double* nulldist1; // distances when unaligned
 double* nulldist2; // distances when unaligned
@@ -138,7 +137,7 @@ double role_chisquared(Role *r1, Role *r2){
 }
 
 // calculate a full role-to-role distance matrix to speed up the SA
-void prepare_distance_matrix(double (*dfunc) (Role*,Role*)){
+static void prepare_distance_matrix(double (*dfunc) (Role*,Role*)){
 	unsigned int i,j;
     Role null;
     null.name = "NULL";
@@ -160,13 +159,10 @@ void prepare_distance_matrix(double (*dfunc) (Role*,Role*)){
     nulldist2 = (double*) calloc(n2.nodes.size(), sizeof(double));
     for(i=0;i<n2.nodes.size();++i)
         nulldist2[i] = dfunc(&(n2.roles[i]), &null);
-
-    // in the future we can use this info
-    distance_matrix_def = true;
 }
 
 // calculate the nth degree neighbor lists to speed up the neighborhood-based SA
-void prepare_neighbor_data(unsigned int degree){
+static void prepare_neighbor_data(unsigned int degree){
     unsigned int i;
     set<Node *> nbrs;
     set<Node *>::iterator nbrs_it;
@@ -192,12 +188,15 @@ void prepare_neighbor_data(unsigned int degree){
     }
 }
 
+void precompute(unsigned int degree, double (*dfunc) (Role*,Role*)) {
+    for(unsigned int d = 0; d <= degree; d++) {
+        prepare_neighbor_data(d);
+    }
+    prepare_distance_matrix(dfunc);
+}
+
 // calculate the distance between the roles of two nodes
 double node_distance(int i, int j, double (*dfunc) (Role*,Role*)) {
-    // if we don't have the quick ref matrices/vectors defined
-    if(!distance_matrix_def)
-        prepare_distance_matrix(dfunc);
-    
     // use the information in the distance matrix
     if(i != -1 && j != -1)
         return gsl_matrix_get(distance_matrix, i, j);
@@ -225,6 +224,12 @@ static void adjust_contributing_matches(Alignment *a, int i, int j, int delta) {
 
 // add a contributing match delta to the map, and adjust proposed energy accordingly
 static void adjust_proposed_deltas(Alignment *a, int i, int j, int delta) {
+    if(i == 1 && j == -1) {
+        printf("Adjusting deltas: i = %d, j = %d, delta = %d\n", i, j, delta);
+    }
+    
+    if(i == -1 && j == 1 && a->proposedContributionDeltas.count(make_pair(i, j))) printf("(NULL,B1) old delta = %d\n", a->proposedContributionDeltas[make_pair(i, j)]);
+    
     if(a->proposedContributionDeltas.count(make_pair(i, j))) {
         // if it already exists in the map
         a->proposedContributionDeltas[make_pair(i, j)] += delta;// add delta
@@ -232,6 +237,8 @@ static void adjust_proposed_deltas(Alignment *a, int i, int j, int delta) {
         // it doesn't yet exist
         a->proposedContributionDeltas.insert(make_pair(make_pair(i, j), delta));// insert it
     }
+    
+    if(i == -1 && j == 1) printf("(NULL,B1) new delta = %d\n", a->proposedContributionDeltas[make_pair(i, j)]);
     
     //adjust energy
     a->proposedEnergy += node_distance(i, j, a->dfunc) * delta;
@@ -257,25 +264,8 @@ static void add_matches_contributing(Alignment *a, unsigned int m) {
     i = a->matches[m].first;
     j = a->matches[m].second;
     
-    // i is not null
-    if(i != -1){
-        // prepare the lists of neighbors if this is the first time this has been run
-        if(n1.nodes[i]->neighbors.count(degree) == 0)
-            prepare_neighbor_data(degree);
-        
-        // save locally to avoid complications later
-        nbr_i = n1.nodes[i]->neighbors[degree];
-    }
-    
-    // j is not null
-    if(j != -1){
-        // prepare the lists of neighbors if this is the first time this has been run
-        if(n2.nodes[j]->neighbors.count(degree) == 0)
-            prepare_neighbor_data(degree);
-        
-        // save locally to avoid complications later
-        nbr_j = n2.nodes[j]->neighbors[degree];
-    }
+    if(i != -1) nbr_i = n1.nodes[i]->neighbors[degree];
+    if(j != -1) nbr_j = n2.nodes[j]->neighbors[degree];
     
     // start adding matches
     // i is not null
@@ -357,15 +347,15 @@ void alignment_energy_setup(Alignment *a)
         matches_contributing_setup(a);
     }
     
-    /*
-    for(int i = 0; i < n1.nodes.size(); i++) {
+    //*
+    for(unsigned int i = 0; i < n1.nodes.size(); i++) {
         cout << "nulldist1[" << n1.roles[i].name << "] = " << nulldist1[i] << endl;
     }
-    for(int i = 0; i < n2.nodes.size(); i++) {
+    for(unsigned int i = 0; i < n2.nodes.size(); i++) {
         cout << "nulldist2[" << n2.roles[i].name << "] = " << nulldist2[i] << endl;
     }
-    for(int i = 0; i < n1.nodes.size(); i++) {
-        for(int j = 0; j < n2.nodes.size(); j++) {
+    for(unsigned int i = 0; i < n1.nodes.size(); i++) {
+        for(unsigned int j = 0; j < n2.nodes.size(); j++) {
             cout << "dist[" << n1.roles[i].name << "][" << n2.roles[j].name << "] = " << gsl_matrix_get(distance_matrix, i, j) << endl;
         }
     }
@@ -393,8 +383,8 @@ static void propose_remove_match(Alignment *a, int m) {
     i = a->matches[m].first;
     j = a->matches[m].second;
     
-    nbr_i = n1.nodes[i]->neighbors[degree];
-    nbr_j = n2.nodes[j]->neighbors[degree];
+    if(i != -1) nbr_i = n1.nodes[i]->neighbors[degree];
+    if(j != -1) nbr_j = n2.nodes[j]->neighbors[degree];
     
     // i is not null
     if(i != -1){
@@ -453,6 +443,11 @@ static void propose_remove_match(Alignment *a, int m) {
     if(i != -1 || j != -1) {
         adjust_proposed_deltas(a, i, j, -a->matchesContributing[make_pair(i, j)]);
     }
+    // If it's between two non-nulls, wipe all copies of each of them paired with null.
+    if(i != -1 && j != -1) {
+        adjust_proposed_deltas(a,  i, -1, -a->matchesContributing[make_pair( i, -1)]);
+        adjust_proposed_deltas(a, -1,  j, -a->matchesContributing[make_pair(-1,  j)]);
+    }
 }
 
 // add match m, using proposed matches, and adjusting proposedContributionDeltas and proposed energy
@@ -463,26 +458,32 @@ static void propose_add_match(Alignment *a, int m) {
     set<Node *> nbr_i, nbr_j;
     set<Node *>::iterator nbr_it;
     
-    //How many times we must add *this* match to the network, because adjacent matches have in essence added it.
+    // How many times we must add *this* match to the network, because adjacent matches have added it.
     int numMatches = 0;
+    // How many times we must add the match between this match's network 1 node and null.
+    int num1ToNull = 0;
+    // How many times we must add the match between this match's network 2 node and null.
+    int num2ToNull = 0;
     
-    //Note which nodes have been swapped in which networks
+    // Note which nodes have been swapped in which networks
     int net1_s1 = a->matches[a->p1].first;
-    int net1_s2 = a->matches[a->p2].second;
-    int net2_s1 = a->matches[a->p1].first;
+    int net1_s2 = a->matches[a->p2].first;
+    int net2_s1 = a->matches[a->p1].second;
     int net2_s2 = a->matches[a->p2].second;
     
     i = a->matches[m].first;
     j = a->matches[m].second;
-    //Adjust i and j for proposed swap. Note that swap is always of net2 nodes.
+    // Adjust i and j for proposed swap. Note that swap is always of net2 nodes.
     if(m == a->p1) {
         j = net2_s2;
     } else if(m == a->p2) {
         j = net2_s1;
     }
     
-    nbr_i = n1.nodes[i]->neighbors[degree];
-    nbr_j = n2.nodes[j]->neighbors[degree];
+    printf("Adding: i = %d, j = %d\n", i, j);
+    
+    if(i != -1) nbr_i = n1.nodes[i]->neighbors[degree];
+    if(j != -1) nbr_j = n2.nodes[j]->neighbors[degree];
     
     // i is not null
     if(i != -1){
@@ -494,17 +495,17 @@ static void propose_add_match(Alignment *a, int m) {
                 for(nbr_it=nbr_i.begin(); nbr_it!=nbr_i.end(); ++nbr_it){
                     // what is the index of the neighbour we are currently concerned with?
                     int nbr = (*nbr_it)->idx;
-                    // who is i's neighbor aligned to, adjusted for proposed swap?
+                    // who is i's neighbour aligned to, adjusted for proposed swap?
                     if     (nbr == net1_s1) l = net2_s2;
                     else if(nbr == net1_s2) l = net2_s1;
                     else                    l = a->match1[nbr];
                     
-                    // if l is not null and is also one of j's neighbors
+                    // if l is not null and is also one of j's neighbours
                     if(l != -1 && nbr_j.count(n2.nodes[l]) != 0) {
                         adjust_proposed_deltas(a, nbr, l, 1);
                         numMatches++;
                     }
-                    // l is null or is not one of j's neighbors
+                    // l is null or is not one of j's neighbours
                     else
                         adjust_proposed_deltas(a, nbr, -1, 1);
                 }
@@ -513,19 +514,57 @@ static void propose_add_match(Alignment *a, int m) {
                 for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
                     //what is the index of the neighbour we are currently concerned with?
                     int nbr = (*nbr_it)->idx;
-                    // who is j's neighbor aligned to, adjusted for proposed swap?
+                    // who is j's neighbour aligned to, adjusted for proposed swap?
                     if     (nbr == net2_s1) l = net1_s2;
                     else if(nbr == net2_s2) l = net1_s1;
                     else                    l = a->match2[nbr];
                     
-                    // if l is not null and is also one of i's neighbors
+                    // if l is not null and is also one of i's neighbours
                     if(l != -1 && nbr_i.count(n1.nodes[l]) != 0) {
                         adjust_proposed_deltas(a, l, nbr, 1);
                         numMatches++;
                     }
-                    // l is null or is not one of i's neighbors
+                    // l is null or is not one of i's neighbours
                     else
                         adjust_proposed_deltas(a, -1, nbr, 1);
+                }
+            }
+            
+            // i and j are not null, so find if we must add (i,NULL) or (NULL,j) as well
+            // this is independent of which of i and j has more neighbours, so can't be done in the above loop
+            for(nbr_it = nbr_i.begin(); nbr_it != nbr_i.end(); nbr_it++) {
+                // what is the index of the neighbour we are currently concerned with?
+                int nbr = (*nbr_it)->idx;
+                // who is i's neighbour aligned to, adjusted for proposed swap?
+                if     (nbr == net1_s1) l = net2_s2;
+                else if(nbr == net1_s2) l = net2_s1;
+                else                    l = a->match1[nbr];
+                
+                // l is null
+                if(l == -1) {
+                    num1ToNull++;
+                }
+                // l is not neighbour of j and nbr has more neighbours than l (net1 wins ties)
+                else if(nbr_j.count(n2.nodes[l]) == 0 && n1.nodes[nbr]->neighbors[degree].size() >= n2.nodes[l]->neighbors[degree].size()) {
+                    num1ToNull++;
+                }
+            }
+            
+            for(nbr_it = nbr_j.begin(); nbr_it != nbr_j.end(); nbr_it++) {
+                //what is the index of the neighbour we are currently concerned with?
+                int nbr = (*nbr_it)->idx;
+                // who is j's neighbour aligned to, adjusted for proposed swap?
+                if     (nbr == net2_s1) l = net1_s2;
+                else if(nbr == net2_s2) l = net1_s1;
+                else                    l = a->match2[nbr];
+                
+                // l is null
+                if(l == -1) {
+                    num2ToNull++;
+                }
+                // l is not neighbour of i and nbr has more neighbours than l (net1 wins ties)
+                else if(nbr_i.count(n1.nodes[l]) == 0 && n1.nodes[l]->neighbors[degree].size() < n2.nodes[nbr]->neighbors[degree].size()) {
+                    num2ToNull++;
                 }
             }
         }
@@ -545,8 +584,7 @@ static void propose_add_match(Alignment *a, int m) {
                 
                 // does nbr have more neighbours than its match (net1 wins ties)?
                 // its match being null also qualifies
-                if(l == -1 ||
-                   n1.nodes[nbr]->neighbors[degree].size() >= n2.nodes[l]->neighbors[degree].size()) {
+                if(l == -1 || n1.nodes[nbr]->neighbors[degree].size() >= n2.nodes[l]->neighbors[degree].size()) {
                     numMatches ++;
                 }
             }
@@ -570,8 +608,7 @@ static void propose_add_match(Alignment *a, int m) {
                 
                 // does nbr have more neighbours than its match (net1 wins ties)?
                 // its match being null also qualifies
-                if(l == -1 ||
-                   n1.nodes[l]->neighbors[degree].size() < n2.nodes[nbr]->neighbors[degree].size()) {
+                if(l == -1 || n1.nodes[l]->neighbors[degree].size() < n2.nodes[nbr]->neighbors[degree].size()) {
                     numMatches ++;
                 }
             }
@@ -579,8 +616,12 @@ static void propose_add_match(Alignment *a, int m) {
         // else i and j are both null, nothing to add
     }
     
+    if(i == -1 && j == 1) printf("Here! Adding (NULL, B1). numMatches = %d.\n", numMatches);
+    
     // add this match itself the number of times other matches would add it
-    adjust_proposed_deltas(a, i, j, numMatches);
+    adjust_proposed_deltas(a,  i,  j, numMatches);
+    adjust_proposed_deltas(a,  i, -1, num1ToNull);
+    adjust_proposed_deltas(a, -1,  j, num2ToNull);
 }
 
 // calculate the proposed energy from the current energy and the proposed swap
@@ -590,10 +631,18 @@ static void update_proposed_energy(Alignment *a) {
     if(a->p1 == a->p2) return;// The proposed step does nothing. TODO: Fix stuff so this can't happen in the first place.
     
     if(a->degree != 0) {
+        // Clear deltas
+        a->proposedContributionDeltas.clear();
+        
+        printf("Proposed energy = %.12lf\n", a->proposedEnergy);
         propose_remove_match(a, a->p1);
+        printf("Proposed energy = %.12lf\n", a->proposedEnergy);
         propose_remove_match(a, a->p2);
+        printf("Proposed energy = %.12lf\n", a->proposedEnergy);
         propose_add_match(a, a->p1);
+        printf("Proposed energy = %.12lf\n", a->proposedEnergy);
         propose_add_match(a, a->p2);
+        printf("Proposed energy = %.12lf\n", a->proposedEnergy);
     } else {
         a->proposedEnergy -= node_distance(a->matches[a->p1].first, a->matches[a->p1].second, a->dfunc);
         a->proposedEnergy -= node_distance(a->matches[a->p2].first, a->matches[a->p2].second, a->dfunc);
@@ -621,7 +670,7 @@ double alignment_propose_step(void *xp, const gsl_rng *r)
         a->p2 = a->unfixed_pairs_B[gsl_rng_uniform_int(r,a->unfixed_pairs_B.size())];
     }
     
-    
+    printf("p1 = %d, p2 = %d\n", a->p1, a->p2);
     // calculate the energy of the new alignment
     update_proposed_energy(a);
     return a->proposedEnergy;
@@ -650,6 +699,7 @@ void alignment_commit_step(void *xp)
     if(a->matches[a->p2].second != -1)
         a->match2[a->matches[a->p2].second] = a->matches[a->p2].first;
     
+    apply_proposed_deltas(a);
     a->energy = a->proposedEnergy;
 }
 
@@ -807,7 +857,13 @@ void alignment_print(void *xp){
 			cout <<  ")";
 		}
 	}
-	cout << " ] ";
+	cout << " ] " << endl;
+	
+	// print matchesContributing TODO: remove; debug only
+	printf("Matches contributing:\n");
+	for(map<pair<int, int>, int>::iterator it = a->matchesContributing.begin(); it != a->matchesContributing.end(); it++) {
+		cout << "(" << ((*it).first.first==-1?"NULL":n1.roles[(*it).first.first].name) << "," << ((*it).first.second==-1?"NULL":n2.roles[(*it).first.second].name) << ") * " << (*it).second << endl;
+	}
 }
 
 // print out an alignment with pairwise energies
@@ -971,6 +1027,7 @@ void alignment_print(void *xp){
 
 
 // copy from one alignment to another
+// TODO: Expand this with all the new stuff.
 void _copy(const void *source, void *dest){
 	Alignment *a1 = (Alignment *) source, *a2 = (Alignment *) dest;
 	

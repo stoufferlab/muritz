@@ -13,8 +13,7 @@ double role_chisquared(Role *r1, Role *r2);
 
 double node_distance(int i, int j, double (*dfunc) (Role*, Role*));
 
-void prepare_distance_matrix(double (*dfunc) (Role*, Role*));
-void prepare_neighbor_data(unsigned int degree);
+extern void precompute(unsigned int degree, double (*dfunc) (Role*,Role*));
 
 extern anneal_params_t alignment_params(const gsl_rng *r,
                                         const Alignment *a,

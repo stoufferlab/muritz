@@ -128,6 +128,8 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     gsl_rng_env_setup();
     gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);
     
+    gsl_rng_set(r, 6533691026559052661);//TODO: Testing only.
+    
     // read in two files of networks
     n1.bipartite = bipartite;
     n2.bipartite = bipartite;
@@ -179,13 +181,16 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     }
     
     
-    // assign simulated annleaing parameters to pass to the function below
+    // assign simulated annealing parameters to pass to the function below
     alignment->degree = degree;
     alignment->fixed_pairs = fixed_pairs;
     alignment->set_pairs = set_pairs;
     alignment->doneflag = false;
     // set up the simulated annealing parameters
     anneal_params_t params = alignment_params(r, alignment, t_initial, mu_t, t_min, iters_fixed_T);
+    
+    // Do all the precomputation.
+    precompute(alignment->degree, alignment->dfunc);
     
     // Set up the initial energy to be altered as the annealing goes on.
     alignment_energy_setup(alignment);
@@ -206,7 +211,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     if(overlap!=0 && overlap!=-1 && overlap!=1){
         
         if(!pairs){
-                cout << "optimal ="; alignment_print(alignment); cout << endl;
+            cout << "optimal ="; alignment_print(alignment); cout << endl;
         }else{
             //cout << "optimal ="; alignment_print_pairs(alignment); cout << endl;
         }

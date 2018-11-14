@@ -46,7 +46,6 @@ void anneal(void *alignment,
                 if(printFunc) {
                     printf(", taking step. New alignment:\n");
                     printFunc(alignment);
-                    printf("\n");
                 }
             } else if(printFunc) {
                 printf(", rejecting step.\n");
