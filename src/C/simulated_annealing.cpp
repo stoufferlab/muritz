@@ -441,13 +441,23 @@ static void propose_remove_match(Alignment *a, int m) {
     
     // Unless it's totally null, also wipe all copies of the match itself
     if(i != -1 || j != -1) {
-        adjust_proposed_deltas(a, i, j, -a->matchesContributing[make_pair(i, j)]);
+        a->proposedContributionWipes.insert(make_pair(i, j));
     }
     // If it's between two non-nulls, wipe all copies of each of them paired with null.
     if(i != -1 && j != -1) {
-        adjust_proposed_deltas(a,  i, -1, -a->matchesContributing[make_pair( i, -1)]);
-        adjust_proposed_deltas(a, -1,  j, -a->matchesContributing[make_pair(-1,  j)]);
+        a->proposedContributionWipes.insert(make_pair( i, -1));
+        a->proposedContributionWipes.insert(make_pair(-1,  j));
     }
+}
+
+static void propose_apply_wipes(Alignment *a) {
+    for(set<pair<int, int> >::iterator it = a->proposedContributionWipes.begin(); it != a->proposedContributionWipes.end(); it++) {
+        int i = (*it).first, j = (*it).second;// The two elements of the match to wipe.
+        // Adjust the deltas by negative (the current contribution, adjusted by the existing delta)
+        // Sets the overall delta for this match equal to negative the current contribution for this match
+        adjust_proposed_deltas(a, i, j, -(a->matchesContributing[make_pair(i, j)] + a->proposedContributionDeltas[make_pair(i, j)]));
+    }
+    a->proposedContributionWipes.clear();
 }
 
 // add match m, using proposed matches, and adjusting proposedContributionDeltas and proposed energy
@@ -628,21 +638,15 @@ static void propose_add_match(Alignment *a, int m) {
 // also updates proposed contributing matches if applicable (if degree != 0)
 static void update_proposed_energy(Alignment *a) {
     a->proposedEnergy = a->energy;// Set the current energy to build from.
+    a->proposedContributionDeltas.clear();// Clear deltas
     if(a->p1 == a->p2) return;// The proposed step does nothing. TODO: Fix stuff so this can't happen in the first place.
     
     if(a->degree != 0) {
-        // Clear deltas
-        a->proposedContributionDeltas.clear();
-        
-        printf("Proposed energy = %.12lf\n", a->proposedEnergy);
         propose_remove_match(a, a->p1);
-        printf("Proposed energy = %.12lf\n", a->proposedEnergy);
         propose_remove_match(a, a->p2);
-        printf("Proposed energy = %.12lf\n", a->proposedEnergy);
+        propose_apply_wipes(a);
         propose_add_match(a, a->p1);
-        printf("Proposed energy = %.12lf\n", a->proposedEnergy);
         propose_add_match(a, a->p2);
-        printf("Proposed energy = %.12lf\n", a->proposedEnergy);
     } else {
         a->proposedEnergy -= node_distance(a->matches[a->p1].first, a->matches[a->p1].second, a->dfunc);
         a->proposedEnergy -= node_distance(a->matches[a->p2].first, a->matches[a->p2].second, a->dfunc);

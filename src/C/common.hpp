@@ -61,6 +61,7 @@ typedef struct {
     double energy;
     double proposedEnergy;
     map<pair<int, int>, int> proposedContributionDeltas;
+    set<pair<int, int> > proposedContributionWipes;
     
     vector<pair<int,int> > proposedMatches;
     vector<int> proposedMatch1;
