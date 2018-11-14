@@ -224,12 +224,6 @@ static void adjust_contributing_matches(Alignment *a, int i, int j, int delta) {
 
 // add a contributing match delta to the map, and adjust proposed energy accordingly
 static void adjust_proposed_deltas(Alignment *a, int i, int j, int delta) {
-    if(i == 1 && j == -1) {
-        printf("Adjusting deltas: i = %d, j = %d, delta = %d\n", i, j, delta);
-    }
-    
-    if(i == -1 && j == 1 && a->proposedContributionDeltas.count(make_pair(i, j))) printf("(NULL,B1) old delta = %d\n", a->proposedContributionDeltas[make_pair(i, j)]);
-    
     if(a->proposedContributionDeltas.count(make_pair(i, j))) {
         // if it already exists in the map
         a->proposedContributionDeltas[make_pair(i, j)] += delta;// add delta
@@ -237,8 +231,6 @@ static void adjust_proposed_deltas(Alignment *a, int i, int j, int delta) {
         // it doesn't yet exist
         a->proposedContributionDeltas.insert(make_pair(make_pair(i, j), delta));// insert it
     }
-    
-    if(i == -1 && j == 1) printf("(NULL,B1) new delta = %d\n", a->proposedContributionDeltas[make_pair(i, j)]);
     
     //adjust energy
     a->proposedEnergy += node_distance(i, j, a->dfunc) * delta;
@@ -347,7 +339,7 @@ void alignment_energy_setup(Alignment *a)
         matches_contributing_setup(a);
     }
     
-    //*
+    /* Print the distance matrix.
     for(unsigned int i = 0; i < n1.nodes.size(); i++) {
         cout << "nulldist1[" << n1.roles[i].name << "] = " << nulldist1[i] << endl;
     }
@@ -490,8 +482,6 @@ static void propose_add_match(Alignment *a, int m) {
         j = net2_s1;
     }
     
-    printf("Adding: i = %d, j = %d\n", i, j);
-    
     if(i != -1) nbr_i = n1.nodes[i]->neighbors[degree];
     if(j != -1) nbr_j = n2.nodes[j]->neighbors[degree];
     
@@ -626,8 +616,6 @@ static void propose_add_match(Alignment *a, int m) {
         // else i and j are both null, nothing to add
     }
     
-    if(i == -1 && j == 1) printf("Here! Adding (NULL, B1). numMatches = %d.\n", numMatches);
-    
     // add this match itself the number of times other matches would add it
     adjust_proposed_deltas(a,  i,  j, numMatches);
     adjust_proposed_deltas(a,  i, -1, num1ToNull);
@@ -674,7 +662,6 @@ double alignment_propose_step(void *xp, const gsl_rng *r)
         a->p2 = a->unfixed_pairs_B[gsl_rng_uniform_int(r,a->unfixed_pairs_B.size())];
     }
     
-    printf("p1 = %d, p2 = %d\n", a->p1, a->p2);
     // calculate the energy of the new alignment
     update_proposed_energy(a);
     return a->proposedEnergy;
@@ -863,11 +850,12 @@ void alignment_print(void *xp){
 	}
 	cout << " ] " << endl;
 	
-	// print matchesContributing TODO: remove; debug only
+	/* Print matchesContributing.
 	printf("Matches contributing:\n");
 	for(map<pair<int, int>, int>::iterator it = a->matchesContributing.begin(); it != a->matchesContributing.end(); it++) {
 		cout << "(" << ((*it).first.first==-1?"NULL":n1.roles[(*it).first.first].name) << "," << ((*it).first.second==-1?"NULL":n2.roles[(*it).first.second].name) << ") * " << (*it).second << endl;
 	}
+	//*/
 }
 
 // print out an alignment with pairwise energies

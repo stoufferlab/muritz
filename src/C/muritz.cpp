@@ -128,7 +128,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     gsl_rng_env_setup();
     gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);
     
-    gsl_rng_set(r, 6533691026559052661);//TODO: Testing only.
+    //gsl_rng_set(r, 6533691026559052661);// For testing only.
     
     // read in two files of networks
     n1.bipartite = bipartite;
@@ -211,9 +211,9 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     if(overlap!=0 && overlap!=-1 && overlap!=1){
         
         if(!pairs){
-            cout << "optimal ="; alignment_print(alignment); cout << endl;
+            cout << "optimal ="; alignment_print(alignment);
         }else{
-            //cout << "optimal ="; alignment_print_pairs(alignment); cout << endl;
+            //cout << "optimal ="; alignment_print_pairs(alignment);
         }
         print_energy(alignment, cost_function, degree);
         
