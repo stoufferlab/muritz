@@ -63,10 +63,6 @@ typedef struct {
     map<pair<int, int>, int> proposedContributionDeltas;
     set<pair<int, int> > proposedContributionWipes;
     
-    vector<pair<int,int> > proposedMatches;
-    vector<int> proposedMatch1;
-    vector<int> proposedMatch2;
-    
     unsigned int degree;
     //add a set pairs vector<pair<int, int>>
 } Alignment;

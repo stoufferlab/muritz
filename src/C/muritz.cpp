@@ -186,11 +186,12 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     alignment->fixed_pairs = fixed_pairs;
     alignment->set_pairs = set_pairs;
     alignment->doneflag = false;
+    
+    // Do all the precomputation. Has to be before setting params, as that may make some steps to find the temperature.
+    precompute(alignment->degree, alignment->dfunc);
+    
     // set up the simulated annealing parameters
     anneal_params_t params = alignment_params(r, alignment, t_initial, mu_t, t_min, iters_fixed_T);
-    
-    // Do all the precomputation.
-    precompute(alignment->degree, alignment->dfunc);
     
     // Set up the initial energy to be altered as the annealing goes on.
     alignment_energy_setup(alignment);

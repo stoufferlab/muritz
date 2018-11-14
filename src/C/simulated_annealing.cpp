@@ -1019,29 +1019,38 @@ void alignment_print(void *xp){
 
 
 // copy from one alignment to another
-// TODO: Expand this with all the new stuff.
-void _copy(const void *source, void *dest){
-	Alignment *a1 = (Alignment *) source, *a2 = (Alignment *) dest;
-	
+void _copy(const void *source, void *dest) {
+    Alignment *a1 = (Alignment *) source, *a2 = (Alignment *) dest;
+    
     for(unsigned int i=0;i<a1->matches.size();++i){
-		a2->matches[i] = a1->matches[i];
-
-		if(a1->matches[i].first != -1){
-			a2->match1[a1->matches[i].first] = a1->matches[i].second;
+        a2->matches[i] = a1->matches[i];
+        
+        if(a1->matches[i].first != -1){
+            a2->match1[a1->matches[i].first] = a1->matches[i].second;
         }
-		if(a1->matches[i].second != -1){
-			a2->match2[a1->matches[i].second] = a1->matches[i].first;
+        if(a1->matches[i].second != -1){
+            a2->match2[a1->matches[i].second] = a1->matches[i].first;
         }
     }
-
+    
     a2->dfunc = a1->dfunc;
     a2->degree = a1->degree;
-
+    
     a2->fixed_pairs = a1->fixed_pairs;
     a2->set_pairs = a1->set_pairs; 
     a2->unfixed_pairs_A = a1->unfixed_pairs_A;
     a2->unfixed_pairs_B = a1->unfixed_pairs_B;
-    a2->doneflag = a1->doneflag;  
+    a2->doneflag = a1->doneflag;
+    
+    a2->p1 = a1->p1;
+    a2->p2 = a1->p2;
+    
+    a2->energy = a1->energy;
+    a2->proposedEnergy = a1->proposedEnergy;
+    
+    a2->matchesContributing = a1->matchesContributing;
+    a2->proposedContributionDeltas = a1->proposedContributionDeltas;
+    a2->proposedContributionWipes = a1->proposedContributionWipes;
 }
 
 // copy constructor for an alignment

@@ -32,6 +32,8 @@ void anneal(void *alignment,
     while(temperature != 0) {
         if(temperature < params.minTemperature) temperature = 0;//Do one final run of pure hill-climbing.
         
+        //printf("Temperature = %.12lf\n", temperature);
+        
         for(int i = 0; i < params.stepsPerTemperature; i++) {
             nextEnergy = proposeStep(alignment, rng);//Propose a step and get its cost.
             
