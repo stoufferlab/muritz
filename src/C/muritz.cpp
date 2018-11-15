@@ -128,7 +128,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     gsl_rng_env_setup();
     gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);
     
-    //gsl_rng_set(r, 6533691026559052661);// For testing only.
+    //gsl_rng_set(r, 3716720408280557714);// For testing only.
     
     // read in two files of networks
     n1.bipartite = bipartite;

@@ -535,9 +535,12 @@ static void propose_add_match(Alignment *a, int m) {
             for(nbr_it = nbr_i.begin(); nbr_it != nbr_i.end(); nbr_it++) {
                 // what is the index of the neighbour we are currently concerned with?
                 int nbr = (*nbr_it)->idx;
-                // who is i's neighbour aligned to, adjusted for proposed swap?
-                if     (nbr == net1_s1) l = net2_s2;
-                else if(nbr == net1_s2) l = net2_s1;
+                // Who is i's neighbour aligned to?
+                // Don't adjust for a proposed swap, just ignore those cases.
+                // If the other swapped match would add it, it will add it when we call it.
+                // So ignore it here to avoid double-counting.
+                if     (nbr == net1_s1) continue;
+                else if(nbr == net1_s2) continue;
                 else                    l = a->match1[nbr];
                 
                 // l is null
@@ -553,9 +556,12 @@ static void propose_add_match(Alignment *a, int m) {
             for(nbr_it = nbr_j.begin(); nbr_it != nbr_j.end(); nbr_it++) {
                 //what is the index of the neighbour we are currently concerned with?
                 int nbr = (*nbr_it)->idx;
-                // who is j's neighbour aligned to, adjusted for proposed swap?
-                if     (nbr == net2_s1) l = net1_s2;
-                else if(nbr == net2_s2) l = net1_s1;
+                // Who is j's neighbour aligned to?
+                // Don't adjust for a proposed swap, just ignore those cases.
+                // If the other swapped match would add it, it will add it when we call it.
+                // So ignore it here to avoid double-counting.
+                if     (nbr == net2_s1) continue;
+                else if(nbr == net2_s2) continue;
                 else                    l = a->match2[nbr];
                 
                 // l is null
@@ -1066,3 +1072,128 @@ void _destroy(void *xp){
 	alignment_free((Alignment *) xp);
 }
 
+// search around up to 'degree' connections away from the aligned nodes and calculate the collective alignment there
+// the good old fashioned way: do the whole thing from scratch
+static double neighbor_distance_scratch(Alignment *a, unsigned int m) {
+    unsigned int degree = a->degree;
+    int l;
+    double d = 0;
+    int i,j;
+    set<Node *> nbr_i, nbr_j;
+    set<Node *>::iterator nbr_it;
+
+    // save as ints to avoid confusion later
+    i = a->matches[m].first;
+    j = a->matches[m].second;
+
+    // i is not null
+    if(i != -1){
+        // prepare the lists of neighbors if this is the first time this has been run
+        if(n1.nodes[i]->neighbors.count(degree) == 0)
+            prepare_neighbor_data(degree);
+
+        // save locally to avoid complications later
+        nbr_i = n1.nodes[i]->neighbors[degree];
+    }
+
+    // j is not null
+    if(j != -1){
+        // prepare the lists of neighbors if this is the first time this has been run
+        if(n2.nodes[j]->neighbors.count(degree) == 0)
+            prepare_neighbor_data(degree);
+        
+        // save locally to avoid complications later
+        nbr_j = n2.nodes[j]->neighbors[degree];
+    }
+
+    // let the energizing begin!
+    // i is not null
+    if(i != -1){
+        // j is not null
+        if(j != -1){
+            // align neighbors using the node with the greatest total number as the baseline
+            if(nbr_i.size()>=nbr_j.size()){
+                // compute the local alignment for all of i's neighbors
+                for(nbr_it=nbr_i.begin(); nbr_it!=nbr_i.end(); ++nbr_it){
+                    // who is i's neighbor aligned to?
+                    l = a->match1[(*nbr_it)->idx];
+
+                    // if l is not null and is also one of j's neighbors
+                    if(l != -1 && nbr_j.count(n2.nodes[l]) != 0)
+                        d += node_distance((*nbr_it)->idx, l, a->dfunc);
+                    // l is null or is not one of j's neighbors
+                    else
+                        d += node_distance((*nbr_it)->idx, -1, a->dfunc);
+                }
+            }else{
+                // compute the local alignment for all of j's neighbors
+                for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
+                    // who is j's neighbor aligned to?
+                    l = a->match2[(*nbr_it)->idx];
+
+                    // if l is not null and is also one of i's neighbors
+                    if(l != -1 && nbr_i.count(n1.nodes[l]) != 0)
+                        d += node_distance(l, (*nbr_it)->idx, a->dfunc);
+                    // l is null or is not one of j's neighbors
+                    else
+                        d += node_distance(-1, (*nbr_it)->idx, a->dfunc);
+                }
+            }
+        }
+        // j is null
+        else{
+            // all neighbors of i are treated as unaligned
+            for(nbr_it=nbr_i.begin(); nbr_it!=nbr_i.end(); ++nbr_it){
+                d += node_distance((*nbr_it)->idx, -1, a->dfunc);
+            }
+        }
+    }
+    // i is null
+    else{
+        // j is not null
+        if(j != -1){
+            // have we already calculated j's list of degree-th neighbors?
+            if(n2.nodes[j]->neighbors.count(degree) == 0)
+                prepare_neighbor_data(degree);
+
+            // save within a local pointer to avoid complications later
+            nbr_j = n2.nodes[j]->neighbors[degree];
+
+            // all neighbor nodes are treated as unaligned (i is null)
+            for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
+                d += node_distance(-1, (*nbr_it)->idx, a->dfunc);
+            }
+        }
+        // j is null
+        else{
+            d = 0; // for goodness sake...
+        }
+    }
+
+    return d;
+}
+
+// calculate the weighted distance between two nodes based on the overall alignment, from scratch
+// TODO: set this function up so that we can give it a vector of weights across different "neighborness"
+static double distance_scratch(Alignment *a, unsigned int i){
+    double d;
+    if(a->degree == 0)
+        d = node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
+    else
+        d = neighbor_distance_scratch(a,i);
+    return d;
+}
+
+// calculate the energy/cost function of an alignment, from scratch
+double alignment_energy_scratch(void *xp){
+	double E = 0;
+
+	// cast the void parameter as an alignment data type
+	Alignment * a = (Alignment *) xp;
+
+    // sum the cost function across all paired and unpaired nodes
+	for(unsigned int i=0;i<a->matches.size();++i){
+		E += distance_scratch(a, i);
+	}
+	return E;
+}

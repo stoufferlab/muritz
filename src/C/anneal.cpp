@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <gsl/gsl_rng.h>
 #include "anneal.hpp"
+//#include "simulated_annealing.hpp"// Only needed if we want to print the alignment energy calculated from scratch.
 
 /*Return a number in the range [0,1] that is the probability of taking the described step.*/
 static double getStepProbability(double oldEnergy, double newEnergy, double temperature)
@@ -41,6 +42,7 @@ void anneal(void *alignment,
             double probability = getStepProbability(currentEnergy, nextEnergy, temperature);
             
             if(printFunc) printf("Current energy = %.12lf, proposed energy = %.12lf", currentEnergy, nextEnergy);
+            //if(printFunc) printf(", current energy from scratch = %.12lf", alignment_energy_scratch(alignment));
             
             if(gsl_rng_uniform(rng) < probability) {
                 makeStep(alignment);//Take the step.
