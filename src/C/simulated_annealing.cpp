@@ -210,26 +210,39 @@ double node_distance(int i, int j, double (*dfunc) (Role*,Role*)) {
 
 // add the relevant match as one match contributing, and adjust energy accordingly
 static void adjust_contributing_matches(Alignment *a, int i, int j, int delta) {
-    if(a->matchesContributing.count(make_pair(i, j))) {
+    if(delta == 0) return;
+    
+    map<pair<int, int>, int>::iterator pos = a->matchesContributing.find(make_pair(i, j));
+    
+    if(pos != a->matchesContributing.end()) {
         // if it already exists in the map
-        a->matchesContributing[make_pair(i, j)] += delta;// add one
+        (*pos).second += delta;// add one
+        if((*pos).second == 0) {
+            // if there are no copies left in the map
+            a->matchesContributing.erase(pos);// remove it
+            // this removal ensures that the map size stays linear in the number of nodes in the networks
+            // each node can be in the map only twice, once with what it's matched with and once with NULL
+        }
     } else {
         // it doesn't yet exist
-        a->matchesContributing.insert(make_pair(make_pair(i, j), delta));// insert it with one copy
+        a->matchesContributing.insert(make_pair(make_pair(i, j), delta));// insert it
     }
     
     //adjust energy
-    a->energy += node_distance(i, j, a->dfunc);
+    a->energy += node_distance(i, j, a->dfunc) * delta;
 }
 
 // add a contributing match delta to the map, and adjust proposed energy accordingly
 static void adjust_proposed_deltas(Alignment *a, int i, int j, int delta) {
+    if(delta == 0) return;
+    
     if(a->proposedContributionDeltas.count(make_pair(i, j))) {
         // if it already exists in the map
         a->proposedContributionDeltas[make_pair(i, j)] += delta;// add delta
     } else {
         // it doesn't yet exist
         a->proposedContributionDeltas.insert(make_pair(make_pair(i, j), delta));// insert it
+        // don't both deleting the map entry when it gets to zero: the whole deltas map is wiped regularly
     }
     
     //adjust energy
@@ -444,10 +457,22 @@ static void propose_remove_match(Alignment *a, int m) {
 
 static void propose_apply_wipes(Alignment *a) {
     for(set<pair<int, int> >::iterator it = a->proposedContributionWipes.begin(); it != a->proposedContributionWipes.end(); it++) {
+        
         int i = (*it).first, j = (*it).second;// The two elements of the match to wipe.
-        // Adjust the deltas by negative (the current contribution, adjusted by the existing delta)
-        // Sets the overall delta for this match equal to negative the current contribution for this match
-        adjust_proposed_deltas(a, i, j, -(a->matchesContributing[make_pair(i, j)] + a->proposedContributionDeltas[make_pair(i, j)]));
+        
+        // Find how many already exist, so we know how many to wipe.
+        // We don't want to accidentally create a zero, so we can't use []
+        map<pair<int, int>, int>::iterator pos = a->matchesContributing.find(make_pair(i, j));
+        int numToWipe = 0;
+        if(pos != a->matchesContributing.end()) {// if it does exist
+            numToWipe = (*pos).second;
+        }
+        
+        // change numToWipe by the delta already entered when adding other matches
+        numToWipe += a->proposedContributionDeltas[make_pair(i, j)];
+        
+        // Adjust the deltas by negative numToWipe, deleting them all
+        adjust_proposed_deltas(a, i, j, -numToWipe);
     }
     a->proposedContributionWipes.clear();
 }
