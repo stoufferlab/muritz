@@ -29,7 +29,7 @@ double alignment_propose_step(void *xp, const gsl_rng *r);
 void   alignment_commit_step(void *xp);
 void   alignment_step(void *xp, const gsl_rng *r);
 void   alignment_print(void *xp);
-//void   alignment_print_pairs(void *xp);
+void   alignment_print_pairs(void *xp);
 //void   overlap_pairs(void *xp, bool pairs, int direction);
 void   print_energy(void *xp, int cost_function, long degree);
 

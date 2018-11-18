@@ -58,70 +58,70 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     // set the above parameters with command line options
     int opt;
     while((opt = getopt(argc, argv, "bvprn:t:c:m:k:l:o:u:")) != -1) {
-    	switch (opt) {
-    		case 'b':
-    			bipartite = true;
-    			break;
-    		case 'v':
-    			printfunc = &alignment_print;
-    			break;
-    		case 'p':
-    			pairs = true;
-    			break;
+        switch (opt) {
+            case 'b':
+                bipartite = true;
+                break;
+            case 'v':
+                printfunc = &alignment_print;
+                break;
+            case 'p':
+                pairs = true;
+                break;
             case 'r':
                 randomstart = true;
                 break;
-    		case 'n':
-    			if(optarg)
-    				iters_fixed_T = strtod(optarg, NULL);
-    			else
-    				help();
-    			break;
-    		case 't':
-    			if(optarg)
-    				t_initial = strtod(optarg, NULL);
-    			else
-    				help();
-    			break;
-    		case 'c':
-    			if(optarg)
-    				mu_t = strtod(optarg, NULL);
-    			else
-    				help();
-    			break;
-    		case 'm':
-    			if(optarg)
-    				t_min = strtod(optarg, NULL);
-    			else
-    				help();
-    			break;
-    		case 'k':
-    			if(optarg)
-    				degree = strtoul(optarg, NULL, 0);
-    			else
-    				help();
-    			break;
-    		case 'l':
-    			if(optarg)
-    				cost_function = strtoul(optarg, NULL, 0);
-    			else
-    				help();
-    			break;
-    		case 'o':
-    			if(optarg)
-    				overlap = strtoul(optarg, NULL, 0);
-    			else
-    				help();
-    			break;
-    		case 'u':
-    			if(optarg)
-    				nullcost = strtod(optarg, NULL);
-    			else
-    				help();
-    			break;
-    		default: // '?' //
-    			help();
-    	}
+            case 'n':
+                if(optarg)
+                    iters_fixed_T = strtod(optarg, NULL);
+                else
+                    help();
+                break;
+            case 't':
+                if(optarg)
+                    t_initial = strtod(optarg, NULL);
+                else
+                    help();
+                break;
+            case 'c':
+                if(optarg)
+                    mu_t = strtod(optarg, NULL);
+                else
+                    help();
+                break;
+            case 'm':
+                if(optarg)
+                    t_min = strtod(optarg, NULL);
+                else
+                    help();
+                break;
+            case 'k':
+                if(optarg)
+                    degree = strtoul(optarg, NULL, 0);
+                else
+                    help();
+                break;
+            case 'l':
+                if(optarg)
+                    cost_function = strtoul(optarg, NULL, 0);
+                else
+                    help();
+                break;
+            case 'o':
+                if(optarg)
+                    overlap = strtoul(optarg, NULL, 0);
+                else
+                    help();
+                break;
+            case 'u':
+                if(optarg)
+                    nullcost = strtod(optarg, NULL);
+                else
+                    help();
+                break;
+            default: // '?' //
+                help();
+        }
     }
     
     // set up the random number generator
@@ -214,7 +214,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
         if(!pairs){
             cout << "optimal ="; alignment_print(alignment);
         }else{
-            //cout << "optimal ="; alignment_print_pairs(alignment);
+            cout << "optimal ="; alignment_print_pairs(alignment);
         }
         print_energy(alignment, cost_function, degree);
         
