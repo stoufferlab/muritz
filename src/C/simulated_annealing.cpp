@@ -1207,16 +1207,3 @@ void _copy(const void *source, void *dest) {
     a2->proposedContributionDeltas = a1->proposedContributionDeltas;
     a2->proposedContributionWipes = a1->proposedContributionWipes;
 }
-
-// copy constructor for an alignment
-void * _copy_construct(const void *xp){
-	Alignment *a1 = (Alignment *) xp;
-	Alignment *a2 = alignment_alloc(a1->match1.size(),a1->match2.size());
-	_copy(a1, a2);
-	return a2;
-}
-
-// destructor for an alignment
-void _destroy(void *xp){
-	alignment_free((Alignment *) xp);
-}
