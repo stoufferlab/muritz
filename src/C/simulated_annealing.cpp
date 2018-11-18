@@ -1047,7 +1047,7 @@ void alignment_print_pairs(void *xp){
 	cout << " ] " << endl;
 }
 
-/*void overlap_pairs(void *xp, bool pairs, int direction){
+void overlap_pairs(void *xp, bool pairs, int direction){
 	Alignment * a = (Alignment *) xp;
 	unsigned int i,m;
 	int j, k;
@@ -1056,8 +1056,8 @@ void alignment_print_pairs(void *xp){
 	set<int> v2;
 	vector<int> v;
 	Node * nbr;
-
-
+	
+	
 	//Role r1, r2;
 	cout << "optimal = [";
 	for(i=0;i<a->matches.size();++i){
@@ -1067,13 +1067,13 @@ void alignment_print_pairs(void *xp){
 		// don't print out NULL matches		
 		if(j!=-1 || k!=-1){
 			cout << " (";
-
+			
 			if (j != -1 && k != -1){
-
+				
 				cout << n1.roles[j].name;
 				cout << ",";
 				cout << n2.roles[k].name;
-
+				
 				//find neighbors of species j
 				v1.clear();
 				nbr = n1.nodes[j];
@@ -1083,8 +1083,8 @@ void alignment_print_pairs(void *xp){
 				if(direction == 0 || direction == -1)
 					for(m=0;m<nbr->predators.size();++m)
 						v1.insert(nbr->predators[m]->idx);
-
-
+				
+				
 				//find neighbors of species k
 				v2.clear();
 				nbr = n2.nodes[k];
@@ -1099,16 +1099,16 @@ void alignment_print_pairs(void *xp){
 				//find neighbors shared by species j and k
 				v.clear();
 				set_intersection(v1.begin(),v1.end(),v2.begin(),v2.end(), back_inserter(v));
-
+				
 				v.erase(remove(v.begin(), v.end(), -1), v.end());
-
+				
 				cout << ":";
-
+				
 				totals[0] += v.size();
 				totals[1] += v1.size();
 				totals[2] += v2.size();
 				//print out fraction of interactions shared
-
+				
 				if(v1.size()!=0 && v2.size()!=0){
 					cout << v.size() / float(v1.size()); cout << ","; cout << v.size()/float(v2.size());
 				}else{
@@ -1120,56 +1120,55 @@ void alignment_print_pairs(void *xp){
 						cout << 1; cout << ","; cout << 1;
 					}
 				}
-
+				
 			}else{
 				//Print out alignment of non-aligned nodes
 				if (j != -1){
-
+					
 					nbr = n1.nodes[j];
 					if(direction == 0 || direction == 1)
 						totals[1]+=nbr->prey.size();
 					if(direction == 0 || direction == -1)
 						totals[1]+=nbr->predators.size();
-
+					
 					cout << n1.roles[j].name;
 					cout << ",NULL";
 					//Overlap between NULL and species j is set to 0 for both perspectives
 					cout << ":0,0";
-
+					
 				}else{
-
+					
 					nbr = n2.nodes[k];
 					if(direction == 0 || direction == 1)
 						totals[2]+=nbr->prey.size();
 					if(direction == 0 || direction == -1)
 						totals[2]+=nbr->predators.size();
-
+					
 					cout << "NULL,";
 					cout << n2.roles[k].name;
 					//Overlap between NULL and species k is set to 0 for both perspectives
 					cout << ":0,0";
-
+					
 				}
-
+				
 			}
-
-		if(pairs){
-			//Print out pairs distance
-			cout << ":";
-			cout << distance(a, i);
-			cout << ",";
-			cout << node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
+			
+			if(pairs){
+				//Print out pairs distance
+				cout << ":";
+				cout << distance_scratch(a, i);
+				cout << ",";
+				cout << node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
+			}
+			cout <<  ")";
 		}
-		cout <<  ")";
-		}
-
+		
 	}
 	cout << " ] "; cout << endl;
 	cout << "overlap = ("; cout << totals[0] / float(totals[1]);
 	cout << ","; cout << totals[0] / float(totals[2]);
 	cout << ")"; cout << endl;
-
-}*/
+}
 
 
 

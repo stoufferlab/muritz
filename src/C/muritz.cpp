@@ -219,7 +219,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
         print_energy(alignment, cost_function, degree);
         
     }else{
-        //overlap_pairs(alignment, pairs, overlap);
+        overlap_pairs(alignment, pairs, overlap);
         print_energy(alignment, cost_function, degree);
     }
     
