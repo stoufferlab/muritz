@@ -782,10 +782,6 @@ anneal_params_t alignment_params(const gsl_rng *rng,
         mean_de = de/double(shuffles);
         params.initialTemperature = max_de/0.7;//TODO: Do something about this magic number.
         
-        // Ensure at a least some annealing happens. Some seeds never find a change in energy and start temperature at zero otherwise.
-        // TODO: Test and improve this. Seed 6315191922508953630 on chains-1 and chains-1 displays this behaviour.
-        params.initialTemperature = max(params.initialTemperature, minTemperature*2);
-        
         alignment_free(b);
     }
     
