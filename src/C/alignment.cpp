@@ -5,6 +5,7 @@
 // c++ header files
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 #include <iostream>
 #include <fstream>
 #include <sstream>

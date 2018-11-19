@@ -678,17 +678,17 @@ static void update_proposed_energy(Alignment *a) {
 /* Propose a move in the alignment space and return the energy of the resulting alignment. */
 double alignment_propose_step(void *xp, const gsl_rng *r)
 {
-    // cast the alignment as an alignment
+    // Cast the alignment as an alignment.
     Alignment * a = (Alignment *) xp;
     
-    // Find the probability that the switch is of two nodes within network A, as opposed to B.
-    // This is far from perfect, because the B-nodes get maoved around and this doesn't account for that.
+    // Find the probability that the switch is of two nodes within the first part (if it's bipartite), as opposed to the second part.
+    // If it's not bipartite, this is always 1, as a->unfixed_pairs_B.size() == 0
     static float probA = ((float)a->unfixed_pairs_A.size() / (float)(a->unfixed_pairs_A.size()+a->unfixed_pairs_B.size()));
     
     int p1, p2;
     
     do {
-        // pick the pairs to swap
+        // Pick the pairs to swap.
         if(gsl_rng_uniform(r) < probA){
             p1 = a->unfixed_pairs_A[gsl_rng_uniform_int(r,a->unfixed_pairs_A.size())];
             p2 = a->unfixed_pairs_A[gsl_rng_uniform_int(r,a->unfixed_pairs_A.size())];
@@ -704,7 +704,7 @@ double alignment_propose_step(void *xp, const gsl_rng *r)
     a->p1 = p1;
     a->p2 = p2;
     
-    // calculate the energy of the new alignment
+    // Calculate the energy of the new alignment.
     update_proposed_energy(a);
     return a->proposedEnergy;
 }
