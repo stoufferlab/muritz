@@ -128,7 +128,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     gsl_rng_env_setup();
     gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);
     
-    //gsl_rng_set(r, 3716720408280557714);// For testing only.
+    //gsl_rng_set(r, 2821049342511579301);// For testing only.
     
     // read in two files of networks
     n1.bipartite = bipartite;
@@ -187,14 +187,14 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     alignment->set_pairs = set_pairs;
     alignment->doneflag = false;
     
-    // Do all the precomputation. Has to be before setting params, as that may make some steps to find the temperature.
+    // Do all the precomputation. Has to be before setting params, as that may take some steps to find the initial temperature.
     precompute(alignment->degree, alignment->dfunc);
+    
+    // Set up the initial energy to be altered as the annealing goes on. As above, has to be done before setting params.
+    alignment_energy_setup(alignment);
     
     // set up the simulated annealing parameters
     anneal_params_t params = alignment_params(r, alignment, t_initial, mu_t, t_min, iters_fixed_T);
-    
-    // Set up the initial energy to be altered as the annealing goes on.
-    alignment_energy_setup(alignment);
     
     // use simulated annealing to find an optimal alignment
     // print out all of the incremental steps in the the optimization
