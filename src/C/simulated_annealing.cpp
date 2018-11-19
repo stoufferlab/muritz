@@ -681,17 +681,28 @@ double alignment_propose_step(void *xp, const gsl_rng *r)
     // cast the alignment as an alignment
     Alignment * a = (Alignment *) xp;
     
-    // find the probability that the switch is of two nodes within network A, as opposed to B
+    // Find the probability that the switch is of two nodes within network A, as opposed to B.
+    // This is far from perfect, because the B-nodes get maoved around and this doesn't account for that.
     static float probA = ((float)a->unfixed_pairs_A.size() / (float)(a->unfixed_pairs_A.size()+a->unfixed_pairs_B.size()));
     
-    // pick the pairs to swap
-    if(gsl_rng_uniform(r) < probA){
-        a->p1 = a->unfixed_pairs_A[gsl_rng_uniform_int(r,a->unfixed_pairs_A.size())];
-        a->p2 = a->unfixed_pairs_A[gsl_rng_uniform_int(r,a->unfixed_pairs_A.size())];
-    } else {
-        a->p1 = a->unfixed_pairs_B[gsl_rng_uniform_int(r,a->unfixed_pairs_B.size())];
-        a->p2 = a->unfixed_pairs_B[gsl_rng_uniform_int(r,a->unfixed_pairs_B.size())];
-    }
+    int p1, p2;
+    
+    do {
+        // pick the pairs to swap
+        if(gsl_rng_uniform(r) < probA){
+            p1 = a->unfixed_pairs_A[gsl_rng_uniform_int(r,a->unfixed_pairs_A.size())];
+            p2 = a->unfixed_pairs_A[gsl_rng_uniform_int(r,a->unfixed_pairs_A.size())];
+        } else {
+            p1 = a->unfixed_pairs_B[gsl_rng_uniform_int(r,a->unfixed_pairs_B.size())];
+            p2 = a->unfixed_pairs_B[gsl_rng_uniform_int(r,a->unfixed_pairs_B.size())];
+        }
+    } while(p1 == p2 || a->matches[p1].first == a->matches[p2].first || a->matches[p1].second == a->matches[p2].second);
+    // Do-while ensured that the swap will actually change something; we reroll if it won't.
+    // Note that because node indices are unique, the second two conditions only trigger if both relevant nodes are null.
+    
+    // Put the matches to swap into the alignment.
+    a->p1 = p1;
+    a->p2 = p2;
     
     // calculate the energy of the new alignment
     update_proposed_energy(a);
