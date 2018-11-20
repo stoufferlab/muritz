@@ -83,7 +83,7 @@ def muritz(options, args):
 
     if(options.fixed_file):
         filename = options.fixed_file 
-        pairs, pairtype = read_network(filename)
+        pairs, pairtype, sp_ = read_network(filename)
 
     if(options.roles1!=None and options.roles2==None) or (options.roles1==None and options.roles2!=None):
         sys.stderr.write("If you define the roles, you need to do it for both networks.\n")
