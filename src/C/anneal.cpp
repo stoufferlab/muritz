@@ -1,8 +1,18 @@
 #include <math.h>
 #include <stdio.h>
 #include <gsl/gsl_rng.h>
+#include <limits>
 #include "anneal.hpp"
 //#include "simulated_annealing.hpp"// Only needed if we want to print the alignment energy calculated from scratch.
+
+// Taking 1 million to be a conservative upper bound on the energy, a difference of one Unit in the Last Place is 1.16415e-10
+// EPSILON of 1e-6 should allow plenty of ULPs of error. TODO: Test this nonetheless. Also ensure it's not too large.
+#define ENERGY_EPSILON 1e-6
+
+// Compares energy values for equality.
+static inline bool energyEqual(double a, double b) {
+    return abs(a-b) < ENERGY_EPSILON;
+}
 
 /*Return a number in the range [0,1] that is the probability of taking the described step.*/
 static double getStepProbability(double oldEnergy, double newEnergy, double temperature)
@@ -26,14 +36,22 @@ void anneal(void *alignment,
             anneal_print_t printFunc,
             const gsl_rng *rng)
 {
+    int numAcceptsNeeded = (int) ceil(params.stepsPerTemperature * params.acceptanceFraction);
+    
     double temperature = params.initialTemperature;
     double currentEnergy = getEnergy(alignment);
     double nextEnergy;
+    double bestEnergy = std::numeric_limits<double>::infinity();
+    int numUseless = 0;
     
-    while(temperature != 0) {
+    printf("Steps per temperature: %d\n", params.stepsPerTemperature);
+    
+    while(temperature != 0 && numUseless < params.maxUseless) {
         if(temperature < params.minTemperature) temperature = 0;//Do one final run of pure hill-climbing.
         
-        //printf("Temperature = %.12lf\n", temperature);
+        printf("Temperature = %.12lf\n", temperature);
+        
+        int numAccepts = 0;
         
         for(int i = 0; i < params.stepsPerTemperature; i++) {
             nextEnergy = proposeStep(alignment, rng);//Propose a step and get its cost.
@@ -46,7 +64,14 @@ void anneal(void *alignment,
             
             if(gsl_rng_uniform(rng) < probability) {
                 makeStep(alignment);//Take the step.
+                
+                if(!energyEqual(currentEnergy, nextEnergy)) {
+                    // Don't count it if the energies are equal or it will likely flip-flop between two equal-energy alignments and never terminate.
+                    numAccepts++;
+                }
+                
                 currentEnergy = nextEnergy;
+                
                 if(printFunc) {
                     printf(", taking step. New alignment:\n");
                     printFunc(alignment);
@@ -54,7 +79,14 @@ void anneal(void *alignment,
             } else if(printFunc) {
                 printf(", rejecting step.\n");
             }
+            
+            if(currentEnergy < bestEnergy && !energyEqual(currentEnergy, bestEnergy)) {
+                bestEnergy = currentEnergy;
+                numUseless = 0;
+            }
         }
+        
+        if(numAccepts < numAcceptsNeeded) numUseless++;
         
         temperature /= params.coolingFactor;
     }

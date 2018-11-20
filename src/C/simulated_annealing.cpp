@@ -750,7 +750,9 @@ anneal_params_t alignment_params(const gsl_rng *rng,
                                  double initialTemperature,//-1 if we should calculate it now.
                                  double coolingFactor,
                                  double minTemperature,
-                                 int stepsPerTemperature) {
+                                 int stepsPerTemperature,
+                                 int maxUseless,
+                                 double acceptanceFraction) {
     // SA parameter struct
     anneal_params_t params;
     
@@ -791,11 +793,17 @@ anneal_params_t alignment_params(const gsl_rng *rng,
     // minimum temperature
     params.minTemperature = minTemperature;
     
+    // maximum number of temperatures with very few acceptances since finding a new global best
+    params.maxUseless = maxUseless;
+    
+    // fraction of acceptances needed to not count as useless
+    params.acceptanceFraction = acceptanceFraction;
+    
     return params;
 }
 
 // search around up to 'degree' connections away from the aligned nodes and calculate the collective alignment there
-// the good old fashioned way: do the whole thing from scratch
+// the good old fashioned way: do the whole thing from scratch, without using contributingMatches
 static double neighbor_distance_scratch(Alignment *a, unsigned int m) {
     unsigned int degree = a->degree;
     int l;

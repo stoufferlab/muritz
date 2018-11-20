@@ -6,6 +6,8 @@ typedef struct {
     double coolingFactor;
     double minTemperature;
     int stepsPerTemperature;
+    int maxUseless;// The number of temperatures with very low acceptance rate since the last change in the best solution that must be encountered before termination.
+    double acceptanceFraction;// The fraction of steps that a temperature must accept fewer than to be considered useless.
 } anneal_params_t;
 
 typedef double (*anneal_get_energy_t) (void *alignment);

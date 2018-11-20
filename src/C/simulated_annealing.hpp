@@ -20,7 +20,9 @@ extern anneal_params_t alignment_params(const gsl_rng *r,
                                         double initialTemperature,
                                         double coolingFactor,
                                         double minTemperature,
-                                        int stepsPerTemperature);
+                                        int stepsPerTemperature,
+                                        int maxUseless,
+                                        double acceptanceFraction);
 
 double alignment_energy(void *xp);
 double alignment_energy_scratch(void *xp);

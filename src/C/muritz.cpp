@@ -51,7 +51,9 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     double iters_fixed_T = 1.0;
     double t_initial = -1.0;
     double mu_t = 1.001;
-    double t_min = 1E-7;
+    double t_min = 1E-7;//TODO: Document somewhere that setting 0 disables it and check that it actually does.
+    int maxUseless = 7;//TODO: Add flag, including to disable entirely.
+    double acceptanceFraction = 0.02;//TODO: Add flag, including to disable entirely.
     long degree = 0;
     long cost_function = 2;
     int overlap=2;
@@ -128,7 +130,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     gsl_rng_env_setup();
     gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);
     
-    //gsl_rng_set(r, 6315191922508953630);// For testing only.
+    //gsl_rng_set(r, 24904903668370277);// For testing only.
     
     // read in two files of networks
     n1.bipartite = bipartite;
@@ -194,7 +196,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     alignment_energy_setup(alignment);
     
     // set up the simulated annealing parameters
-    anneal_params_t params = alignment_params(r, alignment, t_initial, mu_t, t_min, iters_fixed_T);
+    anneal_params_t params = alignment_params(r, alignment, t_initial, mu_t, t_min, iters_fixed_T, maxUseless, acceptanceFraction);
     
     // use simulated annealing to find an optimal alignment
     // print out all of the incremental steps in the the optimization
