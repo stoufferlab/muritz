@@ -188,6 +188,9 @@ Alignment * setup_alignment(vector< pair<int, int> > set_pairs){
         a->matches[p1_i].second = p2_i;
         //add fixed matches for the nodes in net2
         a->matches[p2_i + n1.nodes.size()].second =-1;
+        //adjust match1 and match2 cheater objects
+        a->match1[p1_i] = p2_i;
+        a->match2[p2_i] = p1_i;
         //add index to fixed list
         fixed_indeces.push_back(p1_i);
         fixed_indeces.push_back(p2_i + n1.nodes.size());
