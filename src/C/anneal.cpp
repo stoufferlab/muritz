@@ -2,8 +2,11 @@
 #include <stdio.h>
 #include <gsl/gsl_rng.h>
 #include <limits>
+#include <iostream>
 #include "anneal.hpp"
 //#include "simulated_annealing.hpp"// Only needed if we want to print the alignment energy calculated from scratch.
+
+using namespace std;
 
 // Taking 1 million to be a conservative upper bound on the energy, a difference of one Unit in the Last Place is 1.16415e-10
 // EPSILON of 1e-6 should allow plenty of ULPs of error. TODO: Test this nonetheless. Also ensure it's not too large.
@@ -44,7 +47,7 @@ void anneal(void *alignment,
     double temperature = params.initialTemperature;
     double currentEnergy = getEnergy(alignment);
     double nextEnergy;
-    double bestEnergy = std::numeric_limits<double>::infinity();
+    double bestEnergy = numeric_limits<double>::infinity();
     int numUseless = 0;
     
     //printf("Steps per temperature: %d\n", params.stepsPerTemperature);
@@ -100,4 +103,6 @@ void anneal(void *alignment,
         
         temperature /= params.coolingFactor;
     }
+    
+    cerr << "Final temperature = " << temperature << endl;
 }

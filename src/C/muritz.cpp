@@ -52,7 +52,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     double t_initial = -1.0;
     double mu_t = 1.001;
     double t_min = 1E-7;
-    int max_useless = 10;
+    int max_useless = 100;
     double min_acceptance_fraction = 0.005;
     long degree = 0;
     long cost_function = 2;
@@ -142,7 +142,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     gsl_rng_env_setup();
     gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);
     
-    gsl_rng_set(r, 1112040933371900626);// For testing only.
+    //gsl_rng_set(r, 1112040933371900626);// For testing only.
     
     // read in two files of networks
     n1.bipartite = bipartite;

@@ -89,7 +89,7 @@ def parse_cl_options():
     parser.add_option("-e", "--endcounter",
                       action="store", dest="endcounter",
                       help="number of temperatures with very low acceptance rate since the last new best energy before terminating (0 to terminate only at min temperature) [default: %default]",
-                      default=10,
+                      default=100,
                      )
     parser.add_option("-a", "--acceptmin",
                       action="store", dest="acceptmin",
