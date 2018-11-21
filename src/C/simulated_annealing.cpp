@@ -386,12 +386,29 @@ void alignment_expand_core(void *xp) {
 }
 
 // return the energy/cost function of an alignment
-double alignment_energy(void *xp)
+double alignment_get_energy(void *xp)
 {
     // cast the void parameter as an alignment data type
     Alignment * a = (Alignment *) xp;
     
     return a->energy;
+}
+
+// Rebase the energy of an alignment from the map of contributing pairs, to prevent accumulation of floating point error.
+void alignment_rebase_energy(void *xp)
+{
+    // Cast the void parameter as an alignment data type.
+    Alignment * a = (Alignment *) xp;
+    
+    if(a->degree == 0) {
+        alignment_energy_setup(a);// Doing this is no slower.
+    } else {// degree != 0
+        a->energy = 0.0;
+        // Use the map of matches contributing to rebuild the energy.
+        for(map<pair<int, int>, int>::iterator it = a->matchesContributing.begin(); it != a->matchesContributing.end(); it++) {
+            a->energy += (*it).second * node_distance((*it).first.first, (*it).first.second, a->dfunc);
+        }
+    }
 }
 
 // remove match m, adjusting proposedContributionDeltas and proposed energy
@@ -789,12 +806,12 @@ anneal_params_t alignment_params(const gsl_rng *rng,
         double ae, ae2, de, mean_de, max_de;
         mean_de = 0;
         max_de = 0;
-        ae = alignment_energy(b);
+        ae = alignment_get_energy(b);
         unsigned long shuffles = b->unfixed_pairs_A.size() + b->unfixed_pairs_B.size();
         for(unsigned long i = 0; i < shuffles; i++){
             ae2 = ae;
             alignment_step(b,rng);
-            ae = alignment_energy(b);
+            ae = alignment_get_energy(b);
             de = abs(ae - ae2);
             mean_de += de;
             max_de = max(max_de, de);

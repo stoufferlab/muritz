@@ -24,10 +24,11 @@ extern anneal_params_t alignment_params(const gsl_rng *r,
                                         int maxUseless,
                                         double acceptanceFraction);
 
-double alignment_energy(void *xp);
+double alignment_get_energy(void *xp);
 double alignment_energy_scratch(void *xp);
 void   alignment_energy_setup(Alignment *a);
 void   alignment_expand_core(void *xp);
+void   alignment_rebase_energy(void *xp);
 double alignment_propose_step(void *xp, const gsl_rng *r);
 void   alignment_commit_step(void *xp);
 void   alignment_step(void *xp, const gsl_rng *r);

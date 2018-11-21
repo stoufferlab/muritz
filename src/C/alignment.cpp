@@ -234,7 +234,7 @@ void alignment_print_json(void *xp, bool energy=true, bool pairs=false){
     cout << "  \"alignment\": {\n";
     
     cout << "    \"energy\": ";
-    cout << alignment_energy(a) << ",\n";
+    cout << alignment_get_energy(a) << ",\n";
     
     cout << "    \"pairs\": [\n";
     

@@ -204,9 +204,10 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     anneal(alignment,
            best_alignment,
            params,
-           alignment_energy,
+           alignment_get_energy,
            alignment_propose_step,
            alignment_commit_step,
+           alignment_rebase_energy,
            printfunc,
            _copy_core,
            r);

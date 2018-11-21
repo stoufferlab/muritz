@@ -33,7 +33,8 @@ void anneal(void *alignment,
             anneal_params_t params,
             anneal_get_energy_t getEnergy,
             anneal_propose_step_t proposeStep,
-            anneal_make_step_t makeStep,
+            anneal_commit_step_t commitStep,
+            anneal_rebase_energy_t rebaseEnergy,
             anneal_print_t printFunc,
             anneal_copy_core_t copyCore,
             const gsl_rng *rng)
@@ -53,6 +54,10 @@ void anneal(void *alignment,
         
         //printf("Temperature = %.12lf\n", temperature);
         
+        // rebase the energy to prevent accumulation of floating point error
+        rebaseEnergy(alignment);
+        currentEnergy = getEnergy(alignment);
+        
         int numAccepts = 0;
         
         for(int i = 0; i < params.stepsPerTemperature; i++) {
@@ -65,7 +70,7 @@ void anneal(void *alignment,
             //if(printFunc) printf(", current energy from scratch = %.12lf", alignment_energy_scratch(alignment));
             
             if(gsl_rng_uniform(rng) < probability) {// Take the step.
-                makeStep(alignment);
+                commitStep(alignment);
                 
                 if(!energyEqual(currentEnergy, nextEnergy)) {
                     // Don't count it if the energies are equal or it will likely flip-flop between two equal-energy alignments and never terminate.
