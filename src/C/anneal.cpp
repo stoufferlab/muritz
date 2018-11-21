@@ -49,7 +49,7 @@ void anneal(void *alignment,
     
     //printf("Steps per temperature: %d\n", params.stepsPerTemperature);
     
-    while(temperature != 0 && numUseless < params.maxUseless) {
+    while(temperature != 0 && (numUseless < params.maxUseless || params.maxUseless == 0)) {
         if(temperature < params.minTemperature) temperature = 0;//Do one final run of pure hill-climbing.
         
         //printf("Temperature = %.12lf\n", temperature);

@@ -39,7 +39,7 @@ double nullcost;
 
 
 void help(){
-	cerr << "Incorrect usage. Please RTFM.\n";
+	cerr << "Incorrect usage. Please RTFM." << endl;
 	exit(1);
 }
 
@@ -51,15 +51,15 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     double iters_fixed_T = 1.0;
     double t_initial = -1.0;
     double mu_t = 1.001;
-    double t_min = 1E-7;//TODO: Document somewhere that setting 0 disables it and check that it actually does.
-    int maxUseless = 7;//TODO: Add flag, including to disable entirely.
-    double acceptanceFraction = 0.02;//TODO: Add flag, including to disable entirely.
+    double t_min = 1E-7;
+    int max_useless = 10;
+    double min_acceptance_fraction = 0.005;
     long degree = 0;
     long cost_function = 2;
     int overlap = 2;
     // set the above parameters with command line options
     int opt;
-    while((opt = getopt(argc, argv, "bvprn:t:c:m:k:l:o:u:")) != -1) {
+    while((opt = getopt(argc, argv, "bvprn:t:c:m:k:l:o:u:e:a:")) != -1) {
         switch (opt) {
             case 'b':
                 bipartite = true;
@@ -121,6 +121,18 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
                 else
                     help();
                 break;
+            case 'e':
+                if(optarg)
+                    max_useless = strtod(optarg, NULL);
+                else
+                    help();
+                break;
+            case 'a':
+                if(optarg)
+                    min_acceptance_fraction = strtod(optarg, NULL);
+                else
+                    help();
+                break;
             default: // '?' //
                 help();
         }
@@ -130,7 +142,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     gsl_rng_env_setup();
     gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);
     
-    //gsl_rng_set(r, 4349383197089813881);// For testing only.
+    gsl_rng_set(r, 1112040933371900626);// For testing only.
     
     // read in two files of networks
     n1.bipartite = bipartite;
@@ -197,7 +209,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     alignment_energy_setup(alignment);
     
     // set up the simulated annealing parameters
-    anneal_params_t params = alignment_params(r, alignment, t_initial, mu_t, t_min, iters_fixed_T, maxUseless, acceptanceFraction);
+    anneal_params_t params = alignment_params(r, alignment, t_initial, mu_t, t_min, iters_fixed_T, max_useless, min_acceptance_fraction);
     
     // use simulated annealing to find an optimal alignment
     // print out all of the incremental steps in the the optimization

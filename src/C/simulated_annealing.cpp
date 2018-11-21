@@ -378,7 +378,7 @@ void alignment_expand_core(void *xp) {
         int i1 = a->matches[i].first;
         int i2 = a->matches[i].second;
         if(i1 != -1) a->match1[i1] = i2;
-        if(i2 != -1) a->match1[i1] = i1;
+        if(i2 != -1) a->match2[i2] = i1;
     }
     
     // set up the energy

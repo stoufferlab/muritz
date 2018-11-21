@@ -176,7 +176,7 @@ def muritz(options, args):
     
     # call the muritz alignment code
     #command = "GSL_RNG_SEED=%s muritz.x -n %s -t %s -c %s -m %s -k %s -l %s -o %s -u %s %s %s %s" % (rnd_seed,
-    command = "-n %s -t %s -c %s -m %s -k %s -l %s -o %s -u %s %s %s %s %s" % (
+    command = "-n %s -t %s -c %s -m %s -k %s -l %s -o %s -u %s -e %s -a %s %s %s %s %s" % (
             options.iterations,
             options.tinitial,
             options.cooling,
@@ -185,6 +185,8 @@ def muritz(options, args):
             options.cost_function,
             options.overlap,
             options.nullcost,
+            options.endcounter,
+            options.acceptmin,
             rflag,
             pflag,
             vflag,

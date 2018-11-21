@@ -299,9 +299,6 @@ Alignment * alignment_alloc(size_t foo, size_t bar){
 }
 
 // free all memory associated with an alignment
-void alignment_free(Alignment * a){
-    a->matches.clear();
-    a->match1.clear();
-    a->match2.clear();
+void alignment_free(Alignment * a) {
     delete a;
 }

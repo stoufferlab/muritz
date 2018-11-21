@@ -60,6 +60,8 @@ typedef struct {
     
     double energy;
     double proposedEnergy;
+    
+    // Proposed changes to matchesContributinhg, also only used if degree != 0.
     map<pair<int, int>, int> proposedContributionDeltas;
     set<pair<int, int> > proposedContributionWipes;
     

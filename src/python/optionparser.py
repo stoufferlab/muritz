@@ -12,7 +12,7 @@ def parse_cl_options():
     usage = "usage: %prog [OPTION] [-x ROLE_FILENAME] [-y ROLE_FILENAME] NETWORK_FILE NETWORK_FILE"
     #usage = "usage: %prog [OPTION] FIRST_NETWORK_FILE SECOND_NETWORK_FILE"
     parser = OptionParser(usage)
-
+    
     parser.add_option("-k", "--degree",
                       action="store", dest="degree", type="int",
                       help="degree of alignment to conduct [default: %default]",
@@ -30,7 +30,7 @@ def parse_cl_options():
                      )
     parser.add_option("-m", "--tminimum",
                       action="store", dest="tminimum", type="float",
-                      help="minimum temperature for simulated annealing [default: %default]",
+                      help="minimum temperature for simulated annealing (0 to terminate only on end counter) [default: %default]",
                       default=1E-7,
                      )
     parser.add_option("-c", "--cooling",
@@ -73,7 +73,7 @@ def parse_cl_options():
                       help="consider the networks as bipartite [default: %default]",
                       default=False,
                      )
-
+    
     parser.add_option("-f", "--fixed",
                       action="store", dest="fixed_file", type="string",
                       help="file with fixed pairs [default: %default]",
@@ -85,13 +85,24 @@ def parse_cl_options():
                       help="use interaction strengths to weight alignment [default: %default]",
                       default=False,
                      )
-
+    
+    parser.add_option("-e", "--endcounter",
+                      action="store", dest="endcounter",
+                      help="number of temperatures with very low acceptance rate since the last new best energy before terminating (0 to terminate only at min temperature) [default: %default]",
+                      default=10,
+                     )
+    parser.add_option("-a", "--acceptmin",
+                      action="store", dest="acceptmin",
+                      help="minimum proportion of steps at a temperature, below which the end counter is incremented [default: %default]",
+                      default=0.005,
+                     )
+    
     parser.add_option("-x", "--first-roles", dest="roles1", help="read role data for first network from ROLE_FILENAME",)
     parser.add_option("-y", "--second-roles", dest="roles2", help="read role data for second network from ROLE_FILENAME",)
     parser.set_defaults(roles1=None, roles2=None)
-
+    
     (options, args) = parser.parse_args()
-
+    
     if len(args) != 2:
         parser.print_help()
         sys.exit()
