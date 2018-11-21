@@ -29,11 +29,13 @@ static double getStepProbability(double oldEnergy, double newEnergy, double temp
 
 
 void anneal(void *alignment,
+            void *bestAlignment,
             anneal_params_t params,
             anneal_get_energy_t getEnergy,
             anneal_propose_step_t proposeStep,
             anneal_make_step_t makeStep,
             anneal_print_t printFunc,
+            anneal_copy_core_t copyCore,
             const gsl_rng *rng)
 {
     int numAcceptsNeeded = (int) ceil(params.stepsPerTemperature * params.acceptanceFraction);
@@ -44,12 +46,12 @@ void anneal(void *alignment,
     double bestEnergy = std::numeric_limits<double>::infinity();
     int numUseless = 0;
     
-    printf("Steps per temperature: %d\n", params.stepsPerTemperature);
+    //printf("Steps per temperature: %d\n", params.stepsPerTemperature);
     
     while(temperature != 0 && numUseless < params.maxUseless) {
         if(temperature < params.minTemperature) temperature = 0;//Do one final run of pure hill-climbing.
         
-        printf("Temperature = %.12lf\n", temperature);
+        //printf("Temperature = %.12lf\n", temperature);
         
         int numAccepts = 0;
         
@@ -62,8 +64,8 @@ void anneal(void *alignment,
             if(printFunc) printf("Current energy = %.12lf, proposed energy = %.12lf", currentEnergy, nextEnergy);
             //if(printFunc) printf(", current energy from scratch = %.12lf", alignment_energy_scratch(alignment));
             
-            if(gsl_rng_uniform(rng) < probability) {
-                makeStep(alignment);//Take the step.
+            if(gsl_rng_uniform(rng) < probability) {// Take the step.
+                makeStep(alignment);
                 
                 if(!energyEqual(currentEnergy, nextEnergy)) {
                     // Don't count it if the energies are equal or it will likely flip-flop between two equal-energy alignments and never terminate.
@@ -76,11 +78,14 @@ void anneal(void *alignment,
                     printf(", taking step. New alignment:\n");
                     printFunc(alignment);
                 }
-            } else if(printFunc) {
-                printf(", rejecting step.\n");
+            } else {// Don't take the step.
+                if(printFunc) {
+                    printf(", rejecting step.\n");
+                }
             }
             
             if(currentEnergy < bestEnergy && !energyEqual(currentEnergy, bestEnergy)) {
+                copyCore(alignment, bestAlignment);
                 bestEnergy = currentEnergy;
                 numUseless = 0;
             }

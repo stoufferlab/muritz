@@ -27,6 +27,7 @@ extern anneal_params_t alignment_params(const gsl_rng *r,
 double alignment_energy(void *xp);
 double alignment_energy_scratch(void *xp);
 void   alignment_energy_setup(Alignment *a);
+void   alignment_expand_core(void *xp);
 double alignment_propose_step(void *xp, const gsl_rng *r);
 void   alignment_commit_step(void *xp);
 void   alignment_step(void *xp, const gsl_rng *r);
@@ -36,5 +37,6 @@ void   overlap_pairs(void *xp, bool pairs, int direction);
 void   print_energy(void *xp, int cost_function, long degree);
 
 void _copy(const void *source, void *dest);
+void _copy_core(const void *source, void *dest);
 
 #endif

@@ -56,7 +56,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     double acceptanceFraction = 0.02;//TODO: Add flag, including to disable entirely.
     long degree = 0;
     long cost_function = 2;
-    int overlap=2;
+    int overlap = 2;
     // set the above parameters with command line options
     int opt;
     while((opt = getopt(argc, argv, "bvprn:t:c:m:k:l:o:u:")) != -1) {
@@ -130,7 +130,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     gsl_rng_env_setup();
     gsl_rng *r = gsl_rng_alloc(gsl_rng_mt19937);
     
-    //gsl_rng_set(r, 24904903668370277);// For testing only.
+    //gsl_rng_set(r, 4349383197089813881);// For testing only.
     
     // read in two files of networks
     n1.bipartite = bipartite;
@@ -168,7 +168,8 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     }
     
     // set up the alignment between networks
-    Alignment * alignment = setup_alignment(set_pairs);
+    Alignment * alignment      = setup_alignment(set_pairs);
+    Alignment * best_alignment = setup_alignment(set_pairs);
     
     if(randomstart)
         randomize_alignment(r,alignment);
@@ -201,32 +202,38 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     // use simulated annealing to find an optimal alignment
     // print out all of the incremental steps in the the optimization
     anneal(alignment,
+           best_alignment,
            params,
            alignment_energy,
            alignment_propose_step,
            alignment_commit_step,
            printfunc,
+           _copy_core,
            r);
     
+    // repopulate the non-core data of the best alignment
+    alignment_expand_core(best_alignment);
+    
     // print out the "optimal" alignment
-    alignment->doneflag = true;  
-    //alignment_print_json(alignment, true, pairs);
+    best_alignment->doneflag = true;  
+    //alignment_print_json(best_alignment, true, pairs);
     if(overlap!=0 && overlap!=-1 && overlap!=1){
         
         if(!pairs){
-            cout << "optimal ="; alignment_print(alignment);
+            cout << "optimal ="; alignment_print(best_alignment);
         }else{
-            cout << "optimal ="; alignment_print_pairs(alignment);
+            cout << "optimal ="; alignment_print_pairs(best_alignment);
         }
-        print_energy(alignment, cost_function, degree);
+        print_energy(best_alignment, cost_function, degree);
         
     }else{
-        overlap_pairs(alignment, pairs, overlap);
-        print_energy(alignment, cost_function, degree);
+        overlap_pairs(best_alignment, pairs, overlap);
+        print_energy(best_alignment, cost_function, degree);
     }
     
     // free allocated memory
     alignment_free(alignment);
+    alignment_free(best_alignment);
     gsl_rng_free(r);
     
     return "Hello!";

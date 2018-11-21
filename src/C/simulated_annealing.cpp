@@ -343,7 +343,7 @@ static void matches_contributing_setup(Alignment *a){
 void alignment_energy_setup(Alignment *a)
 {
     if(a->degree == 0) {
-        a->energy = 0;
+        a->energy = 0.0;
         // sum the cost function across all paired and unpaired nodes
         for(unsigned int i = 0; i < a->matches.size(); i++){
             a->energy += node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
@@ -365,6 +365,24 @@ void alignment_energy_setup(Alignment *a)
         }
     }
     //*/
+}
+
+// expands an alignment created by copy core so it contains energy again
+// cannot be further stepped, as it is missing fixed pairs and such
+void alignment_expand_core(void *xp) {
+    // cast the void parameter as an alignment data type
+    Alignment * a = (Alignment *) xp;
+    
+    // fill match1 and match2
+    for(unsigned int i = 0; i < a->matches.size(); i++) {
+        int i1 = a->matches[i].first;
+        int i2 = a->matches[i].second;
+        if(i1 != -1) a->match1[i1] = i2;
+        if(i2 != -1) a->match1[i1] = i1;
+    }
+    
+    // set up the energy
+    alignment_energy_setup(a);
 }
 
 // return the energy/cost function of an alignment
@@ -1220,4 +1238,12 @@ void _copy(const void *source, void *dest) {
     a2->matchesContributing = a1->matchesContributing;
     a2->proposedContributionDeltas = a1->proposedContributionDeltas;
     a2->proposedContributionWipes = a1->proposedContributionWipes;
+}
+
+void _copy_core(const void *source, void *dest) {
+    Alignment *a1 = (Alignment *) source, *a2 = (Alignment *) dest;
+    
+    a2->matches = a1->matches;
+    a2->dfunc = a1->dfunc;
+    a2->degree = a1->degree;
 }
