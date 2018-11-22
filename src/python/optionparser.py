@@ -94,7 +94,7 @@ def parse_cl_options():
     parser.add_option("-a", "--acceptmin",
                       action="store", dest="acceptmin",
                       help="minimum proportion of steps at a temperature, below which the end counter is incremented [default: %default]",
-                      default=0.005,
+                      default=0.0,
                      )
     
     parser.add_option("-x", "--first-roles", dest="roles1", help="read role data for first network from ROLE_FILENAME",)

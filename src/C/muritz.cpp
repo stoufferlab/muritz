@@ -53,7 +53,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     double mu_t = 1.001;
     double t_min = 1E-7;
     int max_useless = 100;
-    double min_acceptance_fraction = 0.005;
+    double min_acceptance_fraction = 0.0;
     long degree = 0;
     long cost_function = 2;
     int overlap = 2;

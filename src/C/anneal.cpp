@@ -99,7 +99,7 @@ void anneal(void *alignment,
             }
         }
         
-        if(numAccepts < numAcceptsNeeded) numUseless++;
+        if(numAccepts <= numAcceptsNeeded) numUseless++;
         
         temperature /= params.coolingFactor;
     }
