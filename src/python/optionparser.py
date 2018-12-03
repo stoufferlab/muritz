@@ -8,6 +8,11 @@ import sys
 
 ###########################################
 
+UNIPARTITE_MOTIF_SIZE = 3
+BIPARTITE_MOTIF_SIZE = 5
+
+###########################################
+
 def parse_cl_options():
     usage = "usage: %prog [OPTION] [-x ROLE_FILENAME] [-y ROLE_FILENAME] NETWORK_FILE NETWORK_FILE"
     #usage = "usage: %prog [OPTION] FIRST_NETWORK_FILE SECOND_NETWORK_FILE"
@@ -95,6 +100,12 @@ def parse_cl_options():
                       action="store", dest="acceptmin",
                       help="minimum proportion of steps at a temperature, below which the end counter is incremented [default: %default]",
                       default=0.0,
+                     )
+    
+    parser.add_option("-s", "--motif-size",
+                      action="store", dest="motifsize",
+                      help="maximum size of motifs to use for roles [default: {} if unipartite, {} if bipartite]".format(UNIPARTITE_MOTIF_SIZE, BIPARTITE_MOTIF_SIZE),
+                      default=None,
                      )
     
     parser.add_option("-x", "--first-roles", dest="roles1", help="read role data for first network from ROLE_FILENAME",)

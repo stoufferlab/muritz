@@ -6,7 +6,7 @@ import subprocess
 import operator
 
 from pymfinder import motif_roles
-from optionparser import parse_cl_options
+from optionparser import parse_cl_options, UNIPARTITE_MOTIF_SIZE, BIPARTITE_MOTIF_SIZE
 import muritzex
 
 
@@ -100,50 +100,46 @@ def muritz(options, args):
             print "You are comparing a unipartite network with a bipartite one. Both will be considered as unipartite"
             unipartite=True
     else:
-    	unipartite=True
+        unipartite=True
 
     if options.weighted:
         weighted=True
     else:
         weighted=False
-
+    
+    if options.motifsize is None:
+        if unipartite:
+            motifsize = UNIPARTITE_MOTIF_SIZE
+        else:
+           motifsize = BIPARTITE_MOTIF_SIZE
+    else:
+        motifsize = int(options.motifsize)
+        if motifsize < 2:
+            sys.stderr.write("Motif size must be at least 2.\n")
+            sys.exit()
+    
     if options.roles1!=None:
         net1_roles=read_roles(options.roles1, spe1)
     else:
-        if unipartite:
-            net1_roles = class_to_dict(motif_roles(args[0],motifsize=2,allroles=True, weighted=weighted))
-            net1_roles2 = class_to_dict(motif_roles(args[0],motifsize=3,allroles=True, weighted=weighted))
-                
+        net1_roles = class_to_dict(motif_roles(args[0],motifsize=2, networktype = "unipartite" if unipartite else bipartite, weighted=weighted, allroles=True))
+        for k in range(3,motifsize+1):
+            net1_roles_tmp = class_to_dict(motif_roles(args[0],motifsize=k, networktype = "unipartite" if unipartite else bipartite, weighted=weighted, allroles=True))
             for i in net1_roles:
-                net1_roles[i].update(net1_roles2[i])
-        else:
-            net1_roles = class_to_dict(motif_roles(args[0],motifsize=2, networktype = "bipartite", weighted=weighted, allroles=True))
-            for k in range(3,6):
-                net1_roles2 = class_to_dict(motif_roles(args[0],motifsize=k, networktype = "bipartite", weighted=weighted, allroles=True))
-                for i in net1_roles:
-                    net1_roles[i].update(net1_roles2[i])
-
-
+                net1_roles[i].update(net1_roles_tmp[i])
+    
     if options.roles2!=None:
         net2_roles=read_roles(options.roles2, spe2)
     else:
-        if unipartite:
-            net2_roles = class_to_dict(motif_roles(args[1],motifsize=2,allroles=True, weighted=weighted))
-            net2_roles2 = class_to_dict(motif_roles(args[1],motifsize=3,allroles=True, weighted=weighted))
-                
+        net2_roles = class_to_dict(motif_roles(args[1],motifsize=2, networktype = "unipartite" if unipartite else bipartite, weighted=weighted, allroles=True))
+        for k in range(3,motifsize+1):
+            net2_roles_tmp = class_to_dict(motif_roles(args[1],motifsize=k, networktype = "unipartite" if unipartite else bipartite, weighted=weighted, allroles=True))
             for i in net2_roles:
-                net2_roles[i].update(net2_roles2[i])
-        else:
-            net2_roles = class_to_dict(motif_roles(args[1],motifsize=2, networktype = "bipartite", weighted=weighted, allroles=True))
-            for k in range(3,6):
-                net2_roles2 = class_to_dict(motif_roles(args[1],motifsize=k, networktype = "bipartite", weighted=weighted, allroles=True))
-                for i in net2_roles:
-                    net2_roles[i].update(net2_roles2[i])
-
+                net2_roles[i].update(net2_roles_tmp[i])
+    print(len(net1_roles))
     if len(net1_roles[net1_roles.keys()[0]])!=len(net2_roles[net2_roles.keys()[0]]):
         sys.stderr.write("The roles for the nodes of each network need to have the same size.\n")
         sys.exit()
-                    
+    
     muritz_in = muritz_input(net1, net2, net1_roles, net2_roles, pairs)
     
     # get a random seed
