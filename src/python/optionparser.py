@@ -8,6 +8,11 @@ import sys
 
 ###########################################
 
+UNIPARTITE_MOTIF_SIZE = 3
+BIPARTITE_MOTIF_SIZE = 5
+
+###########################################
+
 def parse_cl_options():
     usage = "usage: %prog [OPTION] [-x ROLE_FILENAME] [-y ROLE_FILENAME] NETWORK_FILE NETWORK_FILE"
     #usage = "usage: %prog [OPTION] FIRST_NETWORK_FILE SECOND_NETWORK_FILE"
@@ -85,13 +90,19 @@ def parse_cl_options():
                       help="use interaction strengths to weight alignment [default: %default]",
                       default=False,
                      )
+    
+    parser.add_option("-s", "--motif-size",
+                      action="store", dest="motifsize",
+                      help="maximum size of motifs to use for roles [default: {} if unipartite, {} if bipartite]".format(UNIPARTITE_MOTIF_SIZE, BIPARTITE_MOTIF_SIZE),
+                      default=None,
+                     )
 
     parser.add_option("-x", "--first-roles", dest="roles1", help="read role data for first network from ROLE_FILENAME",)
     parser.add_option("-y", "--second-roles", dest="roles2", help="read role data for second network from ROLE_FILENAME",)
     parser.set_defaults(roles1=None, roles2=None)
 
     (options, args) = parser.parse_args()
-
+    
     if len(args) != 2:
         parser.print_help()
         sys.exit()
