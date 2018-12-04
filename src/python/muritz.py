@@ -135,7 +135,7 @@ def muritz(options, args):
             net2_roles_tmp = class_to_dict(motif_roles(args[1],motifsize=k, networktype = "unipartite" if unipartite else bipartite, weighted=weighted, allroles=True))
             for i in net2_roles:
                 net2_roles[i].update(net2_roles_tmp[i])
-    print(len(net1_roles))
+    
     if len(net1_roles[net1_roles.keys()[0]])!=len(net2_roles[net2_roles.keys()[0]]):
         sys.stderr.write("The roles for the nodes of each network need to have the same size.\n")
         sys.exit()
