@@ -53,7 +53,7 @@ def class_to_dict(roles):
             class_to_dict = {roles.nodes[n].id:roles.nodes[n].weighted_roles for n in roles.nodes}
         else:
             class_to_dict = {roles.nodes[n].id:roles.nodes[n].roles for n in roles.nodes}
-
+    
     return class_to_dict
 
 def read_roles(filename, spe):
@@ -62,19 +62,19 @@ def read_roles(filename, spe):
     nspe=len(lines)
     inFile.close()
     roles = {x[0]:{idy:float(y) for idy, y in enumerate(x[1:])} for x in lines}
-
+    
     if nspe!=len(roles.keys()):
         sys.stderr.write("There is something odd about file "+filename+", you should check the name of the nodes and look for repeated names.\n")
         sys.exit()
-
+    
     if sorted(roles.keys())!=sorted(spe):
         sys.stderr.write("The nodes in the network file do not match the nodes in "+filename+".\n")
         sys.exit()
-
+    
     if any([len(roles[x])!=len(roles[roles.keys()[0]]) for x in roles.keys()]):
         sys.stderr.write("There is something odd about file "+filename+", all roles should have the same size.\n")
         sys.exit()
-
+    
     return roles
 
 def muritz(options, args):

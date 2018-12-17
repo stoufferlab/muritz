@@ -25,7 +25,7 @@ def parse_cl_options():
                      )
     parser.add_option("-l", "--cost_function",
                       action="store", dest="cost_function", type="int",
-                      help="Euclidean distance (0), Pearson's correlation coeficient (1) or Chi-squared test (2) [default: %default]",
+                      help="Euclidean distance (0), Pearson's correlation coefficient (1) or Chi-squared test (2) [default: %default]",
                       default=1,
                      )
     parser.add_option("-t", "--tinitial",
