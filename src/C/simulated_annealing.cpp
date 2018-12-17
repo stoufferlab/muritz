@@ -846,7 +846,7 @@ static double neighbor_distance_scratch(Alignment *a, unsigned int m) {
     int i,j;
     set<Node *> nbr_i, nbr_j;
     set<Node *>::iterator nbr_it;
-
+    
     // save as ints to avoid confusion later
     i = a->matches[m].first;
     j = a->matches[m].second;
@@ -887,7 +887,7 @@ static double neighbor_distance_scratch(Alignment *a, unsigned int m) {
                 for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
                     // who is j's neighbor aligned to?
                     l = a->match2[(*nbr_it)->idx];
-
+                    
                     // if l is not null and is also one of i's neighbors
                     if(l != -1 && nbr_i.count(n1.nodes[l]) != 0)
                         d += node_distance(l, (*nbr_it)->idx, a->dfunc);
@@ -922,7 +922,7 @@ static double neighbor_distance_scratch(Alignment *a, unsigned int m) {
             d = 0; // for goodness sake...
         }
     }
-
+    
     return d;
 }
 
