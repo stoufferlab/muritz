@@ -95,9 +95,12 @@ def muritz(options, args):
     #Are the networks unipartite or bipartite?
     if options.bipartite:
         if net1type==False and net2type==False:
-            unipartite=net1type
+            unipartite=False
+        elif net1type != net2type:
+            print "You are comparing a unipartite network with a bipartite one. Both will be considered as unipartite."
+            unipartite=True
         else:
-            print "You are comparing a unipartite network with a bipartite one. Both will be considered as unipartite"
+            print "Both networks are unipartite, but the bipartite flag was specified. Both will be treated as unipartite."
             unipartite=True
     else:
         unipartite=True
@@ -121,18 +124,18 @@ def muritz(options, args):
     if options.roles1!=None:
         net1_roles=read_roles(options.roles1, spe1)
     else:
-        net1_roles = class_to_dict(motif_roles(args[0],motifsize=2, networktype = "unipartite" if unipartite else bipartite, weighted=weighted, allroles=True))
+        net1_roles = class_to_dict(motif_roles(args[0],motifsize=2, networktype = "unipartite" if unipartite else "bipartite", weighted=weighted, allroles=True))
         for k in range(3,motifsize+1):
-            net1_roles_tmp = class_to_dict(motif_roles(args[0],motifsize=k, networktype = "unipartite" if unipartite else bipartite, weighted=weighted, allroles=True))
+            net1_roles_tmp = class_to_dict(motif_roles(args[0],motifsize=k, networktype = "unipartite" if unipartite else "bipartite", weighted=weighted, allroles=True))
             for i in net1_roles:
                 net1_roles[i].update(net1_roles_tmp[i])
     
     if options.roles2!=None:
         net2_roles=read_roles(options.roles2, spe2)
     else:
-        net2_roles = class_to_dict(motif_roles(args[1],motifsize=2, networktype = "unipartite" if unipartite else bipartite, weighted=weighted, allroles=True))
+        net2_roles = class_to_dict(motif_roles(args[1],motifsize=2, networktype = "unipartite" if unipartite else "bipartite", weighted=weighted, allroles=True))
         for k in range(3,motifsize+1):
-            net2_roles_tmp = class_to_dict(motif_roles(args[1],motifsize=k, networktype = "unipartite" if unipartite else bipartite, weighted=weighted, allroles=True))
+            net2_roles_tmp = class_to_dict(motif_roles(args[1],motifsize=k, networktype = "unipartite" if unipartite else "bipartite", weighted=weighted, allroles=True))
             for i in net2_roles:
                 net2_roles[i].update(net2_roles_tmp[i])
     
