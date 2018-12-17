@@ -115,5 +115,5 @@ void anneal(void *alignment,
         temperature /= params.coolingFactor;
     }
     
-    cout << "Final temperature: " << prevTemperature << endl;
+    cout << "final temperature: " << prevTemperature << endl;
 }
