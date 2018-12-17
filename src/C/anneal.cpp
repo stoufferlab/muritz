@@ -42,9 +42,11 @@ void anneal(void *alignment,
             anneal_copy_core_t copyCore,
             const gsl_rng *rng)
 {
-    int numAcceptsNeeded = (int) ceil(params.stepsPerTemperature * params.acceptanceFraction);
+    int numAcceptsNeeded =
+        (int) ceil(params.stepsPerTemperature * params.acceptanceFraction);
     
     double temperature = params.initialTemperature;
+    double prevTemperature = temperature; //For printing the final temperature.
     double currentEnergy = getEnergy(alignment);
     double nextEnergy;
     double bestEnergy = numeric_limits<double>::infinity();
@@ -76,7 +78,9 @@ void anneal(void *alignment,
                 commitStep(alignment);
                 
                 if(!energyEqual(currentEnergy, nextEnergy)) {
-                    // Don't count it if the energies are equal or it will likely flip-flop between two equal-energy alignments and never terminate.
+                    //Don't count it if the energies are equal.
+                    //Otherwise it will likely flip-flop between
+                    //two equal-energy alignments and never terminate early.
                     numAccepts++;
                 }
                 
@@ -101,8 +105,9 @@ void anneal(void *alignment,
         
         if(numAccepts <= numAcceptsNeeded) numUseless++;
         
+        prevTemperature = temperature;
         temperature /= params.coolingFactor;
     }
     
-    cerr << "Final temperature = " << temperature << endl;
+    cerr << "Final temperature = " << prevTemperature << endl;
 }
