@@ -71,7 +71,7 @@ void anneal(void *alignment,
             //Calculate the probability of taking the proposed step.
             double probability = getStepProbability(currentEnergy, nextEnergy, temperature);
             
-            if(printFunc) printf("Current energy = %.12lf, proposed energy = %.12lf", currentEnergy, nextEnergy);
+            //if(printFunc) printf("Current energy = %.12lf, proposed energy = %.12lf", currentEnergy, nextEnergy);
             //if(printFunc) printf(", current energy from scratch = %.12lf", alignment_energy_scratch(alignment));
             
             if(gsl_rng_uniform(rng) < probability) {// Take the step.
@@ -86,15 +86,15 @@ void anneal(void *alignment,
                 
                 currentEnergy = nextEnergy;
                 
-                if(printFunc) {
+                /*if(printFunc) {
                     printf(", taking step. New alignment:\n");
                     printFunc(alignment);
-                }
-            } else {// Don't take the step.
+                }*/
+            }/* else {// Don't take the step.
                 if(printFunc) {
                     printf(", rejecting step.\n");
                 }
-            }
+            }*/
             
             if(currentEnergy < bestEnergy && !energyEqual(currentEnergy, bestEnergy)) {
                 copyCore(alignment, bestAlignment);
@@ -103,11 +103,17 @@ void anneal(void *alignment,
             }
         }
         
+        if(printFunc) {
+            printf("temperature: %12g, energy: %12g, best energy: %12g, alignment:\n",
+                temperature, currentEnergy, bestEnergy);
+            printFunc(alignment);
+        }
+        
         if(numAccepts <= numAcceptsNeeded) numUseless++;
         
         prevTemperature = temperature;
         temperature /= params.coolingFactor;
     }
     
-    cerr << "Final temperature = " << prevTemperature << endl;
+    cout << "Final temperature: " << prevTemperature << endl;
 }
