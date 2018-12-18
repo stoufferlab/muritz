@@ -41,14 +41,15 @@ double* nulldist2; // distances when unaligned
 
 // calculate the role-to-role euclidean distance
 double role_euclidean_distance(Role *r1, Role *r2){
-	double distance = 0;
-	for(unsigned int i=0;i<r1->f.size();++i){
-		if(r2->name != "NULL")
+	if(r1->name == "NULL" || r2->name == "NULL") {
+		return nullcost; // this corresponds to complete lack of correlation
+	} else {
+		double distance = 0;
+		for(unsigned int i=0;i<r1->f.size();++i){
 			distance += (r1->f[i].frequency - r2->f[i].frequency ) * (r1->f[i].frequency - r2->f[i].frequency);
-		else
-			distance += (r1->f[i].frequency) * (r1->f[i].frequency);
+		}
+		return sqrt(distance);
 	}
-	return distance;
 }
 
 // calculate the role-to-role correlation coefficient
