@@ -9,7 +9,7 @@ import sys
 ###########################################
 
 UNIPARTITE_MOTIF_SIZE = 3
-BIPARTITE_MOTIF_SIZE = 5
+BIPARTITE_MOTIF_SIZE = 6
 
 ###########################################
 
