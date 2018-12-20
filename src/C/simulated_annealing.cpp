@@ -58,17 +58,17 @@ double role_correlation(Role *r1, Role *r2){
     double rowsums[2] = {0};
     double *f1 = (double*) calloc(r1->f.size(), sizeof(double));
     double *f2 = (double*) calloc(r1->f.size(), sizeof(double));
-
+    
     if(r1->name == "NULL" || r2->name == "NULL") {
         return nullcost; // this corresponds to complete lack of correlation
     }
     else{
-    	for(unsigned int i=0;i<r1->f.size();++i){
-	       	f1[i] = r1->f[i].frequency;
+        for(unsigned int i=0;i<r1->f.size();++i){
+            f1[i] = r1->f[i].frequency;
             f2[i] = r2->f[i].frequency;
             rowsums[0] += f1[i];
             rowsums[1] += f2[i];
-    	}
+        }
         if (rowsums[0] == 0 || rowsums[1] == 0){
             return nullcost;
         }else{
@@ -83,32 +83,32 @@ double role_correlation(Role *r1, Role *r2){
 double role_chisquared(Role *r1, Role *r2){
 	unsigned int i,j,nz_cols=0,total=0,df;
 	double expected,chisq;
-
-	// a vector for the row sums		
+	
+	// a vector for the row sums
 	double rowsums[2] = {0};
 	// initialize a vector for the column sums 
 	int *colsums = (int*) calloc(r1->f.size(), sizeof(int));
 	for(i=0;i<r1->f.size();++i)
 		colsums[i] = 0;
-
+	
 	if(r2->name == "NULL"){
 		return nullcost;
 	}else{
 		// calculate the row, column, and total sums
 		for(i=0;i<r1->f.size();++i){
 			j = r1->f[i].frequency;
-
+			
 			total += j;
 			rowsums[0] += j;
 			colsums[i] += j;
-
+			
 			j = r2->f[i].frequency;
-
+			
 			total += j;
 			rowsums[1] += j;
 			colsums[i] += j;	
 		}
-
+		
 		// sum the chisquared statistic over columns (rows are hardcoded below)
 		chisq = 0;
 		if (rowsums[0] == 0 || rowsums[1] == 0){
@@ -118,44 +118,44 @@ double role_chisquared(Role *r1, Role *r2){
 			if(colsums[i] != 0){
 				// a column that contributes to the total possible degrees of freedom
 				++nz_cols;
-
+				
 				// expected and chisquared contribution for 0,i
 				expected = rowsums[0] * colsums[i] / float(total);
 				chisq += gsl_pow_2(r1->f[i].frequency - expected) / float(expected);
-
+				
 				// expected and chisquared contribution for 1,i
 				expected = rowsums[1] * colsums[i] / float(total);
 				chisq += gsl_pow_2(r2->f[i].frequency - expected) / float(expected);
 			}
 		}
-
+		
 		// calculate the degrees of freedom for the chisquared test 
 		// the final values depends on the number of non-zero columns
 		df = (nz_cols-1) * (2-1);
-
+		
 		return gsl_cdf_chisq_P(chisq, df);
 	}
 }
 
 // calculate a full role-to-role distance matrix to speed up the SA
 static void prepare_distance_matrix(double (*dfunc) (Role*,Role*)){
-	unsigned int i,j;
+    unsigned int i,j;
     Role null;
     null.name = "NULL";
-
+    
     // node-to-node distances
     distance_matrix = gsl_matrix_calloc(n1.nodes.size(),n2.nodes.size());
-	for(i=0;i<n1.nodes.size();++i) {
-		for(j=0;j<n2.nodes.size();++j){
-			gsl_matrix_set(distance_matrix, i, j, dfunc(&(n1.roles[i]),&(n2.roles[j])));
+    for(i=0;i<n1.nodes.size();++i) {
+        for(j=0;j<n2.nodes.size();++j){
+            gsl_matrix_set(distance_matrix, i, j, dfunc(&(n1.roles[i]),&(n2.roles[j])));
         }
     }
-
+    
     // network 1 node distances when unaligned
     nulldist1 = (double*) calloc(n1.nodes.size(), sizeof(double));
     for(i=0;i<n1.nodes.size();++i)
         nulldist1[i] = dfunc(&(n1.roles[i]), &null);
-
+    
     // network 2 node distances when unaligned
     nulldist2 = (double*) calloc(n2.nodes.size(), sizeof(double));
     for(i=0;i<n2.nodes.size();++i)
@@ -167,7 +167,7 @@ static void prepare_neighbor_data(unsigned int degree){
     unsigned int i;
     set<Node *> nbrs;
     set<Node *>::iterator nbrs_it;
-
+    
     // set up the degree-th neighbor data for nodes in network 1
     for(i=0;i<n1.nodes.size();++i){
         // add all prey
@@ -177,7 +177,7 @@ static void prepare_neighbor_data(unsigned int degree){
         for(nbrs_it=nbrs.begin();nbrs_it!=nbrs.end();++nbrs_it)
             n1.nodes[i]->neighbors[degree].insert(*nbrs_it);
     }
-
+    
     // set up the degree-th neighbor data for nodes in network 2
     for(i=0;i<n2.nodes.size();++i){
         // add all prey
