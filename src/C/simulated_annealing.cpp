@@ -733,7 +733,7 @@ double alignment_propose_step(void *xp, const gsl_rng *r)
             p2 = a->unfixed_pairs_B[gsl_rng_uniform_int(r,a->unfixed_pairs_B.size())];
         }
     } while(p1 == p2 || a->matches[p1].first == a->matches[p2].first || a->matches[p1].second == a->matches[p2].second);
-    // Do-while ensured that the swap will actually change something; we reroll if it won't.
+    // Do-while ensures that the swap will actually change something; we reroll if it won't.
     // Note that because node indices are unique, the second two conditions only trigger if both relevant nodes are null.
     
     // Put the matches to swap into the alignment.
