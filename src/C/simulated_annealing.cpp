@@ -29,6 +29,11 @@
 // namespaces
 using namespace std;
 
+// global constants
+// desired_initial_acceptance is the probability with which a
+// maximum-increase-in-energy step is accepted at the start of the annealing.
+const double desired_initial_acceptance = 0.5;
+
 // externs
 extern Network n1;
 extern Network n2;
@@ -818,7 +823,11 @@ anneal_params_t alignment_params(const gsl_rng *rng,
             max_de = max(max_de, de);
         }
         mean_de = de/double(shuffles);
-        params.initialTemperature = max_de/0.7;//TODO: Do something about this magic number.
+        
+        // p = e^(-deltaE/T)
+        // log(p) = -deltaE/T
+        // T = -deltaE/log(p)
+        params.initialTemperature = - max_de/log(desired_initial_acceptance);
         
         alignment_free(b);
     }
