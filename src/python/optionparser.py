@@ -14,7 +14,7 @@ BIPARTITE_MOTIF_SIZE = 6
 ###########################################
 
 def parse_cl_options():
-    usage = "usage: %prog [OPTION] [-x ROLE_FILENAME] [-y ROLE_FILENAME] NETWORK_FILE NETWORK_FILE"
+    usage = "usage: %prog [OPTION]... [-x ROLES1_FILE -y ROLES2_FILE] NETWORK_FILE NETWORK_FILE"
     #usage = "usage: %prog [OPTION] FIRST_NETWORK_FILE SECOND_NETWORK_FILE"
     parser = OptionParser(usage)
     
@@ -108,8 +108,8 @@ def parse_cl_options():
                       default=None,
                      )
     
-    parser.add_option("-x", "--first-roles", dest="roles1", help="read role data for first network from ROLE_FILENAME",)
-    parser.add_option("-y", "--second-roles", dest="roles2", help="read role data for second network from ROLE_FILENAME",)
+    parser.add_option("-x", "--first-roles", dest="roles1_file", help="read role data for first network from ROLES1_FILE",)
+    parser.add_option("-y", "--second-roles", dest="roles2_file", help="read role data for second network from ROLES2_FILE",)
     parser.set_defaults(roles1=None, roles2=None)
     
     (options, args) = parser.parse_args()

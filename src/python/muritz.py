@@ -85,7 +85,7 @@ def muritz(options, args):
         filename = options.fixed_file 
         pairs, pairtype, sp_ = read_network(filename)
 
-    if(options.roles1!=None and options.roles2==None) or (options.roles1==None and options.roles2!=None):
+    if(options.roles1_file!=None and options.roles2_file==None) or (options.roles1_file==None and options.roles2_file!=None):
         sys.stderr.write("If you define the roles, you need to do it for both networks.\n")
         sys.exit()
 
@@ -121,8 +121,8 @@ def muritz(options, args):
             sys.stderr.write("Motif size must be at least 2.\n")
             sys.exit()
     
-    if options.roles1!=None:
-        net1_roles=read_roles(options.roles1, spe1)
+    if options.roles1_file!=None:
+        net1_roles=read_roles(options.roles1_file, spe1)
     else:
         net1_roles = class_to_dict(motif_roles(args[0],motifsize=2, networktype = "unipartite" if unipartite else "bipartite", weighted=weighted, allroles=True))
         for k in range(3,motifsize+1):
@@ -130,8 +130,8 @@ def muritz(options, args):
             for i in net1_roles:
                 net1_roles[i].update(net1_roles_tmp[i])
     
-    if options.roles2!=None:
-        net2_roles=read_roles(options.roles2, spe2)
+    if options.roles2_file!=None:
+        net2_roles=read_roles(options.roles2_file, spe2)
     else:
         net2_roles = class_to_dict(motif_roles(args[1],motifsize=2, networktype = "unipartite" if unipartite else "bipartite", weighted=weighted, allroles=True))
         for k in range(3,motifsize+1):
