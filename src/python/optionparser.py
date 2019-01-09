@@ -65,7 +65,7 @@ def parse_cl_options():
                      )
     parser.add_option("-o", "--overlap",
                       action="store", dest="overlap", type="int",
-                      help="calculate the overlap between networks [default: %default]",
+                      help="calculate the overlap between networks, the proportion of the neighbours of each node which are aligned to a neighbour of the node's own alignment partner (0 for all neighbours, 1 for outgoing, -1 for incoming, anything else to disable) [default: %default]",
                       default=2,
                      )
     parser.add_option("-u", "--nullcost",
