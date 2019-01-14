@@ -202,7 +202,7 @@ void precompute(unsigned int degree, double (*dfunc) (Role*,Role*)) {
 }
 
 // calculate the distance between the roles of two nodes
-double node_distance(int i, int j, double (*dfunc) (Role*,Role*)) {
+double node_distance(int i, int j) {
     // use the information in the distance matrix
     if(i != -1 && j != -1)
         return gsl_matrix_get(distance_matrix, i, j);
@@ -235,7 +235,7 @@ static void adjust_contributing_matches(Alignment *a, int i, int j, int delta) {
     }
     
     //adjust energy
-    a->energy += node_distance(i, j, a->dfunc) * delta;
+    a->energy += node_distance(i, j) * delta;
 }
 
 // add a contributing match delta to the map, and adjust proposed energy accordingly
@@ -252,7 +252,7 @@ static void adjust_proposed_deltas(Alignment *a, int i, int j, int delta) {
     }
     
     //adjust energy
-    a->proposedEnergy += node_distance(i, j, a->dfunc) * delta;
+    a->proposedEnergy += node_distance(i, j) * delta;
 }
 
 // apply deltas to contributing matches
@@ -352,13 +352,14 @@ void alignment_energy_setup(Alignment *a)
         a->energy = 0.0;
         // sum the cost function across all paired and unpaired nodes
         for(unsigned int i = 0; i < a->matches.size(); i++){
-            a->energy += node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
+            a->energy += node_distance(a->matches[i].first, a->matches[i].second);
         }
     } else {// degree != 0
         matches_contributing_setup(a);
     }
     
-    /* Print the distance matrix.
+    /*
+    //Print the distance matrix.
     for(unsigned int i = 0; i < n1.nodes.size(); i++) {
         cout << "nulldist1[" << n1.roles[i].name << "] = " << nulldist1[i] << endl;
     }
@@ -367,7 +368,7 @@ void alignment_energy_setup(Alignment *a)
     }
     for(unsigned int i = 0; i < n1.nodes.size(); i++) {
         for(unsigned int j = 0; j < n2.nodes.size(); j++) {
-            cout << "dist[" << n1.roles[i].name << "][" << n2.roles[j].name << "] = " << gsl_matrix_get(distance_matrix, i, j) << endl;
+            cout << "dist[" << n1.roles[i].name << "][" << n2.roles[j].name << "] = " << node_distance(i, j) << endl;
         }
     }
     //*/
@@ -412,7 +413,7 @@ void alignment_rebase_energy(void *xp)
         a->energy = 0.0;
         // Use the map of matches contributing to rebuild the energy.
         for(map<pair<int, int>, int>::iterator it = a->matchesContributing.begin(); it != a->matchesContributing.end(); it++) {
-            a->energy += (*it).second * node_distance((*it).first.first, (*it).first.second, a->dfunc);
+            a->energy += (*it).second * node_distance((*it).first.first, (*it).first.second);
         }
     }
 }
@@ -708,10 +709,10 @@ static void update_proposed_energy(Alignment *a) {
         propose_add_match(a, a->p1);
         propose_add_match(a, a->p2);
     } else {
-        a->proposedEnergy -= node_distance(a->matches[a->p1].first, a->matches[a->p1].second, a->dfunc);
-        a->proposedEnergy -= node_distance(a->matches[a->p2].first, a->matches[a->p2].second, a->dfunc);
-        a->proposedEnergy += node_distance(a->matches[a->p1].first, a->matches[a->p2].second, a->dfunc);
-        a->proposedEnergy += node_distance(a->matches[a->p2].first, a->matches[a->p1].second, a->dfunc);
+        a->proposedEnergy -= node_distance(a->matches[a->p1].first, a->matches[a->p1].second);
+        a->proposedEnergy -= node_distance(a->matches[a->p2].first, a->matches[a->p2].second);
+        a->proposedEnergy += node_distance(a->matches[a->p1].first, a->matches[a->p2].second);
+        a->proposedEnergy += node_distance(a->matches[a->p2].first, a->matches[a->p1].second);
     }
 }
 
@@ -887,10 +888,10 @@ static double neighbor_distance_scratch(Alignment *a, unsigned int m) {
 
                     // if l is not null and is also one of j's neighbors
                     if(l != -1 && nbr_j.count(n2.nodes[l]) != 0)
-                        d += node_distance((*nbr_it)->idx, l, a->dfunc);
+                        d += node_distance((*nbr_it)->idx, l);
                     // l is null or is not one of j's neighbors
                     else
-                        d += node_distance((*nbr_it)->idx, -1, a->dfunc);
+                        d += node_distance((*nbr_it)->idx, -1);
                 }
             }else{
                 // compute the local alignment for all of j's neighbors
@@ -900,10 +901,10 @@ static double neighbor_distance_scratch(Alignment *a, unsigned int m) {
                     
                     // if l is not null and is also one of i's neighbors
                     if(l != -1 && nbr_i.count(n1.nodes[l]) != 0)
-                        d += node_distance(l, (*nbr_it)->idx, a->dfunc);
+                        d += node_distance(l, (*nbr_it)->idx);
                     // l is null or is not one of j's neighbors
                     else
-                        d += node_distance(-1, (*nbr_it)->idx, a->dfunc);
+                        d += node_distance(-1, (*nbr_it)->idx);
                 }
             }
         }
@@ -911,7 +912,7 @@ static double neighbor_distance_scratch(Alignment *a, unsigned int m) {
         else{
             // all neighbors of i are treated as unaligned
             for(nbr_it=nbr_i.begin(); nbr_it!=nbr_i.end(); ++nbr_it){
-                d += node_distance((*nbr_it)->idx, -1, a->dfunc);
+                d += node_distance((*nbr_it)->idx, -1);
             }
         }
     }
@@ -924,7 +925,7 @@ static double neighbor_distance_scratch(Alignment *a, unsigned int m) {
             
             // all neighbor nodes are treated as unaligned (i is null)
             for(nbr_it=nbr_j.begin(); nbr_it!=nbr_j.end(); ++nbr_it){
-                d += node_distance(-1, (*nbr_it)->idx, a->dfunc);
+                d += node_distance(-1, (*nbr_it)->idx);
             }
         }
         // j is null
@@ -941,7 +942,7 @@ static double neighbor_distance_scratch(Alignment *a, unsigned int m) {
 static double distance_scratch(Alignment *a, unsigned int i){
     double d;
     if(a->degree == 0)
-        d = node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
+        d = node_distance(a->matches[i].first, a->matches[i].second);
     else
         d = neighbor_distance_scratch(a,i);
     return d;
@@ -974,7 +975,7 @@ void print_energy(void *xp, int cost_function, long degree){
 	// sum the cost function across all paired and unpaired nodes
 	for(unsigned int i=0;i<a->matches.size();++i){
 		Epair_nei = distance_scratch(a, i);
-		Epair_nod = node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
+		Epair_nod = node_distance(a->matches[i].first, a->matches[i].second);
 		E += Epair_nei;
 		if (cost_function==1){
 			j = a->matches[i].first;
@@ -1053,7 +1054,8 @@ void alignment_print(void *xp){
 	}
 	cout << " ] " << endl;
 	
-	/* Print matchesContributing.
+	/*
+	//Print matchesContributing.
 	cout << "Matches contributing:" << endl;
 	for(map<pair<int, int>, int>::iterator it = a->matchesContributing.begin(); it != a->matchesContributing.end(); it++) {
 		cout << "(" << ((*it).first.first==-1?"NULL":n1.roles[(*it).first.first].name) << "," << ((*it).first.second==-1?"NULL":n2.roles[(*it).first.second].name) << ") * " << (*it).second << endl;
@@ -1088,7 +1090,7 @@ void alignment_print_pairs(void *xp){
 			cout << ":";
 			cout << distance_scratch(a, i);
 			cout << ",";
-			cout << node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
+			cout << node_distance(a->matches[i].first, a->matches[i].second);
 			cout <<  ")";
 		}
 	}
@@ -1206,7 +1208,7 @@ void overlap_pairs(void *xp, bool pairs, int direction){
 				cout << ":";
 				cout << distance_scratch(a, i);
 				cout << ",";
-				cout << node_distance(a->matches[i].first, a->matches[i].second, a->dfunc);
+				cout << node_distance(a->matches[i].first, a->matches[i].second);
 			}
 			cout <<  ")";
 		}
