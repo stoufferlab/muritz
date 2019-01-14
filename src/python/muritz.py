@@ -47,7 +47,7 @@ def class_to_dict(roles):
     for n in roles.nodes:
         sorted_list = sorted(roles.nodes[n].roles.items(), key = operator.itemgetter(0))
         roles.nodes[n].roles = {item[0]: item[1] for item in sorted_list}
-       
+        
         if roles.weighted:
             #convert from class structure to dict
             class_to_dict = {roles.nodes[n].id:roles.nodes[n].weighted_roles for n in roles.nodes}
