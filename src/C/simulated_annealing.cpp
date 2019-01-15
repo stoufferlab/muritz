@@ -192,6 +192,27 @@ static void prepare_neighbor_data(unsigned int degree){
         for(nbrs_it=nbrs.begin();nbrs_it!=nbrs.end();++nbrs_it)
             n2.nodes[i]->neighbors[degree].insert(*nbrs_it);
     }
+    
+    /*
+    //Print neighbour data
+    cout << "Neighbour data for degree " << degree << ":" << endl;
+    cout << "Network 1:" << endl;
+    for(unsigned int i = 0; i < n1.nodes.size(); i++) {
+        cout << n1.roles[i].name << ":";
+        for(nbrs_it = n1.nodes[i]->neighbors[degree].begin(); nbrs_it != n1.nodes[i]->neighbors[degree].end(); nbrs_it++){
+            cout << " " << n1.roles[(*nbrs_it)->idx].name;
+        }
+        cout << endl;
+    }
+    cout << "Network 2:" << endl;
+    for(unsigned int i = 0; i < n2.nodes.size(); i++) {
+        cout << n2.roles[i].name << ":";
+        for(nbrs_it = n2.nodes[i]->neighbors[degree].begin(); nbrs_it != n2.nodes[i]->neighbors[degree].end(); nbrs_it++){
+            cout << " " << n2.roles[(*nbrs_it)->idx].name;
+        }
+        cout << endl;
+    }
+    //*/
 }
 
 void precompute(unsigned int degree, double (*dfunc) (Role*,Role*)) {
@@ -241,6 +262,8 @@ static void adjust_contributing_matches(Alignment *a, int i, int j, int delta) {
 // add a contributing match delta to the map, and adjust proposed energy accordingly
 static void adjust_proposed_deltas(Alignment *a, int i, int j, int delta) {
     if(delta == 0) return;
+    
+    //cout << "Adjusting proposed delta between " << (i==-1?"NULL":n1.roles[i].name) << " and " << (j==-1?"NULL":n2.roles[j].name) << " by " << delta << endl;
     
     if(a->proposedContributionDeltas.count(make_pair(i, j))) {
         // if it already exists in the map
@@ -430,6 +453,8 @@ static void propose_remove_match(Alignment *a, int m) {
     i = a->matches[m].first;
     j = a->matches[m].second;
     
+    //cout << "Propose remove match (" << (i==-1?"NULL":n1.roles[i].name) << "," << (j==-1?"NULL":n1.roles[j].name) << "):" << endl;
+    
     if(i != -1) nbr_i = n1.nodes[i]->neighbors[degree];
     if(j != -1) nbr_j = n2.nodes[j]->neighbors[degree];
     
@@ -498,6 +523,9 @@ static void propose_remove_match(Alignment *a, int m) {
 }
 
 static void propose_apply_wipes(Alignment *a) {
+    
+    //cout << "Propose apply wipes:" << endl;
+    
     for(set<pair<int, int> >::iterator it = a->proposedContributionWipes.begin(); it != a->proposedContributionWipes.end(); it++) {
         
         int i = (*it).first, j = (*it).second;// The two elements of the match to wipe.
@@ -548,6 +576,9 @@ static void propose_add_match(Alignment *a, int m) {
     } else if(m == a->p2) {
         j = net2_s1;
     }
+    
+    //cout << "Propose add match (" << (i==-1?"NULL":n1.roles[i].name) << "," << (j==-1?"NULL":n1.roles[j].name) << ")" << endl;
+    //cout << "Outgoing:" << endl;
     
     if(i != -1) nbr_i = n1.nodes[i]->neighbors[degree];
     if(j != -1) nbr_j = n2.nodes[j]->neighbors[degree];
@@ -651,8 +682,11 @@ static void propose_add_match(Alignment *a, int m) {
                 // what is the index of the neighbour we are currently concerned with?
                 int nbr = (*nbr_it)->idx;
                 // who is i's neighbor aligned to, adjusted for proposed swap?
-                if     (nbr == net1_s1) l = net2_s2;
-                else if(nbr == net1_s2) l = net2_s1;
+                // Don't adjust for a proposed swap, just ignore those cases.
+                // If the other swapped match would add it, it will add it when we call it.
+                // So ignore it here to avoid double-counting.
+                if     (nbr == net1_s1) continue;
+                else if(nbr == net1_s2) continue;
                 else                    l = a->match1[nbr];
                 
                 // does nbr have more neighbours than its match (net1 wins ties)?
@@ -675,8 +709,11 @@ static void propose_add_match(Alignment *a, int m) {
                 // what is the index of the neighbour we are currently concerned with?
                 int nbr = (*nbr_it)->idx;
                 // who is j's neighbor aligned to, adjusted for proposed swap?
-                if     (nbr == net2_s1) l = net1_s2;
-                else if(nbr == net2_s2) l = net1_s1;
+                // Don't adjust for a proposed swap, just ignore those cases.
+                // If the other swapped match would add it, it will add it when we call it.
+                // So ignore it here to avoid double-counting.
+                if     (nbr == net2_s1) continue;
+                else if(nbr == net2_s2) continue;
                 else                    l = a->match2[nbr];
                 
                 // does nbr have more neighbours than its match (net1 wins ties)?
@@ -688,6 +725,8 @@ static void propose_add_match(Alignment *a, int m) {
         }
         // else i and j are both null, nothing to add
     }
+    
+    //cout << "Incoming:" << endl;
     
     // add this match itself the number of times other matches would add it
     adjust_proposed_deltas(a,  i,  j, numMatches);
