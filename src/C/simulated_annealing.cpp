@@ -594,14 +594,17 @@ static void propose_add_match(Alignment *a, int m) {
                     // what is the index of the neighbour we are currently concerned with?
                     int nbr = (*nbr_it)->idx;
                     // who is i's neighbour aligned to, adjusted for proposed swap?
-                    if     (nbr == net1_s1) l = net2_s2;
-                    else if(nbr == net1_s2) l = net2_s1;
+                    // also note that if adjusting for a swap, we don't add the match itself
+                    // because it will be added by the other match, and we don't want to double-count
+                    bool ignoreMatch = false;
+                    if     (nbr == net1_s1) {l = net2_s2; ignoreMatch = true;}
+                    else if(nbr == net1_s2) {l = net2_s1; ignoreMatch = true;}
                     else                    l = a->match1[nbr];
                     
                     // if l is not null and is also one of j's neighbours
                     if(l != -1 && nbr_j.count(n2.nodes[l]) != 0) {
                         adjust_proposed_deltas(a, nbr, l, 1);
-                        numMatches++;
+                        if(!ignoreMatch) numMatches++;
                     }
                     // l is null or is not one of j's neighbours
                     else
@@ -613,14 +616,17 @@ static void propose_add_match(Alignment *a, int m) {
                     //what is the index of the neighbour we are currently concerned with?
                     int nbr = (*nbr_it)->idx;
                     // who is j's neighbour aligned to, adjusted for proposed swap?
-                    if     (nbr == net2_s1) l = net1_s2;
-                    else if(nbr == net2_s2) l = net1_s1;
+                    // also note that if adjusting for a swap, we don't add the match itself
+                    // because it will be added by the other match, and we don't want to double-count
+                    bool ignoreMatch = false;
+                    if     (nbr == net2_s1) {l = net1_s2; ignoreMatch = true;}
+                    else if(nbr == net2_s2) {l = net1_s1; ignoreMatch = true;}
                     else                    l = a->match2[nbr];
                     
                     // if l is not null and is also one of i's neighbours
                     if(l != -1 && nbr_i.count(n1.nodes[l]) != 0) {
                         adjust_proposed_deltas(a, l, nbr, 1);
-                        numMatches++;
+                        if(!ignoreMatch) numMatches++;
                     }
                     // l is null or is not one of i's neighbours
                     else
