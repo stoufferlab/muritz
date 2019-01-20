@@ -1142,6 +1142,8 @@ void alignment_print_pairs(void *xp){
 	cout << " ] " << endl;
 }
 
+//TODO: Probably remove -1 and 1 options.
+//They create the size 0 v1 and v2, leading to the counter-intuitive overlap of 1.
 void overlap_pairs(void *xp, bool pairs, int direction){
 	Alignment * a = (Alignment *) xp;
 	unsigned int i,m;
