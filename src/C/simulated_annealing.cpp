@@ -165,6 +165,22 @@ static void prepare_distance_matrix(double (*dfunc) (Role*,Role*)){
     nulldist2 = (double*) calloc(n2.nodes.size(), sizeof(double));
     for(i=0;i<n2.nodes.size();++i)
         nulldist2[i] = dfunc(&(n2.roles[i]), &null);
+    
+    
+    /*
+    //Print the distance matrix.
+    for(unsigned int i = 0; i < n1.nodes.size(); i++) {
+        cout << "nulldist1[" << n1.roles[i].name << "] = " << nulldist1[i] << endl;
+    }
+    for(unsigned int i = 0; i < n2.nodes.size(); i++) {
+        cout << "nulldist2[" << n2.roles[i].name << "] = " << nulldist2[i] << endl;
+    }
+    for(unsigned int i = 0; i < n1.nodes.size(); i++) {
+        for(unsigned int j = 0; j < n2.nodes.size(); j++) {
+            cout << "dist[" << n1.roles[i].name << "][" << n2.roles[j].name << "] = " << node_distance(i, j) << endl;
+        }
+    }
+    //*/
 }
 
 // calculate the nth degree neighbor lists to speed up the neighborhood-based SA
@@ -380,21 +396,6 @@ void alignment_energy_setup(Alignment *a)
     } else {// degree != 0
         matches_contributing_setup(a);
     }
-    
-    /*
-    //Print the distance matrix.
-    for(unsigned int i = 0; i < n1.nodes.size(); i++) {
-        cout << "nulldist1[" << n1.roles[i].name << "] = " << nulldist1[i] << endl;
-    }
-    for(unsigned int i = 0; i < n2.nodes.size(); i++) {
-        cout << "nulldist2[" << n2.roles[i].name << "] = " << nulldist2[i] << endl;
-    }
-    for(unsigned int i = 0; i < n1.nodes.size(); i++) {
-        for(unsigned int j = 0; j < n2.nodes.size(); j++) {
-            cout << "dist[" << n1.roles[i].name << "][" << n2.roles[j].name << "] = " << node_distance(i, j) << endl;
-        }
-    }
-    //*/
 }
 
 // expands an alignment created by copy core so it contains energy again
