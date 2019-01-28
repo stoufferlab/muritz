@@ -47,9 +47,13 @@ void anneal(void *alignment,
     
     double temperature = params.initialTemperature;
     double prevTemperature = temperature; //For printing the final temperature.
+    
     double currentEnergy = getEnergy(alignment);
     double nextEnergy;
-    double bestEnergy = numeric_limits<double>::infinity();
+    
+    double bestEnergy = currentEnergy;
+    copyCore(alignment, bestAlignment);
+    
     int numUseless = 0;
     
     //printf("Steps per temperature: %d\n", params.stepsPerTemperature);
@@ -79,8 +83,8 @@ void anneal(void *alignment,
                 
                 if(!energyEqual(currentEnergy, nextEnergy)) {
                     //Don't count it if the energies are equal.
-                    //Otherwise it will likely flip-flop between
-                    //two equal-energy alignments and never terminate early.
+                    //Otherwise it will likely flip-flop between two
+                    //equal-energy alignments and never terminate early.
                     numAccepts++;
                 }
                 
