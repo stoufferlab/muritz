@@ -1010,7 +1010,7 @@ double alignment_energy_scratch(void *xp){
 
 // print the energy/cost and the normalized energy/cost function of an alignment
 // TODO: Sort out the whole printing deal again.
-void print_energy(void *xp, int cost_function, long degree){
+void print_energy(void *xp, cost_func_flag_t cost_function, long degree){
 	double E = 0, Epair_nei, Epair_nod, Enorm_nei=0, Enorm_nod=0;
 	int j, k, nei1, nei2, norm=0;
 	set<Node *> nbr_i;
@@ -1023,7 +1023,7 @@ void print_energy(void *xp, int cost_function, long degree){
 		Epair_nei = distance_scratch(a, i);
 		Epair_nod = node_distance(a->matches[i].first, a->matches[i].second);
 		E += Epair_nei;
-		if (cost_function==1){
+		if (cost_function == cost_func_flag_t::cor){
 			j = a->matches[i].first;
 			k = a->matches[i].second;
 			if (j != -1 && k != -1){
@@ -1058,7 +1058,7 @@ void print_energy(void *xp, int cost_function, long degree){
 		}
 	}
 	
-	if (cost_function==1 && nullcost==1){
+	if (cost_function == cost_func_flag_t::cor && nullcost == 1){
 		Enorm_nei=Enorm_nei/(double)norm;
 		Enorm_nod=Enorm_nod/(double)norm;
 		cout << "Energy = " << E << endl;

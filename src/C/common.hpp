@@ -10,7 +10,7 @@ using namespace std;
 
 // The different distance measures and their flag values.
 // Make sure to keep these matching the flag values!
-enum class CostFunc {euc=0, cor=1, chisq=2};
+enum class cost_func_flag_t {euc=0, cor=1, chisq=2};
 
 
 // Node structure
@@ -74,6 +74,6 @@ typedef struct {
 } Alignment;
 
 //The type of a pointer to a distance function.
-typedef double (*DistFunc)(Role*,Role*);
+typedef double (*dist_func_t)(Role*,Role*);
 
 #endif

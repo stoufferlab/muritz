@@ -39,8 +39,8 @@ double nullcost;
 
 
 void help(){
-	cerr << "Incorrect usage. Please RTFM." << endl;
-	exit(1);
+    cerr << "Incorrect usage. Please RTFM." << endl;
+    exit(1);
 }
 
 char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2, string net2_roles, string sset_pairs)
@@ -55,7 +55,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     int max_useless = 100;
     double min_acceptance_fraction = 0.0;
     long degree = 0;
-    long cost_function = 2;
+    cost_func_flag_t cost_function = cost_func_flag_t::cor;
     int overlap = 2;
     // set the above parameters with command line options
     int opt;
@@ -105,7 +105,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
                 break;
             case 'l':
                 if(optarg)
-                    cost_function = strtoul(optarg, NULL, 0);
+                    cost_function = (cost_func_flag_t)strtoul(optarg, NULL, 0);
                 else
                     help();
                 break;
@@ -186,15 +186,23 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     if(randomstart)
         randomize_alignment(r,alignment);
     
-    DistFunc dfunc;
+    dist_func_t dfunc;
     
     // decide on what the node-to-node distance function is
-    if(cost_function == 0) {
-        dfunc = &role_euclidean_distance;
-    } else if(cost_function == 1) {
-        dfunc = &role_correlation;
-    } else {
-        dfunc = &role_chisquared;
+    switch(cost_function) {
+        case cost_func_flag_t::euc :
+            dfunc = &role_euclidean_distance;
+            break;
+        case cost_func_flag_t::cor :
+            dfunc = &role_correlation;
+            break;
+        case cost_func_flag_t::chisq :
+            dfunc = &role_chisquared;
+            break;
+        default :
+            cerr << (int)cost_function << " is not a valid cost function option." << endl;
+            exit(1);
+            break;
     }
     
     
