@@ -186,13 +186,15 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     if(randomstart)
         randomize_alignment(r,alignment);
     
+    DistFunc dfunc;
+    
     // decide on what the node-to-node distance function is
     if(cost_function == 0) {
-        alignment->dfunc = &role_euclidean_distance;
+        dfunc = &role_euclidean_distance;
     } else if(cost_function == 1) {
-        alignment->dfunc = &role_correlation;
+        dfunc = &role_correlation;
     } else {
-        alignment->dfunc = &role_chisquared;
+        dfunc = &role_chisquared;
     }
     
     
@@ -203,7 +205,7 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     alignment->doneflag = false;
     
     // Do all the precomputation. Has to be before setting params, as that may take some steps to find the initial temperature.
-    precompute(alignment->degree, alignment->dfunc);
+    precompute(alignment->degree, dfunc);
     
     // Set up the initial energy to be altered as the annealing goes on. As above, has to be done before setting params.
     alignment_energy_setup(alignment);

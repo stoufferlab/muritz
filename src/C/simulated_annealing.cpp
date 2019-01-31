@@ -1285,7 +1285,6 @@ void _copy(const void *source, void *dest) {
         }
     }
     
-    a2->dfunc = a1->dfunc;
     a2->degree = a1->degree;
     
     a2->fixed_pairs = a1->fixed_pairs;
@@ -1309,6 +1308,5 @@ void _copy_core(const void *source, void *dest) {
     Alignment *a1 = (Alignment *) source, *a2 = (Alignment *) dest;
     
     a2->matches = a1->matches;
-    a2->dfunc = a1->dfunc;
     a2->degree = a1->degree;
 }

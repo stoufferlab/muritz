@@ -8,6 +8,11 @@
 #include <vector>
 using namespace std;
 
+// The different distance measures and their flag values.
+// Make sure to keep these matching the flag values!
+enum class CostFunc {euc=0, cor=1, chisq=2};
+
+
 // Node structure
 struct Node {
     string name;
@@ -50,7 +55,6 @@ typedef struct {
     vector<int> unfixed_pairs_B;
     vector<int> match1;
     vector<int> match2;
-    double (*dfunc)(Role*,Role*);
     
     // The matches contributing towards the total energy, and the number of them.
     // Only used if degree != 0.
@@ -68,5 +72,8 @@ typedef struct {
     unsigned int degree;
     //add a set pairs vector<pair<int, int>>
 } Alignment;
+
+//The type of a pointer to a distance function.
+typedef double (*DistFunc)(Role*,Role*);
 
 #endif
