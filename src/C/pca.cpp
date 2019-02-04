@@ -63,8 +63,8 @@ Eigen *getEigen(const gsl_matrix *mat) {
 
 //This function should only be necessary for debugging.
 void printMat(gsl_matrix *mat) {
-	for(int i = 0; i < mat->size1; i++) {
-		for(int j = 0; j < mat->size2; j++) {
+	for(size_t i = 0; i < mat->size1; i++) {
+		for(size_t j = 0; j < mat->size2; j++) {
 			printf("%11.6lf", gsl_matrix_get(mat, i, j));
 		}
 		printf("\n");
@@ -98,6 +98,7 @@ gsl_matrix *getCov(const gsl_matrix *centred) {
 	int n = centred->size1;//The number of points.
 	
 	//The covariance matrix is equal to the conjugate-transpose of the centred matrix, times the centred matrix, divided by (n-1).
+	//The conjugate-transpose is of course just the transpose on this real matrix.
 	gsl_blas_dgemm(CblasConjTrans, CblasNoTrans, 1/((double)(n-1)), centred, centred, 0.0, cov);
 	
 	return cov;
@@ -146,10 +147,9 @@ gsl_matrix *pcaTransform(const gsl_matrix *centred, const gsl_matrix *cov) {
 //Every role must have the same number of dimensions.
 //Perform Principal Coordinate Analysis upon all the roles in the given networks,
 //and normalise the data to give unit variance in all dimensions.
-//Assume that the roles of every networks are drawn from the same distribution.
+//Assume that the roles of every network are drawn from the same distribution.
 //This is necessary to leave both in the same co-ordinate space after PCA.
-//It obviously won't be quite true, but given that the networks are being aligned,
-//it seems fair to assume they are at least superficially similar.
+//TODO: Perform Hotellings's t-test upon this assumption.
 void pca_norm_roles(vector<Network*> nets) {
 	int num_points = 0;
 	for(size_t i = 0; i < nets.size(); i++) {
@@ -165,8 +165,8 @@ void pca_norm_roles(vector<Network*> nets) {
 		for(size_t role = 0; role < nets[net]->roles.size(); role++) {
 			for(size_t dim = 0; dim < nets[net]->roles[role].f.size(); dim++) {
 				gsl_matrix_set(raw, point, dim, nets[net]->roles[role].f[dim].frequency);
-				point++;
 			}
+			point++;
 		}
 	}
 	
@@ -183,8 +183,8 @@ void pca_norm_roles(vector<Network*> nets) {
 		for(size_t role = 0; role < nets[net]->roles.size(); role++) {
 			for(size_t dim = 0; dim < nets[net]->roles[role].f.size(); dim++) {
 				nets[net]->roles[role].f[dim].frequency = gsl_matrix_get(pca, point, dim);
-				point++;
 			}
+			point++;
 		}
 	}
 	
