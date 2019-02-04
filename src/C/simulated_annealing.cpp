@@ -24,6 +24,7 @@
 #include "network.hpp"
 #include "alignment.hpp"
 #include "anneal.hpp"
+#include "pca.hpp"
 #include "simulated_annealing.hpp"
 
 // namespaces
@@ -45,7 +46,7 @@ double* nulldist1; // distances when unaligned
 double* nulldist2; // distances when unaligned
 
 // calculate the role-to-role euclidean distance
-double role_euclidean_distance(Role *r1, Role *r2){
+double role_euclidean(Role *r1, Role *r2){
 	if(r1->name == "NULL" || r2->name == "NULL") {
 		return nullcost; // this corresponds to complete lack of correlation
 	} else {
@@ -140,6 +141,26 @@ double role_chisquared(Role *r1, Role *r2){
 		
 		return gsl_cdf_chisq_P(chisq, df);
 	}
+}
+
+// Calculate the role-to-role distance using Mahalanobis distance.
+// This can be calculated by using Principal Coordinate Analysis to transform all the roles,
+// normalising them to have unit variance in every dimension,
+// and taking the Euclidean distance in the new space.
+double role_mahalanobis(Role *r1, Role *r2){
+    //The way muritz is currently implemented, only one distance function will ever be called.
+    //So it's safe to just go and transform all the role data.
+    //If this ever changes in the future, this function will need rewriting.
+    //But for now, this is the fastest way to do it.
+    static bool are_roles_transformed = false;
+    if(!are_roles_transformed) {
+        vector<Network*> nets = {&n1, &n2};
+        pca_norm_roles(nets);
+        are_roles_transformed=true;
+    }
+    //After transformation, the set of dimensions are linearly uncorrelated.
+    //In addition the data has been normalised to have unit variance in every dimension.
+    return role_euclidean(r1, r2);
 }
 
 // calculate a full role-to-role distance matrix to speed up the SA

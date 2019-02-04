@@ -191,13 +191,16 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     // decide on what the node-to-node distance function is
     switch(cost_function) {
         case cost_func_flag_t::euc :
-            dfunc = &role_euclidean_distance;
+            dfunc = &role_euclidean;
             break;
         case cost_func_flag_t::cor :
             dfunc = &role_correlation;
             break;
         case cost_func_flag_t::chisq :
             dfunc = &role_chisquared;
+            break;
+        case cost_func_flag_t::maha :
+            dfunc = &role_mahalanobis;
             break;
         default :
             cerr << (int)cost_function << " is not a valid cost function option." << endl;

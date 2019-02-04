@@ -10,7 +10,7 @@ using namespace std;
 
 // The different distance measures and their flag values.
 // Make sure to keep these matching the flag values!
-enum class cost_func_flag_t {euc=0, cor=1, chisq=2};
+enum class cost_func_flag_t {euc=0, cor=1, chisq=2, maha=3};
 
 
 // Node structure

@@ -121,7 +121,8 @@ extension_mod = Extension("muritzex",
     'roles.cpp',
     'simulated_annealing.cpp',
     'muritz_module.cpp',
-    'anneal.cpp']
+    'anneal.cpp',
+    'pca.cpp']
     ],
     include_dirs = ['src/C', '/usr/include', '/usr/include/python2.7'],
     library_dirs = ['/usr/lib'],

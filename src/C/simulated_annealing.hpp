@@ -7,9 +7,10 @@
 #include "common.hpp"
 #include "anneal.hpp"
 
-double role_euclidean_distance(Role *r1, Role *r2);
+double role_euclidean(Role *r1, Role *r2);
 double role_correlation(Role *r1, Role *r2);
 double role_chisquared(Role *r1, Role *r2);
+double role_mahalanobis(Role *r1, Role *r2);
 
 double node_distance(int i, int j);
 
