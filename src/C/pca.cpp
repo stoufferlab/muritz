@@ -4,6 +4,7 @@
 // c++ header files
 #include <cmath>
 #include <cstdlib>
+#include <cstdio>
 #include <algorithm>
 #include <vector>
 
@@ -58,6 +59,16 @@ Eigen *getEigen(const gsl_matrix *mat) {
 	gsl_matrix_free(matCopy);
 	
 	return eig;
+}
+
+//This function should only be necessary for debugging.
+void printMat(gsl_matrix *mat) {
+	for(int i = 0; i < mat->size1; i++) {
+		for(int j = 0; j < mat->size2; j++) {
+			printf("%11.6lf", gsl_matrix_get(mat, i, j));
+		}
+		printf("\n");
+	}
 }
 
 //Subtract the column means to centre the data on the origin.
@@ -171,7 +182,7 @@ void pca_norm_roles(vector<Network*> nets) {
 	for(size_t net = 0; net < nets.size(); net++) {
 		for(size_t role = 0; role < nets[net]->roles.size(); role++) {
 			for(size_t dim = 0; dim < nets[net]->roles[role].f.size(); dim++) {
-				nets[net]->roles[role].f[dim].frequency = gsl_matrix_get(raw, point, dim);
+				nets[net]->roles[role].f[dim].frequency = gsl_matrix_get(pca, point, dim);
 				point++;
 			}
 		}
