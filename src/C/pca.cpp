@@ -13,6 +13,7 @@
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_eigen.h>
+#include <gsl/gsl_cdf.h>
 
 // local includes
 #include "common.hpp"
@@ -62,7 +63,7 @@ Eigen *getEigen(const gsl_matrix *mat) {
 }
 
 //This function should only be necessary for debugging.
-void printMat(gsl_matrix *mat) {
+void printMat(const gsl_matrix *mat) {
 	for(size_t i = 0; i < mat->size1; i++) {
 		for(size_t j = 0; j < mat->size2; j++) {
 			printf("%11.6lf", gsl_matrix_get(mat, i, j));
@@ -71,22 +72,52 @@ void printMat(gsl_matrix *mat) {
 	}
 }
 
+//Returns the Euclidean distance between two points
+//in whichever co-ordinate system they are provided in.
+double getDist(gsl_vector *a, gsl_vector *b) {
+	if(a->size != b->size) {
+		fprintf(stderr, "Cannot calculate the distance between two points in spaces of different dimensions.\n");
+		exit(1);
+	}
+	double dist = 0.0;
+	for(int i = 0; i < a->size; i++) {
+		dist += pow(gsl_vector_get(a, i) - gsl_vector_get(b, i), 2);
+	}
+	return sqrt(dist);
+}
+
+//Returns a vector containing the mean of each variable in a matrix.
+gsl_vector *getMeans(const gsl_matrix *mat) {
+	gsl_vector *means = gsl_vector_alloc(mat->size2);
+	
+	for(size_t var = 0; var < mat->size2; var++) {
+		double mean = 0.0;
+		for(size_t point = 0; point < mat->size1; point++) {
+			mean += gsl_matrix_get(mat, point, var);
+		}
+		mean /= mat->size1;
+		gsl_vector_set(means, var, mean);
+	}
+	
+	return means;
+}
+
 //Subtract the column means to centre the data on the origin.
 gsl_matrix *centreData(const gsl_matrix *raw) {
 	gsl_matrix *ret = gsl_matrix_alloc(raw->size1, raw->size2);
 	
+	gsl_vector *means = getMeans(raw);
+	
 	//Calculate the deviations by subtracting the column means from every element.
 	for(size_t var = 0; var < raw->size2; var++) {
-		double mean = 0.0;
 		for(size_t point = 0; point < raw->size1; point++) {
-			mean += gsl_matrix_get(raw, point, var);
-		}
-		mean /= raw->size1;
-		for(size_t point = 0; point < raw->size1; point++) {
-			double deviation = gsl_matrix_get(raw, point, var) - mean;
+			double deviation = gsl_matrix_get(raw, point, var)
+				- gsl_vector_get(means, var);
 			gsl_matrix_set(ret, point, var, deviation);
 		}
 	}
+	
+	gsl_vector_free(means);
 	
 	return ret;
 }
@@ -143,24 +174,77 @@ gsl_matrix *pcaTransform(const gsl_matrix *centred, const gsl_matrix *cov) {
 	return transformed;
 }
 
+//Perform Hotelling's two-sample T^2-test to see if we should reject the assumption
+//that the two sets of roles are drawn from the same distribution.
+//Takes a vector of two matrices with the two samples, which must have been
+//pca-transformed and normalised into the same co-ordinate space.
+//Prints its result, and also returns the p-value.
+double hotelling(vector<const gsl_matrix*> mats) {
+	if(mats.size() != 2) {
+		//Hotelling's is a two-sample test, but this should never trigger.
+		return -1.0;
+	}
+	for(size_t i = 0; i < mats.size()-1; i++) {
+		if(mats[i]->size2 != mats[i+1]->size2) {
+			fprintf(stderr, "Hotelling's test requires that all points have the same number of dimensions.\n");
+			exit(1);
+		}
+	}
+	
+	
+	int p = mats[0]->size2;
+	
+	int n = 0;
+	vector<int> ns;
+	vector<gsl_vector*> means;
+	for(size_t i = 0; i < mats.size(); i++) {
+		means.push_back(getMeans(mats[i]));
+		ns.push_back(mats[i]->size1);
+		n += ns[i];
+	}
+	
+	//TODO: Ignore any variables with mutual zeroes?
+	if(n-p-1 < 0) {
+		printf("Hotelling's test requires that there are more nodes in the two networks combined than components in the roles.\n");
+		return 1.0;
+	}
+	
+	//Get the Mahalanobis distance between the centres of the two distributions.
+	double dist = getDist(means[0], means[1]);
+	//Hotelling's t^2 statistic.
+	double tsquare = dist * ((double)(ns[0] * ns[1]) / n);
+	//An f statistic
+	double f = tsquare * (double)(n-p-1) / ((n-2) * p);
+	//TODO: Test that n-p-1 >= 0.
+	
+	double pvalue = gsl_cdf_fdist_Q(f, p, n-p-1);
+	
+	printf("Hotelling's test p-value: %lf\n", pvalue);
+	
+	for(size_t i = 0; i < mats.size(); i++) {
+		gsl_vector_free(means[i]);
+	}
+	
+	return pvalue;
+}
+
 //Take a vector of pointers to networks.
 //Every role must have the same number of dimensions.
 //Perform Principal Coordinate Analysis upon all the roles in the given networks,
 //and normalise the data to give unit variance in all dimensions.
 //Assume that the roles of every network are drawn from the same distribution.
 //This is necessary to leave both in the same co-ordinate space after PCA.
-//TODO: Perform Hotellings's t-test upon this assumption.
 void pca_norm_roles(vector<Network*> nets) {
-	int num_points = 0;
+	size_t num_points = 0;
 	for(size_t i = 0; i < nets.size(); i++) {
 		num_points += nets[i]->roles.size();
 	}
 	if(num_points == 0) return;
-	int num_dims = nets[0]->roles[0].f.size();
+	size_t num_dims = nets[0]->roles[0].f.size();
 	
 	//Move the roles into a gsl matrix.
 	gsl_matrix *raw = gsl_matrix_alloc(num_points, num_dims);
-	int point = 0;
+	size_t point = 0;
 	for(size_t net = 0; net < nets.size(); net++) {
 		for(size_t role = 0; role < nets[net]->roles.size(); role++) {
 			for(size_t dim = 0; dim < nets[net]->roles[role].f.size(); dim++) {
@@ -176,6 +260,18 @@ void pca_norm_roles(vector<Network*> nets) {
 	
 	//Perform the transformation.
 	gsl_matrix *pca = pcaTransform(centred, cov);
+	
+	//Before we stick everything back in the roles,
+	//perform Hotelling's test of the assumption.
+	gsl_matrix_view *pcaMatViews = (gsl_matrix_view*)malloc(nets.size() * sizeof(gsl_matrix_view));
+	vector<const gsl_matrix*> pcaMats;
+	size_t row = 0;
+	for(size_t i = 0; i < nets.size(); i++) {
+		pcaMatViews[i] = gsl_matrix_submatrix(pca, row, 0, nets[i]->roles.size(), num_dims);
+		pcaMats.push_back(&pcaMatViews[i].matrix);
+		row += nets[i]->roles.size();
+	}
+	hotelling(pcaMats);
 	
 	//Stick everything back in the networks' roles.
 	point = 0;
