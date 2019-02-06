@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstdio>
+#include <iostream>
 #include <algorithm>
 #include <vector>
 
@@ -80,7 +81,7 @@ double getDist(gsl_vector *a, gsl_vector *b) {
 		exit(1);
 	}
 	double dist = 0.0;
-	for(int i = 0; i < a->size; i++) {
+	for(size_t i = 0; i < a->size; i++) {
 		dist += pow(gsl_vector_get(a, i) - gsl_vector_get(b, i), 2);
 	}
 	return sqrt(dist);
@@ -156,7 +157,11 @@ gsl_matrix *pcaTransform(const gsl_matrix *centred, const gsl_matrix *cov) {
 		for(size_t point = 0; point < transformed->size1; point++) {
 			double normed;
 			//Ensure that we are not dividing by zero.
-			if(gsl_vector_get(eig->values, var) == 0.0) {
+			//Or trying to take the square root of a negative number.
+			//Because a covariance matrix is positive semi-definite,
+			//it can't have negative values.
+			//So any negative values are rounding errors and should be 0.
+			if(gsl_vector_get(eig->values, var) <= 0.0) {
 				normed = 0.0;
 			} else {
 				normed = gsl_matrix_get(transformed, point, var)
@@ -247,7 +252,7 @@ void pca_norm_roles(vector<Network*> nets) {
 	size_t point = 0;
 	for(size_t net = 0; net < nets.size(); net++) {
 		for(size_t role = 0; role < nets[net]->roles.size(); role++) {
-			for(size_t dim = 0; dim < nets[net]->roles[role].f.size(); dim++) {
+			for(size_t dim = 0; dim < num_dims; dim++) {
 				gsl_matrix_set(raw, point, dim, nets[net]->roles[role].f[dim].frequency);
 			}
 			point++;
@@ -279,7 +284,7 @@ void pca_norm_roles(vector<Network*> nets) {
 	point = 0;
 	for(size_t net = 0; net < nets.size(); net++) {
 		for(size_t role = 0; role < nets[net]->roles.size(); role++) {
-			for(size_t dim = 0; dim < nets[net]->roles[role].f.size(); dim++) {
+			for(size_t dim = 0; dim < num_dims; dim++) {
 				nets[net]->roles[role].f[dim].frequency = gsl_matrix_get(pca, point, dim);
 			}
 			point++;

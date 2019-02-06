@@ -52,7 +52,7 @@ double role_euclidean(Role *r1, Role *r2){
 	} else {
 		double distance = 0;
 		for(unsigned int i=0;i<r1->f.size();++i){
-			distance += (r1->f[i].frequency - r2->f[i].frequency ) * (r1->f[i].frequency - r2->f[i].frequency);
+			distance += pow(r1->f[i].frequency - r2->f[i].frequency, 2);
 		}
 		return sqrt(distance);
 	}
