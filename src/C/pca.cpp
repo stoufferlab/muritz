@@ -272,6 +272,8 @@ void pca_norm_roles(vector<Network*> nets) {
 		row += nets[i]->roles.size();
 	}
 	hotelling(pcaMats);
+	fflush(stdout);//Make sure the test result gets out ASAP.
+	free(pcaMatViews);
 	
 	//Stick everything back in the networks' roles.
 	point = 0;
