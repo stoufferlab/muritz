@@ -161,6 +161,7 @@ gsl_matrix *pcaTransform(const gsl_matrix *centred, const gsl_matrix *cov) {
 			//Because a covariance matrix is positive semi-definite,
 			//it can't have negative values.
 			//So any negative values are rounding errors and should be 0.
+			//TODO: Check this; I think positive semi-definite matrices may allow negative values outside the main diagonal.
 			if(gsl_vector_get(eig->values, var) <= 0.0) {
 				normed = 0.0;
 			} else {
