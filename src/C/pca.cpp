@@ -159,9 +159,8 @@ gsl_matrix *pcaTransform(const gsl_matrix *centred, const gsl_matrix *cov) {
 			//Ensure that we are not dividing by zero.
 			//Or trying to take the square root of a negative number.
 			//Because a covariance matrix is positive semi-definite,
-			//it can't have negative values.
-			//So any negative values are rounding errors and should be 0.
-			//TODO: Check this; I think positive semi-definite matrices may allow negative values outside the main diagonal.
+			//it can't have negative eigenvalues.
+			//So any negative eigenvalues are rounding errors and should be 0.
 			if(gsl_vector_get(eig->values, var) <= 0.0) {
 				normed = 0.0;
 			} else {
