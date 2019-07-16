@@ -216,7 +216,8 @@ char* muritz(int argc, char *argv[], string net1, string net1_roles, string net2
     alignment->doneflag = false;
     
     // Do all the precomputation. Has to be before setting params, as that may take some steps to find the initial temperature.
-    precompute(alignment->degree, dfunc);
+    bool is_median_null = (nullcost == -1.0);
+    precompute(alignment->degree, dfunc, is_median_null);
     
     // Set up the initial energy to be altered as the annealing goes on. As above, has to be done before setting params.
     alignment_energy_setup(alignment);

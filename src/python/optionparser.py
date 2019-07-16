@@ -70,8 +70,8 @@ def parse_cl_options():
                      )
     parser.add_option("-u", "--nullcost",
                       action="store", dest="nullcost", type="float",
-                      help="contribution of non-aligned nodes to the cost function [default: %default]",
-                      default=1,
+                      help="contribution of non-aligned nodes to the cost function (-1 to automatically select) [default: %default]",
+                      default=-1,
                      )
     parser.add_option("-b", "--bipartite",
                       action="store_true", dest="bipartite",

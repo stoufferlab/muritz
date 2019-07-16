@@ -163,28 +163,59 @@ double role_mahalanobis(Role *r1, Role *r2){
     return role_euclidean(r1, r2);
 }
 
+//Calculates the median of all values in distance_matrix.
+static double get_median_distance(void) {
+    size_t num_dists = n1.nodes.size() * n2.nodes.size();
+    vector<double> dists;
+    //Copy all the distances into the dists array.
+    for(size_t i = 0; i < n1.nodes.size(); i++) {
+        for(size_t j = 0; j < n2.nodes.size(); j++){
+            dists.push_back(gsl_matrix_get(distance_matrix, i, j));
+        }
+    }
+    //Sort the dists array, and take the middle element.
+    //Or the average of the two middle ones if num_dists is even.
+    sort(dists.begin(), dists.end());
+    double median_dist;
+    if(num_dists%2 == 1) {
+        median_dist = dists[num_dists/2];
+    } else {
+        median_dist = (dists[(num_dists-1)/2] + dists[num_dists/2])/2;
+    }
+    //Halve it, because we want the null cost to determine the point at which
+    //[A,B] > [A,NULL] + [NULL,B]
+    //and the nullcost appears twice on the RHS.
+    median_dist /= 2;
+    
+    return median_dist;
+}
+
 // calculate a full role-to-role distance matrix to speed up the SA
-static void prepare_distance_matrix(double (*dfunc) (Role*,Role*)){
-    unsigned int i,j;
+static void prepare_distance_matrix(double (*dfunc) (Role*,Role*), bool is_median_null){
+    size_t i,j;
     Role null;
     null.name = "NULL";
     
     // node-to-node distances
     distance_matrix = gsl_matrix_calloc(n1.nodes.size(),n2.nodes.size());
-    for(i=0;i<n1.nodes.size();++i) {
-        for(j=0;j<n2.nodes.size();++j){
+    for(i = 0; i < n1.nodes.size(); i++) {
+        for(j = 0; j < n2.nodes.size(); j++){
             gsl_matrix_set(distance_matrix, i, j, dfunc(&(n1.roles[i]),&(n2.roles[j])));
         }
     }
     
+    if(is_median_null) {
+        nullcost = get_median_distance();
+    }
+    
     // network 1 node distances when unaligned
     nulldist1 = (double*) calloc(n1.nodes.size(), sizeof(double));
-    for(i=0;i<n1.nodes.size();++i)
+    for(i = 0; i < n1.nodes.size(); i++)
         nulldist1[i] = dfunc(&(n1.roles[i]), &null);
     
     // network 2 node distances when unaligned
     nulldist2 = (double*) calloc(n2.nodes.size(), sizeof(double));
-    for(i=0;i<n2.nodes.size();++i)
+    for(i = 0; i < n2.nodes.size(); i++)
         nulldist2[i] = dfunc(&(n2.roles[i]), &null);
     
     
@@ -252,11 +283,11 @@ static void prepare_neighbor_data(unsigned int degree){
     //*/
 }
 
-void precompute(unsigned int degree, double (*dfunc) (Role*,Role*)) {
+void precompute(unsigned int degree, double (*dfunc) (Role*,Role*), bool is_median_null) {
     for(unsigned int d = 0; d <= degree; d++) {
         prepare_neighbor_data(d);
     }
-    prepare_distance_matrix(dfunc);
+    prepare_distance_matrix(dfunc, is_median_null);
 }
 
 // calculate the distance between the roles of two nodes

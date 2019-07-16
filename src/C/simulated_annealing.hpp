@@ -14,7 +14,7 @@ double role_mahalanobis(Role *r1, Role *r2);
 
 double node_distance(int i, int j);
 
-extern void precompute(unsigned int degree, double (*dfunc) (Role*,Role*));
+extern void precompute(unsigned int degree, double (*dfunc) (Role*,Role*), bool is_median_null);
 
 extern anneal_params_t alignment_params(const gsl_rng *r,
                                         const Alignment *a,
