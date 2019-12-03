@@ -206,6 +206,7 @@ static void prepare_distance_matrix(double (*dfunc) (Role*,Role*), bool is_media
     
     if(is_median_null) {
         nullcost = get_median_distance();
+        printf("Using nullcost = %lf\n", nullcost);
     }
     
     // network 1 node distances when unaligned
