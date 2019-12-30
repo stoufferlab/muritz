@@ -30,10 +30,10 @@ Installation should be relatively painless, though it might require a bit of elb
 
 
    This should return the following:
-    > GSL_RNG_SEED=4677717243578800196 \n
-    > optimal =  [ (A,A2) (B,B1) (C,C1) (NULL,C2) (NULL,A1) (NULL,B2) ] \n
-    > Energy = 3 \n
-    > Normalized nodes energy = 3.70074e-17 \n
+    > GSL_RNG_SEED=4677717243578800196 \\
+    > optimal =  [ (A,A2) (B,B1) (C,C1) (NULL,C2) (NULL,A1) (NULL,B2) ] \\
+    > Energy = 3 \\
+    > Normalized nodes energy = 3.70074e-17 \\
 
 5. If you want to see full details of the simulated-annealing based optimization, you can also run muritz with verbose mode turned on
 
