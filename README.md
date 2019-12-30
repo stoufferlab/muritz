@@ -36,5 +36,9 @@ Installation should be relatively painless, though it might require a bit of elb
 
 		muritz src/data/unipartite-1.net src/data/unipartite-1.net
 
+7. For all the options available, run
+
+		muritz
+
 ## How to cite?
-To use this software, please make sure you cite both Bramon Mora et. al. (*Identifying a common backbone of interactions underlying food webs from different ecosystems. Nature Communications*, 2018) and Bramon Mora et. al. (*pymfinder: a tool for the motif analysis of binary and quantitative complex networks*. --)
+To use this software, please make sure you cite both Bramon Mora et. al. (*Identifying a common backbone of interactions underlying food webs from different ecosystems. Nature Communications*, 2018) and Bramon Mora et. al. (*pymfinder: a tool for the motif analysis of binary and quantitative complex networks. bioRxiv*,2018)
