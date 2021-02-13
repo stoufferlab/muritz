@@ -1,1 +1,6 @@
 # muritz(1) -- directed graph alignment
+
+## SYNOPSIS
+
+`muritz` [<options>] <networkfile1> <networkfile2><br>
+`muritz` [<options>] `-x` <rolefile1> `-y` <rolefile2> <networkfile1> <networkfile2>
