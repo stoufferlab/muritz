@@ -2,3 +2,7 @@
 /dist/
 /muritz.egg-info/
 /muritzex.egg-info/
+
+#Ignore everything in the docs directory except the original ronn files.
+docs/*
+!docs/*.ronn
