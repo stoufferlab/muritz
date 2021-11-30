@@ -6,7 +6,7 @@ import subprocess
 import operator
 
 from pymfinder import motif_roles
-from optionparser import parse_cl_options
+from optionparser import parse_cl_options, UNIPARTITE_MOTIF_SIZE, BIPARTITE_MOTIF_SIZE
 import muritzex
 
 
@@ -47,13 +47,13 @@ def class_to_dict(roles):
     for n in roles.nodes:
         sorted_list = sorted(roles.nodes[n].roles.items(), key = operator.itemgetter(0))
         roles.nodes[n].roles = {item[0]: item[1] for item in sorted_list}
-       
+        
         if roles.weighted:
             #convert from class structure to dict
             class_to_dict = {roles.nodes[n].id:roles.nodes[n].weighted_roles for n in roles.nodes}
         else:
             class_to_dict = {roles.nodes[n].id:roles.nodes[n].roles for n in roles.nodes}
-
+    
     return class_to_dict
 
 def read_roles(filename, spe):
@@ -62,19 +62,19 @@ def read_roles(filename, spe):
     nspe=len(lines)
     inFile.close()
     roles = {x[0]:{idy:float(y) for idy, y in enumerate(x[1:])} for x in lines}
-
+    
     if nspe!=len(roles.keys()):
         sys.stderr.write("There is something odd about file "+filename+", you should check the name of the nodes and look for repeated names.\n")
         sys.exit()
-
+    
     if sorted(roles.keys())!=sorted(spe):
         sys.stderr.write("The nodes in the network file do not match the nodes in "+filename+".\n")
         sys.exit()
-
+    
     if any([len(roles[x])!=len(roles[roles.keys()[0]]) for x in roles.keys()]):
         sys.stderr.write("There is something odd about file "+filename+", all roles should have the same size.\n")
         sys.exit()
-
+    
     return roles
 
 def muritz(options, args):
@@ -85,7 +85,7 @@ def muritz(options, args):
         filename = options.fixed_file 
         pairs, pairtype, sp_ = read_network(filename)
 
-    if(options.roles1!=None and options.roles2==None) or (options.roles1==None and options.roles2!=None):
+    if(options.roles1_file!=None and options.roles2_file==None) or (options.roles1_file==None and options.roles2_file!=None):
         sys.stderr.write("If you define the roles, you need to do it for both networks.\n")
         sys.exit()
 
@@ -95,55 +95,54 @@ def muritz(options, args):
     #Are the networks unipartite or bipartite?
     if options.bipartite:
         if net1type==False and net2type==False:
-            unipartite=net1type
+            unipartite=False
+        elif net1type != net2type:
+            print "You are comparing a unipartite network with a bipartite one. Both will be considered as unipartite."
+            unipartite=True
         else:
-            print "You are comparing a unipartite network with a bipartite one. Both will be considered as unipartite"
+            print "Both networks are unipartite, but the bipartite flag was specified. Both will be treated as unipartite."
             unipartite=True
     else:
-    	unipartite=True
+        unipartite=True
 
     if options.weighted:
         weighted=True
     else:
         weighted=False
-
-    if options.roles1!=None:
-        net1_roles=read_roles(options.roles1, spe1)
-    else:
+    
+    if options.motifsize is None:
         if unipartite:
-            net1_roles = class_to_dict(motif_roles(args[0],motifsize=2,allroles=True, weighted=weighted))
-            net1_roles2 = class_to_dict(motif_roles(args[0],motifsize=3,allroles=True, weighted=weighted))
-                
+            motifsize = UNIPARTITE_MOTIF_SIZE
+        else:
+           motifsize = BIPARTITE_MOTIF_SIZE
+    else:
+        motifsize = int(options.motifsize)
+        if motifsize < 2:
+            sys.stderr.write("Motif size must be at least 2.\n")
+            sys.exit()
+    
+    if options.roles1_file!=None:
+        net1_roles=read_roles(options.roles1_file, spe1)
+    else:
+        net1_roles = class_to_dict(motif_roles(args[0],motifsize=2, networktype = "unipartite" if unipartite else "bipartite", weighted=weighted, allroles=True))
+        for k in range(3,motifsize+1):
+            net1_roles_tmp = class_to_dict(motif_roles(args[0],motifsize=k, networktype = "unipartite" if unipartite else "bipartite", weighted=weighted, allroles=True))
             for i in net1_roles:
-                net1_roles[i].update(net1_roles2[i])
-        else:
-            net1_roles = class_to_dict(motif_roles(args[0],motifsize=2, networktype = "bipartite", weighted=weighted, allroles=True))
-            for k in range(3,6):
-                net1_roles2 = class_to_dict(motif_roles(args[0],motifsize=k, networktype = "bipartite", weighted=weighted, allroles=True))
-                for i in net1_roles:
-                    net1_roles[i].update(net1_roles2[i])
-
-
-    if options.roles2!=None:
-        net2_roles=read_roles(options.roles2, spe2)
+                net1_roles[i].update(net1_roles_tmp[i])
+    
+    if options.roles2_file!=None:
+        net2_roles=read_roles(options.roles2_file, spe2)
     else:
-        if unipartite:
-            net2_roles = class_to_dict(motif_roles(args[1],motifsize=2,allroles=True, weighted=weighted))
-            net2_roles2 = class_to_dict(motif_roles(args[1],motifsize=3,allroles=True, weighted=weighted))
-                
+        net2_roles = class_to_dict(motif_roles(args[1],motifsize=2, networktype = "unipartite" if unipartite else "bipartite", weighted=weighted, allroles=True))
+        for k in range(3,motifsize+1):
+            net2_roles_tmp = class_to_dict(motif_roles(args[1],motifsize=k, networktype = "unipartite" if unipartite else "bipartite", weighted=weighted, allroles=True))
             for i in net2_roles:
-                net2_roles[i].update(net2_roles2[i])
-        else:
-            net2_roles = class_to_dict(motif_roles(args[1],motifsize=2, networktype = "bipartite", weighted=weighted, allroles=True))
-            for k in range(3,6):
-                net2_roles2 = class_to_dict(motif_roles(args[1],motifsize=k, networktype = "bipartite", weighted=weighted, allroles=True))
-                for i in net2_roles:
-                    net2_roles[i].update(net2_roles2[i])
-
+                net2_roles[i].update(net2_roles_tmp[i])
+    
     if len(net1_roles[net1_roles.keys()[0]])!=len(net2_roles[net2_roles.keys()[0]]):
         sys.stderr.write("The roles for the nodes of each network need to have the same size.\n")
         sys.exit()
-                    
+    
     muritz_in = muritz_input(net1, net2, net1_roles, net2_roles, pairs)
     
     # get a random seed
@@ -176,7 +175,7 @@ def muritz(options, args):
     
     # call the muritz alignment code
     #command = "GSL_RNG_SEED=%s muritz.x -n %s -t %s -c %s -m %s -k %s -l %s -o %s -u %s %s %s %s" % (rnd_seed,
-    command = "-n %s -t %s -c %s -m %s -k %s -l %s -o %s -u %s %s %s %s %s" % (
+    command = "-n %s -t %s -c %s -m %s -k %s -l %s -o %s -u %s -e %s -a %s %s %s %s %s" % (
             options.iterations,
             options.tinitial,
             options.cooling,
@@ -185,6 +184,8 @@ def muritz(options, args):
             options.cost_function,
             options.overlap,
             options.nullcost,
+            options.endcounter,
+            options.acceptmin,
             rflag,
             pflag,
             vflag,

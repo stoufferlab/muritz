@@ -18,7 +18,7 @@ class config(_config):
 
   def check_python_dev(self):
     from distutils.sysconfig import get_python_inc
-    log.info("cehcking for 'Python.h' header file")
+    log.info("checking for 'Python.h' header file")
     ok = self.check_header('Python.h',include_dirs=[get_python_inc()])
     if not ok:
       errmsg = ("The compiler cannot find the 'Python.h' header file.\n"
@@ -120,7 +120,9 @@ extension_mod = Extension("muritzex",
     'network.cpp',
     'roles.cpp',
     'simulated_annealing.cpp',
-    'muritz_module.cpp']
+    'muritz_module.cpp',
+    'anneal.cpp',
+    'pca.cpp']
     ],
     include_dirs = ['src/C', '/usr/include', '/usr/include/python2.7'],
     library_dirs = ['/usr/lib'],
