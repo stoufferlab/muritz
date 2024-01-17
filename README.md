@@ -1,4 +1,4 @@
-##muritz
+# muritz [![](https://badgen.net/badge/DOI/10.1038%2Fs41467-018-05056-0/red)](https://doi.org/10.1038/s41467-018-05056-0)
 
 **muritz** is directed graph alignment based on node-specific motif-role profiles.
 
